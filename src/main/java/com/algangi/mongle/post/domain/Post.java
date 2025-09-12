@@ -1,7 +1,11 @@
 package com.algangi.mongle.post.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.algangi.mongle.global.entity.TimeBaseEntity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,6 +13,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -60,13 +65,37 @@ public class Post extends TimeBaseEntity {
     @Builder.Default
     private PostStatus status = PostStatus.ACTIVE;
 
-    public static Post createPost(Double latitude, Double longitude, String s2CellId, String content) {
-        return Post.builder()
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<PostFile> postFiles = new ArrayList<>();
+
+    public static Post createPost(Double latitude, Double longitude, String s2CellId, String content, List<PostFile> postFiles) {
+        validateLocation(latitude, longitude);
+        Post post = Post.builder()
             .latitude(latitude)
             .longitude(longitude)
             .s2CellId(s2CellId)
             .content(content)
             .build();
+
+        post.addPostFiles(postFiles);
+
+        return post;
+    }
+
+    public static void validateLocation(Double latitude, Double longitude) {
+        if(latitude == null || longitude == null) {
+            throw new IllegalArgumentException("위도와 경도는 null일 수 없습니다.");
+        }
+    }
+
+    public void addPostFiles(List<PostFile> postFiles){
+        postFiles.forEach(this::addPostFile);
+    }
+
+    public void addPostFile(PostFile postFile) {
+        postFiles.add(postFile);
+        postFile.setPost(this);
     }
 
 }
