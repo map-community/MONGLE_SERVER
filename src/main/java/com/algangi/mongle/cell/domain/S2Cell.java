@@ -1,6 +1,7 @@
 package com.algangi.mongle.cell.domain;
 
 import com.algangi.mongle.dynamicCloud.domain.DynamicCloud;
+import com.algangi.mongle.place.domain.Place;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -25,12 +26,19 @@ public class S2Cell {
     @JoinColumn(name = "dynamic_cloud_id")
     private DynamicCloud dynamicCloud;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "place_id")
+    private Place place;
+
     public static S2Cell createS2Cell(String s2CellId){
-        return new S2Cell(s2CellId, null);
+        return new S2Cell(s2CellId, null, null);
     }
 
     public void setDynamicCloud(DynamicCloud dynamicCloud) {
         this.dynamicCloud = dynamicCloud;
     }
 
+    public void setPlace(Place place){
+        this.place = place;
+    }
 }
