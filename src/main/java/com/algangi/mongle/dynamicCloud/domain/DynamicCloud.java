@@ -40,7 +40,7 @@ public class DynamicCloud extends CreatedDateBaseEntity {
     @Builder.Default
     private List<S2Cell> s2Cells = new ArrayList<>();
 
-    public static DynamicCloud createDynamicCloud(List<S2Cell> s2Cells){
+    public static DynamicCloud createDynamicCloud(List<S2Cell> s2Cells) {
         DynamicCloud dynamicCloud = DynamicCloud.builder()
             .build();
 
@@ -48,7 +48,7 @@ public class DynamicCloud extends CreatedDateBaseEntity {
         return dynamicCloud;
     }
 
-    public void addS2Cells(List<S2Cell> s2Cells){
+    public void addS2Cells(List<S2Cell> s2Cells) {
         s2Cells.forEach(this::addS2Cell);
     }
 
@@ -56,7 +56,6 @@ public class DynamicCloud extends CreatedDateBaseEntity {
         this.s2Cells.add(s2Cell);
         s2Cell.setDynamicCloud(this);
     }
-
 
 
 }

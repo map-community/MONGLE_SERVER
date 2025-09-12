@@ -51,7 +51,8 @@ public class Member extends TimeBaseEntity {
     @Column(nullable = false)
     private String oauthId;
 
-    public static Member createUser(String email, String nickname, String profileImage, OAuthProvider provider, String oauthId) {
+    public static Member createUser(String email, String nickname, String profileImage,
+        OAuthProvider provider, String oauthId) {
         return Member.builder()
             .email(email)
             .nickname(nickname)

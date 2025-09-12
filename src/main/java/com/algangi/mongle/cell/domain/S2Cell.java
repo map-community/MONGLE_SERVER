@@ -30,7 +30,7 @@ public class S2Cell {
     @JoinColumn(name = "place_id")
     private Place place;
 
-    public static S2Cell createS2Cell(String s2CellId){
+    public static S2Cell createS2Cell(String s2CellId) {
         return new S2Cell(s2CellId, null, null);
     }
 
@@ -38,7 +38,7 @@ public class S2Cell {
         this.dynamicCloud = dynamicCloud;
     }
 
-    public void setPlace(Place place){
+    public void setPlace(Place place) {
         this.place = place;
     }
 }

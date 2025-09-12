@@ -48,7 +48,7 @@ public class PostFile {
             .build();
     }
 
-    public void setPost(Post post){
+    public void setPost(Post post) {
         this.post = post;
     }
 }

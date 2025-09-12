@@ -1,6 +1,5 @@
 package com.algangi.mongle.post.service;
 
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +18,7 @@ public class PostFinder {
 
     private final PostJpaRepository postJpaRepository;
 
-    public Post getPostOrThrow(Long postId){
+    public Post getPostOrThrow(Long postId) {
         return postJpaRepository.findById(postId)
             .orElseThrow(() -> new ApplicationException(PostErrorCode.POST_NOT_FOUND));
     }

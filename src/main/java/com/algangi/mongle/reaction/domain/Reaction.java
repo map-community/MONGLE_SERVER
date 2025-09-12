@@ -53,7 +53,8 @@ public class Reaction extends CreatedDateBaseEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    public static Reaction createReaction(Long targetId, TargetType targetType, ReactionType type, Member member){
+    public static Reaction createReaction(Long targetId, TargetType targetType, ReactionType type,
+        Member member) {
         return Reaction.builder()
             .targetId(targetId)
             .targetType(targetType)

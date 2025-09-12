@@ -78,11 +78,12 @@ public class Post extends TimeBaseEntity {
     @JoinColumn(name = "dynamic_cloud_id")
     private DynamicCloud dynamicCloud;
 
-    @OneToMany(mappedBy = "post", cascade =  CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
-    public static Post createPost(Double latitude, Double longitude, String s2CellId, String content, List<PostFile> postFiles) {
+    public static Post createPost(Double latitude, Double longitude, String s2CellId,
+        String content, List<PostFile> postFiles) {
         validateLocation(latitude, longitude);
         Post post = Post.builder()
             .latitude(latitude)
@@ -97,12 +98,12 @@ public class Post extends TimeBaseEntity {
     }
 
     public static void validateLocation(Double latitude, Double longitude) {
-        if(latitude == null || longitude == null) {
+        if (latitude == null || longitude == null) {
             throw new IllegalArgumentException("위도와 경도는 null일 수 없습니다.");
         }
     }
 
-    public void addPostFiles(List<PostFile> postFiles){
+    public void addPostFiles(List<PostFile> postFiles) {
         postFiles.forEach(this::addPostFile);
     }
 
@@ -111,7 +112,7 @@ public class Post extends TimeBaseEntity {
         postFile.setPost(this);
     }
 
-    public void addComment(Comment comment){
+    public void addComment(Comment comment) {
         this.comments.add(comment);
         comment.setPost(this);
     }

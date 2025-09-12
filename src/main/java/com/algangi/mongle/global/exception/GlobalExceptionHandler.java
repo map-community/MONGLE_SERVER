@@ -15,21 +15,23 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<ApiResponse<ErrorInfo>> handleApplicationException(
-            ApplicationException exception) {
+        ApplicationException exception) {
         log.error(exception.getMessage(), exception);
 
         ErrorCode errorCode = exception.getErrorCode();
 
         return ResponseEntity.status(errorCode.getStatus())
-                .body(ApiResponse.error(errorCode.getCode(), errorCode.getMessage(),
-                        ErrorInfo.of(exception.getErrorInfo())));
+            .body(ApiResponse.error(errorCode.getCode(), errorCode.getMessage(),
+                ErrorInfo.of(exception.getErrorInfo())));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiResponse<ErrorInfo>> handleIllegalArgumentException(IllegalArgumentException exception) {
+    public ResponseEntity<ApiResponse<ErrorInfo>> handleIllegalArgumentException(
+        IllegalArgumentException exception) {
         log.error(exception.getMessage(), exception);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(ApiResponse.error(HttpStatus.BAD_REQUEST.getReasonPhrase(), exception.getMessage()));
+            .body(ApiResponse.error(HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                exception.getMessage()));
     }
 }

@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.algangi.mongle.cell.domain.S2Cell;
-import com.algangi.mongle.dynamicCloud.domain.DynamicCloud;
-import com.algangi.mongle.post.domain.Post;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -41,7 +39,8 @@ public class Place {
     @Builder.Default
     private List<S2Cell> s2Cells = new ArrayList<>();
 
-    public static Place createPlace(Double centerLatitude, Double centerLongitude, List<S2Cell> s2Cells){
+    public static Place createPlace(Double centerLatitude, Double centerLongitude,
+        List<S2Cell> s2Cells) {
         Place place = Place.builder()
             .centerLatitude(centerLatitude)
             .centerLongitude(centerLongitude)
@@ -52,7 +51,7 @@ public class Place {
         return place;
     }
 
-    public void addS2Cells(List<S2Cell> s2Cells){
+    public void addS2Cells(List<S2Cell> s2Cells) {
         s2Cells.forEach(this::addS2Cell);
     }
 

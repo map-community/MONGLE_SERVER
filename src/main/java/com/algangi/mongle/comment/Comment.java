@@ -2,7 +2,6 @@ package com.algangi.mongle.comment;
 
 import com.algangi.mongle.global.entity.TimeBaseEntity;
 import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.member.domain.MemberStatus;
 import com.algangi.mongle.post.domain.Post;
 
 import jakarta.persistence.Column;
@@ -23,7 +22,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "comment")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access =  AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Getter
 public class Comment extends TimeBaseEntity {
@@ -69,7 +68,7 @@ public class Comment extends TimeBaseEntity {
     }
 
     public static Comment createChildComment(String content, Comment parentComment, Member member) {
-        if(parentComment.isChildComment()){
+        if (parentComment.isChildComment()) {
             throw new IllegalArgumentException("대댓글에 대댓글을 달 수 없습니다.");
         }
 
@@ -84,11 +83,11 @@ public class Comment extends TimeBaseEntity {
         return comment;
     }
 
-    public void setPost(Post post){
+    public void setPost(Post post) {
         this.post = post;
     }
 
-    public boolean isChildComment(){
+    public boolean isChildComment() {
         return parentComment != null;
     }
 
