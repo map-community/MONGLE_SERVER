@@ -3,6 +3,7 @@ package com.algangi.mongle.post.domain;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.algangi.mongle.comment.Comment;
 import com.algangi.mongle.dynamicCloud.domain.DynamicCloud;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
 
@@ -77,6 +78,10 @@ public class Post extends TimeBaseEntity {
     @JoinColumn(name = "dynamic_cloud_id")
     private DynamicCloud dynamicCloud;
 
+    @OneToMany(mappedBy = "post", cascade =  CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Comment> comments = new ArrayList<>();
+
     public static Post createPost(Double latitude, Double longitude, String s2CellId, String content, List<PostFile> postFiles) {
         validateLocation(latitude, longitude);
         Post post = Post.builder()
@@ -106,4 +111,8 @@ public class Post extends TimeBaseEntity {
         postFile.setPost(this);
     }
 
+    public void addComment(Comment comment){
+        this.comments.add(comment);
+        comment.setPost(this);
+    }
 }
