@@ -3,6 +3,7 @@ package com.algangi.mongle.post.domain;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.algangi.mongle.dynamicCloud.domain.DynamicCloud;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -10,9 +11,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
@@ -68,6 +72,10 @@ public class Post extends TimeBaseEntity {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<PostFile> postFiles = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dynamic_cloud_id")
+    private DynamicCloud dynamicCloud;
 
     public static Post createPost(Double latitude, Double longitude, String s2CellId, String content, List<PostFile> postFiles) {
         validateLocation(latitude, longitude);
