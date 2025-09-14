@@ -3,7 +3,7 @@ package com.algangi.mongle.post.domain;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.algangi.mongle.comment.Comment;
+import com.algangi.mongle.comment.domain.Comment;
 import com.algangi.mongle.dynamicCloud.domain.DynamicCloud;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
 
