@@ -1,4 +1,4 @@
-package com.algangi.mongle.comment;
+package com.algangi.mongle.comment.domain;
 
 import com.algangi.mongle.global.entity.TimeBaseEntity;
 import com.algangi.mongle.member.domain.Member;
