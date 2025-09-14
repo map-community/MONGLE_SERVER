@@ -18,6 +18,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SoftDelete;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "comment")
@@ -25,6 +28,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Getter
+@SoftDelete
 public class Comment extends TimeBaseEntity {
 
     @Id
@@ -53,6 +57,8 @@ public class Comment extends TimeBaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
+
+    private LocalDateTime deletedAt;
 
     public static Comment createParentComment(String content, Post post, Member member) {
         Comment comment = Comment.builder()
@@ -91,4 +97,5 @@ public class Comment extends TimeBaseEntity {
         return parentComment != null;
     }
 
+    public boolean isDeleted() { return deletedAt != null; }
 }
