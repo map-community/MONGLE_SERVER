@@ -1,0 +1,52 @@
+{
+  "type": "FeatureCollection",
+  "name": "KNU Places",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "place_code": "IT_BUILDING_5",
+        "name": "IT 5호관",
+        "center_lat": 35.888106,
+        "center_lng": 128.611526,
+        "priority": 1
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [128.611113, 35.888333],
+              [128.611153, 35.887958],
+              [128.611944, 35.887950],
+              [128.611928, 35.888238],
+              [128.611113, 35.888333]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "place_code": "CENTRAL_LIBRARY",
+        "name": "중앙도서관",
+        "center_lat": 35.891762,
+        "center_lng": 128.612260,
+        "priority": 2
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [128.611726, 35.892220],
+            [128.611647, 35.891342],
+            [128.612926, 35.891325],
+            [128.612888, 35.892173],
+            [128.611726, 35.892220]
+          ]
+        ]
+      }
+    }
+  ]
+}
