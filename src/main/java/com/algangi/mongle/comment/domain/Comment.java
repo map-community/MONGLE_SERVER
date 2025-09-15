@@ -46,7 +46,7 @@ public class Comment extends TimeBaseEntity {
     @Builder.Default
     private long dislikeCount = 0;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "parent_comment_id")
     private Comment parentComment;
 
