@@ -42,4 +42,10 @@ public class CommentService {
         );
     }
 
+    @Transactional
+    public void deleteComment(Long commentId) {
+        Comment comment = commentFinder.getCommentOrThrow(commentId);
+        comment.softDelete();
+    }
+
 }
