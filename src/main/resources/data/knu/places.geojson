@@ -8,7 +8,8 @@
         "place_code": "IT_BUILDING_5",
         "name": "IT 5호관",
         "center_lat": 35.888106,
-        "center_lng": 128.611526
+        "center_lng": 128.611526,
+        "priority": 1
       },
       "geometry": {
         "type": "MultiPolygon",
@@ -31,7 +32,8 @@
         "place_code": "CENTRAL_LIBRARY",
         "name": "중앙도서관",
         "center_lat": 35.891762,
-        "center_lng": 128.612260
+        "center_lng": 128.612260,
+        "priority": 2
       },
       "geometry": {
         "type": "Polygon",
