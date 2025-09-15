@@ -98,6 +98,7 @@ public final class S2Covering {
         S2RegionCoverer coverer = new S2RegionCoverer();
         coverer.setMinLevel(level);
         coverer.setMaxLevel(level);
+        coverer.setMaxCells(Integer.MAX_VALUE);
         ArrayList<S2CellId> covering = new ArrayList<>();
         coverer.getCovering(region, covering);
         return covering.stream().map(S2CellId::toToken).collect(Collectors.toList());
