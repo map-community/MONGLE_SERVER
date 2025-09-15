@@ -49,9 +49,10 @@ public class S2SeedBatchRunner implements CommandLineRunner {
         S2Polygon campus = S2Covering.unionOfFeatureCollection(fc);
         List<String> tokens = S2Covering.coverLevel19(campus);
 
-        String sql = "INSERT INTO s2_cell (s2_cell_id, dynamic_cloud_id, place_id) " +
-            "VALUES (? , NULL, NULL) " +
-            "ON DUPLICATE KEY UPDATE s2_cell_id = s2_cell_id";
+        String sql =
+            "INSERT INTO s2_cell (s2cell_id, dynamic_cloud_id, place_id) " +
+                "VALUES (?, NULL, NULL) " +
+                "ON DUPLICATE KEY UPDATE s2cell_id = s2cell_id";
 
         int total = tokens.size();
         int affected = 0;
