@@ -1,6 +1,8 @@
 package com.algangi.mongle.comment.domain;
 
+import com.algangi.mongle.comment.exception.CommentErrorCode;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
+import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.post.domain.Post;
 
@@ -18,7 +20,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SoftDelete;
 
 import java.time.LocalDateTime;
 
@@ -28,7 +29,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Getter
-@SoftDelete
 public class Comment extends TimeBaseEntity {
 
     @Id
@@ -46,7 +46,7 @@ public class Comment extends TimeBaseEntity {
     @Builder.Default
     private long dislikeCount = 0;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_comment_id")
     private Comment parentComment;
 
@@ -58,6 +58,7 @@ public class Comment extends TimeBaseEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
+    @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
     public static Comment createParentComment(String content, Post post, Member member) {
@@ -89,13 +90,20 @@ public class Comment extends TimeBaseEntity {
         return comment;
     }
 
-    public void setPost(Post post) {
-        this.post = post;
-    }
-
     public boolean isChildComment() {
         return parentComment != null;
     }
 
     public boolean isDeleted() { return deletedAt != null; }
+
+    public void softDelete() {
+        if (isDeleted()) {
+            throw new ApplicationException(CommentErrorCode.ALREADY_DELETED);
+        }
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public void setPost(Post post) {
+        this.post = post;
+    }
 }
