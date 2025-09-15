@@ -21,4 +21,9 @@ public interface S2CellJpaRepository extends JpaRepository<S2Cell, String> {
     @Transactional
     @Query("update S2Cell c set c.place = null where c.s2CellId in :ids")
     int unassignPlaceByCellIds(@Param("ids") List<String> ids);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Transactional
+    @Query("update S2Cell c set c.place = :place where c.s2CellId in :ids and c.place is null")
+    int assignPlaceIfNullByCellIds(@Param("place") Place place, @Param("ids") List<String> ids);
 }
