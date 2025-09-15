@@ -30,4 +30,16 @@ public class CommentService {
         );
     }
 
+    @Transactional
+    public void createChildComment(Long parentCommentId, CommentCreateRequest dto, Long memberId) {
+        Member author = memberFinder.getMemberOrThrow(memberId);
+        Comment comment = commentFinder.getCommentOrThrow(parentCommentId);
+
+        Comment.createChildComment(
+                dto.content(),
+                comment,
+                author
+        );
+    }
+
 }

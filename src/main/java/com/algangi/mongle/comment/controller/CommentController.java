@@ -28,4 +28,12 @@ public class CommentController {
         return ResponseEntity.ok(ApiResponse.success());
     }
 
+    @PostMapping("/comments/{parentCommentId}/replies")
+    public ResponseEntity<ApiResponse<Void>> createChildComment(@PathVariable(name = "parentCommentId") Long parentCommentId,
+                                                                @Valid @RequestBody CommentCreateRequest dto,
+                                                                @RequestParam Long memberId) {
+        commentService.createChildComment(parentCommentId, dto, memberId);
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
 }
