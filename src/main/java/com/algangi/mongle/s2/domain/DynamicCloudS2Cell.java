@@ -27,7 +27,7 @@ public class DynamicCloudS2Cell {
     private String s2TokenId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "dynamic_cloud_id", nullable = false)
+    @JoinColumn(name = "cloud_id", nullable = true)
     private DynamicCloud dynamicCloud;
 
     public static DynamicCloudS2Cell of(String s2TokenId, DynamicCloud dynamicCloud) {

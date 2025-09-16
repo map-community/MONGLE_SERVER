@@ -27,7 +27,7 @@ public class StaticCloudS2Cell {
     private String s2TokenId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "static_cloud_id", nullable = false)
+    @JoinColumn(name = "cloud_id", nullable = false)
     private StaticCloud staticCloud;
 
     public static StaticCloudS2Cell of(String s2TokenId, StaticCloud staticCloud) {
