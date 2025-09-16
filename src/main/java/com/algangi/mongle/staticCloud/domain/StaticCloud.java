@@ -1,4 +1,4 @@
-package com.algangi.mongle.staticcloud.domain;
+package com.algangi.mongle.staticCloud.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
