@@ -1,5 +1,6 @@
 package com.algangi.mongle.post.domain;
 
+import com.algangi.mongle.staticCloud.domain.StaticCloud;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +47,7 @@ public class Post extends TimeBaseEntity {
     private Double longitude;
 
     @Column(nullable = false)
-    private String s2CellId;
+    private String s2TokenId;
 
     private String content;
 
@@ -78,6 +79,10 @@ public class Post extends TimeBaseEntity {
     @JoinColumn(name = "dynamic_cloud_id")
     private DynamicCloud dynamicCloud;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "static_cloud_id")
+    private StaticCloud staticCloud;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
@@ -88,7 +93,7 @@ public class Post extends TimeBaseEntity {
         Post post = Post.builder()
             .latitude(latitude)
             .longitude(longitude)
-            .s2CellId(s2CellId)
+            .s2TokenId(s2CellId)
             .content(content)
             .build();
 
