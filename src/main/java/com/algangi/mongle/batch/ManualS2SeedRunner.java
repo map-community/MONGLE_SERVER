@@ -2,17 +2,17 @@ package com.algangi.mongle.batch;
 
 import com.algangi.mongle.staticCloud.domain.StaticCloud;
 import com.algangi.mongle.staticCloud.repository.StaticCloudJpaRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -20,12 +20,10 @@ import java.util.*;
 @Slf4j
 public class ManualS2SeedRunner implements CommandLineRunner {
 
-    @PersistenceContext
-    private EntityManager em;
-
     private final StaticCloudJpaRepository staticCloudRepo;
+    private final JdbcTemplate jdbcTemplate;
 
-    private static final int UPSERT_CHUNK = 1000;
+    private static final int BATCH_SIZE = 500;
 
     // 정적 클라우드 정의
     private static final Map<String, CloudDef> STATIC_DEFS = Map.ofEntries(
@@ -43,75 +41,327 @@ public class ManualS2SeedRunner implements CommandLineRunner {
                     "3565e1755fc", "3565e17567c", "3565e175674", "3565e17560c", "3565e175604",
                     "3565e19fdfc", "3565e17568c", "3565e175664", "3565e17566c", "3565e175614",
                     "3565e17561c", "3565e17565c", "3565e175644", "3565e17563c"))),
-        Map.entry("문예관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("예술대학", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("조소동", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("조형관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("농생대4호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("누리관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("약학대학", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("첨단기술융합대학", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("종합정보센터", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("중앙도서관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("인문대학", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("본관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("인문한국진흥관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("IT융합산업빌딩", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("정보화본부", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("첨성관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("향토관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
+        Map.entry("문예관",
+            new CloudDef(35.894366, 128.612419,
+                List.of("3565e1a03fc", "3565e1a03f4", "3565e1a015c", "3565e1a03e4",
+                    "3565e1a03ec"))),
+        Map.entry("예술대학",
+            new CloudDef(35.893494, 128.611272,
+                List.of("3565e175584", "3565e17557c", "3565e19ffd4", "3565e19ffdc", "3565e19ffc4",
+                    "3565e19ffec", "3565e19fff4", "3565e19ff8c", "3565e19ff94", "3565e19ffbc",
+                    "3565e19ff9c"))),
+        Map.entry("조소동",
+            new CloudDef(35.893619, 128.612092,
+                List.of("3565e1a018c", "3565e1a0224", "3565e1a023c", "3565e1a01c4",
+                    "3565e1a01ec", "3565e1a01f4", "3565e1a021c", "3565e1a0214", "3565e1a01dc",
+                    "3565e1a01e4", "3565e1a01fc", "3565e1a0204", "3565e19ff64", "3565e19ff5c"))),
+        Map.entry("조형관",
+            new CloudDef(35.893204, 128.612419,
+                List.of("3565e19ff54", "3565e19f8ac", "3565e19f8a4", "3565e19f89c", "3565e19ff44",
+                    "3565e19ff4c", "3565e19f8b4", "3565e19f8bc", "3565e19f894", "3565e19ff3c",
+                    "3565e19ff34", "3565e19f8cc"))),
+        Map.entry("농생대4호관",
+            new CloudDef(35.893972, 128.613075,
+                List.of("3565e1a04a4", "3565e1a04ac", "3565e1a037c", "3565e1a0364", "3565e1a035c",
+                    "3565e1a0354", "3565e1a039c", "3565e1a0374", "3565e1a036c", "3565e1a0344",
+                    "3565e1a03a4", "3565e1a030c", "3565e1a0314", "3565e1a03ac", "3565e1a0304",
+                    "3565e1a031c"))),
+        Map.entry("누리관",
+            new CloudDef(35.893495, 128.613567,
+                List.of("3565e1a1ccc", "3565e1a1cc4", "3565e1a1cec", "3565e1a0324", "3565e1a032c",
+                    "3565e1a1cd4", "3565e1a1cdc", "3565e1a1ce4", "3565e1a02e4", "3565e1a02dc",
+                    "3565e1a02d4", "3565e1a1d2c", "3565e1a1d24", "3565e1a1d1c", "3565e1a02f4",
+                    "3565e1a02ec", "3565e1a02c4", "3565e1a02cc", "3565e1a1d34", "3565e1a1d3c",
+                    "3565e1a1d14", "3565e1a028c", "3565e1a0294", "3565e1a02b4", "3565e1a1d4c",
+                    "3565e1a02bc"))),
+        Map.entry("간호대학",
+            new CloudDef(35.892748, 128.614387,
+                List.of("3565e1a1d74", "3565e1a1d9c", "3565e1a1d94", "3565e1a1d7c", "3565e1a1d84",
+                    "3565e1a1d8c", "3565e19f7d4", "3565e19f62c", "3565e19f624", "3565e19f634"))),
+        Map.entry("약학대학",
+            new CloudDef(35.892623, 128.612419,
+                List.of("3565e19f92c", "3565e19f924", "3565e19f91c", "3565e19fec4", "3565e19fecc",
+                    "3565e19f934", "3565e19f93c", "3565e19febc", "3565e19feb4", "3565e19f94c"))),
+        Map.entry("첨단기술융합대학",
+            new CloudDef(35.892499, 128.613895,
+                List.of("3565e19f7fc", "3565e19f81c", "3565e19f7f4", "3565e19f7ec", "3565e19f844",
+                    "3565e19f83c", "3565e19f824", "3565e19f78c", "3565e19f794", "3565e19f7bc",
+                    "3565e19f79c"))),
+        Map.entry("종합정보센터",
+            new CloudDef(35.892312, 128.613239,
+                List.of("3565e19f9b4", "3565e19f9cc", "3565e19f9bc", "3565e19f9c4", "3565e19f994",
+                    "3565e19f9ec"))),
+        Map.entry("중앙도서관",
+            new CloudDef(35.891959, 128.612256,
+                List.of("3565e19fc34", "3565e19fc4c", "3565e19fc54", "3565e19fcfc", "3565e19fce4",
+                    "3565e19fcdc", "3565e19fc3c", "3565e19fc44", "3565e19fc5c", "3565e19fcf4",
+                    "3565e19fcec", "3565e19fcc4", "3565e19fc14", "3565e19fc6c", "3565e19fc64",
+                    "3565e19fc8c", "3565e19fc94", "3565e19fcbc", "3565e19fc04", "3565e19fc0c",
+                    "3565e19fc74", "3565e19fc7c", "3565e19fc84", "3565e19fc9c", "3565e19fbfc",
+                    "3565e19fbf4", "3565e19fb8c", "3565e19fb84", "3565e19fb7c", "3565e19fb64",
+                    "3565e19f95c", "3565e19fbe4", "3565e19fbec", "3565e19fb94", "3565e19f964",
+                    "3565e19fbdc", "3565e19fbc4", "3565e19fbbc"))),
+        Map.entry("인문대학",
+            new CloudDef(35.891211, 128.610780,
+                List.of("3565e17586c", "3565e175874", "3565e19e29c", "3565e175854", "3565e17585c",
+                    "3565e175864", "3565e17587c", "3565e19e284", "3565e1758fc", "3565e1758f4",
+                    "3565e17588c"))),
+        Map.entry("본관",
+            new CloudDef(35.890423, 128.612092,
+                List.of("3565e19e3cc", "3565e19e3d4", "3565e19e17c", "3565e19e3a4", "3565e19e3bc",
+                    "3565e19e3c4", "3565e19e3dc", "3565e19e164", "3565e19e374", "3565e19e39c",
+                    "3565e19e394", "3565e19e3ec", "3565e19e3e4", "3565e19e37c", "3565e19e384",
+                    "3565e19e38c"))),
+        Map.entry("인문한국진흥관",
+            new CloudDef(35.890194, 128.610780,
+                List.of("3565e175efc", "3565e175e54", "3565e175f1c", "3565e175f04",
+                    "3565e175fac", "3565e175f14", "3565e175f0c", "3565e175f44", "3565e175f6c",
+                    "3565e175f74", "3565e175f54", "3565e175f5c", "3565e175f64", "3565e19e1fc",
+                    "3565e19e1e4", "3565e19e1dc", "3565e19e21c", "3565e19e1f4"))),
+        Map.entry("IT융합산업빌딩",
+            new CloudDef(35.892084, 128.614223,
+                List.of("3565e19f7a4", "3565e19f70c", "3565e19f714", "3565e19f7ac", "3565e19f704",
+                    "3565e19f71c", "3565e19f6fc", "3565e19f6e4"))),
+        Map.entry("어학교육원",
+            new CloudDef(35.890943, 128.614551,
+                List.of("3565e19f0fc", "3565e19f104", "3565e19f10c", "3565e19f174", "3565e19f054",
+                    "3565e19f1ac", "3565e19f1a4", "3565e19f19c"))),
+        Map.entry("정보화본부",
+            new CloudDef(35.891337, 128.613895,
+                List.of("3565e19fa14", "3565e19fa6c", "3565e19fa0c", "3565e19fa74", "3565e19f0a4",
+                    "3565e19f09c", "3565e19f0bc", "3565e19f094", "3565e19f08c", "3565e19f0c4",
+                    "3565e19f0ec", "3565e19f0f4"))),
+        Map.entry("첨성관",
+            new CloudDef(35.891337, 128.615043,
+                List.of("3565e19f72c", "3565e19f0d4", "3565e19f6dc", "3565e19f6d4", "3565e19f12c",
+                    "3565e19f6c4", "3565e19f6cc", "3565e19f134", "3565e19f694", "3565e19f6bc",
+                    "3565e19f6b4", "3565e19f14c", "3565e19f684", "3565e19f69c", "3565e19f6a4",
+                    "3565e19f6ac", "3565e19f154", "3565e19f5d4", "3565e19f42c", "3565e19f424",
+                    "3565e19f41c", "3565e19f404", "3565e19f3fc", "3565e19f3e4", "3565e19f43c",
+                    "3565e19f414", "3565e19f40c", "3565e19f3f4", "3565e19f3ec", "3565e19f46c",
+                    "3565e19f474", "3565e19f38c"))),
+        Map.entry("향토관",
+            new CloudDef(35.890694, 128.615207,
+                List.of("3565e19f3dc", "3565e19f3d4", "3565e19f3c4", "3565e19f3cc", "3565e19f234",
+                    "3565e19f3b4", "3565e19f24c", "3565e19f3a4", "3565e19f3ac", "3565e19f30c",
+                    "3565e19f304"))),
 
         // 2구역 (건물번호 200번대) - 학군단, 공동실험실습관, 어린이집 제외
-        Map.entry("농생대1호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("농생대2호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("농생대3호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("복현회관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("자연과학대학", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("국민체육센터", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("제1체육관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("제2체육관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("미래융합과학관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("제1과학관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("제2과학관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("백호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("청룡관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("생명공학관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("생물학관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
+        Map.entry("농생대1호관",
+            new CloudDef(35.890961, 128.609140,
+                List.of("3565e175cf4", "3565e175cfc", "3565e175d04", "3565e175b9c", "3565e175b84",
+                    "3565e175c7c", "3565e175c64", "3565e175c5c", "3565e175c54", "3565e175dac",
+                    "3565e175bec", "3565e175bf4", "3565e175c0c", "3565e175c14", "3565e175c3c",
+                    "3565e175c34", "3565e175be4", "3565e175bfc", "3565e175c04", "3565e175c1c",
+                    "3565e175c24", "3565e175c2c", "3565e17595c", "3565e175954"))),
+        Map.entry("농생대2호관",
+            new CloudDef(35.890982, 128.608321,
+                List.of("3565e174304", "3565e1742fc", "3565e17431c", "3565e1742e4", "3565e174324",
+                    "3565e1742dc", "3565e174334", "3565e17432c", "3565e175ccc", "3565e175cd4",
+                    "3565e175cc4", "3565e175cdc"))),
+        Map.entry("농생대3호관",
+            new CloudDef(35.891438, 128.608649,
+                List.of("3565e1744ac", "3565e174354", "3565e175b54", "3565e175cac", "3565e175b5c",
+                    "3565e175b6c", "3565e175b64", "3565e175b74", "3565e175b7c"))),
+        Map.entry("복현회관",
+            new CloudDef(35.890753, 128.607009,
+                List.of("3565e1741e4", "3565e176a0c", "3565e176a14", "3565e1741fc", "3565e176a04",
+                    "3565e176a1c", "3565e174204", "3565e1769fc", "3565e17420c"))),
+        Map.entry("자연과학대학",
+            new CloudDef(35.890358, 128.606517,
+                List.of("3565e176b04", "3565e176b0c", "3565e176a54", "3565e176bac", "3565e176ba4",
+                    "3565e176a4c", "3565e176bb4", "3565e176a3c", "3565e176a34", "3565e176bcc",
+                    "3565e176a24", "3565e176a2c"))),
+        Map.entry("국민체육센터",
+            new CloudDef(35.890317, 128.605861,
+                List.of("3565e1714b4", "3565e1714ac", "3565e176b4c", "3565e176b54", "3565e176b3c",
+                    "3565e176b44"))),
+        Map.entry("제1체육관",
+            new CloudDef(35.889299, 128.604714,
+                List.of("3565e170e04", "3565e170e0c", "3565e170e74", "3565e170dfc", "3565e170de4",
+                    "3565e170ddc", "3565e17120c", "3565e170df4", "3565e170dec", "3565e171274",
+                    "3565e170d8c", "3565e170d94", "3565e171264", "3565e17127c", "3565e170d84"))),
+        Map.entry("제2체육관",
+            new CloudDef(35.889839, 128.605205,
+                List.of("3565e1711f4", "3565e1711fc", "3565e171224", "3565e17121c", "3565e17123c",
+                    "3565e171214", "3565e1713b4", "3565e17124c", "3565e171244", "3565e17126c",
+                    "3565e1713a4", "3565e1713ac", "3565e171254", "3565e17125c", "3565e171374",
+                    "3565e17130c", "3565e171304", "3565e1712fc", "3565e1712f4", "3565e17136c",
+                    "3565e171314", "3565e17131c", "3565e1712e4", "3565e17135c", "3565e171344",
+                    "3565e17133c", "3565e171324", "3565e1712dc"))),
+        Map.entry("미래융합과학관",
+            new CloudDef(35.889175, 128.606189,
+                List.of("3565e176d34", "3565e176d4c", "3565e176d54", "3565e176d3c", "3565e176d44",
+                    "3565e176d1c", "3565e176d14", "3565e176d6c", "3565e176d04", "3565e176d0c",
+                    "3565e176c54", "3565e176dac", "3565e176da4", "3565e176c44", "3565e176c4c",
+                    "3565e176db4", "3565e176c3c", "3565e176c34"))),
+        Map.entry("제1과학관",
+            new CloudDef(35.889861, 128.607829,
+                List.of("3565e176974", "3565e17696c", "3565e17690c", "3565e176914", "3565e176904",
+                    "3565e17691c", "3565e176854", "3565e1768fc", "3565e17685c", "3565e1768f4",
+                    "3565e17686c", "3565e176864", "3565e17680c", "3565e176874", "3565e17687c",
+                    "3565e1767e4", "3565e1767dc"))),
+        Map.entry("제2과학관",
+            new CloudDef(35.889840, 128.606353,
+                List.of("3565e176cbc", "3565e176cc4", "3565e176c9c", "3565e176c94", "3565e176c84",
+                    "3565e176c8c", "3565e176b84", "3565e176c7c", "3565e176b8c", "3565e176c74",
+                    "3565e176bec", "3565e176bf4"))),
+        Map.entry("백호관",
+            new CloudDef(35.888178, 128.604222,
+                List.of("3565e170934", "3565e17093c", "3565e17094c", "3565e170944", "3565e17096c",
+                    "3565e170eac", "3565e170954", "3565e17095c", "3565e170964", "3565e170c1c",
+                    "3565e170c04", "3565e170c3c", "3565e170c14"))),
+        Map.entry("청룡관",
+            new CloudDef(35.887930, 128.606025,
+                List.of("3565e170b24", "3565e170b34", "3565e170b2c", "3565e1774ac", "3565e1774b4",
+                    "3565e1774cc", "3565e1772cc", "3565e1772d4", "3565e17732c", "3565e177334",
+                    "3565e17734c", "3565e177354", "3565e177324", "3565e17733c", "3565e177344",
+                    "3565e17735c", "3565e1774a4", "3565e1774bc", "3565e1774c4"))),
+        Map.entry("생명공학관",
+            new CloudDef(35.889862, 128.608977,
+                List.of("3565e1767c4", "3565e176794", "3565e1767bc", "3565e17679c", "3565e176774",
+                    "3565e176764", "3565e17676c", "3565e17675c"))),
+        Map.entry("생물학관",
+            new CloudDef(35.886913, 128.606025,
+                List.of("3565e170acc", "3565e170ab4", "3565e177534", "3565e17754c", "3565e17753c",
+                    "3565e17751c", "3565e177514", "3565e177504", "3565e1775ac"))),
 
-        // 3구역 (건물번호 300번대) - 우당교육관, 박물관 제외
-        Map.entry("사범대학", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("생활과학대학", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("교육대학원", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("제4합강의동", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("경상대학", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("복지관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("사회과학대학", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("법학전문대학원", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
+        // 3구역 (건물번호 300번대) - 우당교육관, 박물관, 법대 제외
+        Map.entry("사범대학",
+            new CloudDef(35.890548, 128.614059,
+                List.of("3565e19e554", "3565e19f004", "3565e19effc", "3565e19f01c", "3565e19efe4",
+                    "3565e19f024", "3565e19efdc", "3565e19f02c", "3565e19efd4", "3565e19f1d4",
+                    "3565e19ee2c"))),
+        Map.entry("생활과학대학",
+            new CloudDef(35.890010, 128.615862,
+                List.of("3565e19f264", "3565e19f2f4", "3565e19f28c", "3565e19f284", "3565e19ed7c",
+                    "3565e19f2ec", "3565e19f294", "3565e19f29c", "3565e19ed64", "3565e19f2c4",
+                    "3565e19f2bc", "3565e19f2a4"))),
+        Map.entry("교육대학원",
+            new CloudDef(35.889947, 128.613731,
+                List.of("3565e19e574", "3565e19e59c", "3565e19e57c", "3565e19e584", "3565e19ef84",
+                    "3565e19ef7c", "3565e19ef9c", "3565e19ef74", "3565e19efa4", "3565e19ef0c",
+                    "3565e19efac", "3565e19ef04"))),
+        Map.entry("제4합강의동",
+            new CloudDef(35.889594, 128.615043,
+                List.of("3565e19ee5c", "3565e19eef4", "3565e19ee64", "3565e19ee8c", "3565e19ee7c",
+                    "3565e19ee84", "3565e19edd4", "3565e19ec2c", "3565e19edc4", "3565e19edcc",
+                    "3565e19ec34", "3565e19edbc"))),
+        Map.entry("경상대학",
+            new CloudDef(35.889221, 128.616026,
+                List.of("3565e19eda4", "3565e19edac", "3565e19ec54", "3565e19ed0c", "3565e19ed04",
+                    "3565e19ecfc", "3565e19ed14", "3565e19ed1c", "3565e19ece4", "3565e19ed3c",
+                    "3565e19ed24", "3565e19ecdc", "3565e19ed34", "3565e19ed2c", "3565e19ecd4",
+                    "3565e1992d4", "3565e19932c"))),
+        Map.entry("복지관",
+            new CloudDef(35.888992, 128.614715,
+                List.of("3565e19e8b4", "3565e19e8bc", "3565e19e8cc", "3565e19e8c4", "3565e19e8d4",
+                    "3565e19eed4", "3565e19e92c", "3565e19eecc", "3565e19e934", "3565e19e93c",
+                    "3565e19eeb4", "3565e19e94c", "3565e19e944", "3565e19eeac", "3565e19e954"))),
+        Map.entry("사회과학대학",
+            new CloudDef(35.888474, 128.615698,
+                List.of("3565e19ebfc", "3565e19ebe4", "3565e19ebf4", "3565e19ebec", "3565e19ebc4",
+                    "3565e19ec74", "3565e19eb8c", "3565e19eb94", "3565e19ebbc", "3565e19ec7c",
+                    "3565e19eb84", "3565e19eb9c", "3565e19eba4", "3565e19ec84", "3565e19eb7c",
+                    "3565e19eb74", "3565e19eb0c", "3565e19ec9c", "3565e19eb64", "3565e19eb6c",
+                    "3565e19eb14", "3565e19eca4", "3565e19eb5c", "3565e19eb44", "3565e19ecac",
+                    "3565e19eb54", "3565e19eb4c"))),
 
         // 4구역 (건물번호 400번대) - 반도체연구동, 동물병원, 연구실안전관리센터 P/P구조실습실 제외
-        Map.entry("IT1호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("IT2호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("IT3호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("IT4호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("IT융복합공학관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("공대1호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("공대2호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("공대3호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("공대6호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("공대7호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("공대8호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("공대9호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("공대12호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("공대2A호관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("화학관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("미래창직관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("수의과대학", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
+        Map.entry("IT1호관",
+            new CloudDef(35.887498, 128.612911,
+                List.of("3565e19dbfc", "3565e19dbe4", "3565e19dbf4", "3565e19dc74", "3565e19db8c",
+                    "3565e19dc7c", "3565e19dc84"))),
+        Map.entry("IT2호관",
+            new CloudDef(35.887559, 128.611600,
+                List.of("3565e19d8c4", "3565e19d8ec", "3565e19d8f4", "3565e19d85c", "3565e19d8dc",
+                    "3565e19d8e4", "3565e19d8fc", "3565e19d854", "3565e19d92c", "3565e19d924",
+                    "3565e19d91c", "3565e19d904", "3565e19d934", "3565e19d93c", "3565e19d914",
+                    "3565e19d90c"))),
+        Map.entry("IT3호관",
+            new CloudDef(35.888223, 128.610616,
+                List.of("3565e1763bc", "3565e1763a4", "3565e1763b4", "3565e17619c", "3565e176184",
+                    "3565e17622c", "3565e176234", "3565e17624c", "3565e176194", "3565e17618c",
+                    "3565e176224", "3565e17623c", "3565e176244"))),
+        Map.entry("IT4호관",
+            new CloudDef(35.888244, 128.610944,
+                List.of("3565e1761f4", "3565e17621c", "3565e176214", "3565e1761fc", "3565e176204",
+                    "3565e17620c"))),
+        Map.entry("IT융복합공학관",
+            new CloudDef(35.888057, 128.611436,
+                List.of("3565e19df5c", "3565e19df54", "3565e19d8ac", "3565e19df44", "3565e19df4c",
+                    "3565e19d8b4", "3565e19df3c", "3565e19df34", "3565e19d8cc", "3565e19df24",
+                    "3565e19df2c", "3565e19dedc", "3565e19ded4", "3565e19dec4", "3565e19decc"))),
+        Map.entry("공대1호관",
+            new CloudDef(35.887579, 128.608485,
+                List.of("3565e17706c", "3565e177064", "3565e177074", "3565e17707c", "3565e177a9c",
+                    "3565e177abc", "3565e177a94", "3565e177ac4", "3565e177adc"))),
+        Map.entry("공대2호관",
+            new CloudDef(35.888098, 128.608649,
+                List.of("3565e176ffc", "3565e17655c", "3565e176554", "3565e176544",
+                    "3565e17653c", "3565e17651c", "3565e176524"))),
+        Map.entry("공대3호관",
+            new CloudDef(35.887724, 128.609632,
+                List.of("3565e1764cc", "3565e1764bc", "3565e1764b4", "3565e1764a4", "3565e176364",
+                    "3565e17635c", "3565e17636c", "3565e176344"))),
+        Map.entry("공대6호관",
+            new CloudDef(35.887289, 128.609632,
+                List.of("3565e177b3c", "3565e177b14", "3565e177b44", "3565e177b5c", "3565e177cac",
+                    "3565e177ca4", "3565e177cb4"))),
+        Map.entry("공대7호관",
+            new CloudDef(35.887289, 128.610780,
+                List.of("3565e1762dc", "3565e1762d4", "3565e1762c4", "3565e1762bc", "3565e17629c",
+                    "3565e1762a4"))),
+        Map.entry("공대8호관",
+            new CloudDef(35.886688, 128.611600,
+                List.of("3565e19d7ec", "3565e19d78c", "3565e19d784", "3565e19d9d4", "3565e19d77c",
+                    "3565e19d9dc"))),
+        Map.entry("공대9호관",
+            new CloudDef(35.886998, 128.60848,
+                List.of("3565e1770cc", "3565e177734", "3565e1770b4", "3565e1770a4", "3565e1770ac",
+                    "3565e177a0c", "3565e177a04", "3565e177a14", "3565e177a44", "3565e177a3c",
+                    "3565e177a4c"))),
+        Map.entry("공대12호관",
+            new CloudDef(35.888472, 128.609960,
+                List.of("3565e1766ac", "3565e176404", "3565e17640c", "3565e176154", "3565e1763fc",
+                    "3565e1763f4", "3565e17615c", "3565e1763e4", "3565e1763ec", "3565e176164",
+                    "3565e1763dc", "3565e176174", "3565e17617c"))),
+        Map.entry("공대2A호관",
+            new CloudDef(35.888118, 128.607829,
+                List.of("3565e1771dc", "3565e1771c4", "3565e176e2c", "3565e1771d4", "3565e1771cc",
+                    "3565e176fd4", "3565e17702c", "3565e177034", "3565e176fc4", "3565e176fdc",
+                    "3565e177024"))),
+        Map.entry("화학관",
+            new CloudDef(35.886562, 128.608485,
+                List.of("3565e1776fc", "3565e177654", "3565e177704", "3565e1777ac", "3565e177714",
+                    "3565e17770c", "3565e17776c", "3565e17775c", "3565e177764", "3565e1779e4",
+                    "3565e1779dc", "3565e1779ec", "3565e177994"))),
+        Map.entry("미래창직관",
+            new CloudDef(35.887725, 128.610780,
+                List.of("3565e176304", "3565e176254", "3565e1762fc", "3565e17625c", "3565e1762f4",
+                    "3565e176264", "3565e17628c", "3565e176274", "3565e17627c"))),
+        Map.entry("수의과대학",
+            new CloudDef(35.886792, 128.613239,
+                List.of("3565e19db0c", "3565e19db04", "3565e19db14", "3565e19db1c", "3565e19db3c",
+                    "3565e19db24", "3565e19db34", "3565e19db2c"))),
 
         // 5구역 (건물번호 500번대) - 교수아파트, 변전소, 창업보육센터 제외.
-        Map.entry("진리관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("봉사관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("화목관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2"))),
-        Map.entry("보람관", new CloudDef(35.891762, 128.612260, List.of("tC1", "tC2")))
+        Map.entry("진리관+봉사관",
+            new CloudDef(35.886998, 128.609632,
+                List.of("3565e177bac", "3565e177bb4", "3565e177bcc", "3565e177ba4", "3565e177bbc",
+                    "3565e177b74", "3565e177b9c", "3565e177b7c", "3565e177b84", "3565e177c84",
+                    "3565e177c94", "3565e177c8c", "3565e177cec", "3565e177cf4"))),
+        Map.entry("화목관",
+            new CloudDef(35.886916, 128.610616,
+                List.of("3565e177d24", "3565e177d1c", "3565e177d3c", "3565e177d44", "3565e177d54",
+                    "3565e19d7fc"))),
+        Map.entry("보람관",
+            new CloudDef(35.886044, 128.609468,
+                List.of("3565e17797c", "3565e177974", "3565e17790c", "3565e177904", "3565e1778fc",
+                    "3565e177bdc", "3565e177964", "3565e17796c", "3565e177914", "3565e17791c",
+                    "3565e177be4", "3565e17795c", "3565e177944", "3565e17793c", "3565e177924",
+                    "3565e177bfc", "3565e177954", "3565e17794c", "3565e177934", "3565e17792c",
+                    "3565e177c0c", "3565e177c04", "3565e177eac", "3565e177eb4", "3565e177ecc")))
     );
 
 
@@ -1763,20 +2013,21 @@ public class ManualS2SeedRunner implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        log.info("[ManualS2Seed] START");
+        log.info("ManualS2Seed START");
         Set<String> staticUnion = upsertStaticByName();
         upsertDynamicComplement(staticUnion);
-        log.info("[ManualS2Seed] DONE");
+        log.info("ManualS2Seed DONE");
     }
 
     private Set<String> upsertStaticByName() {
-        String upsertStaticSql =
-            "INSERT INTO static_cloud_s2_cell (s2_token_id, cloud_id) " +
-                "VALUES (?, ?) " +
-                "ON DUPLICATE KEY UPDATE cloud_id = VALUES(cloud_id)";
+        final String sql = """
+            INSERT INTO staticclouds2cell (s2tokenid, cloudid)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE cloudid=VALUES(cloudid)
+            """;
 
         Set<String> union = new HashSet<>();
-        int upserted = 0;
+        int totalUpserts = 0;
 
         for (Map.Entry<String, CloudDef> e : STATIC_DEFS.entrySet()) {
             String name = e.getKey();
@@ -1788,66 +2039,64 @@ public class ManualS2SeedRunner implements CommandLineRunner {
             List<String> tokens = def.tokens();
             union.addAll(tokens);
 
-            for (int i = 0; i < tokens.size(); i++) {
-                em.createNativeQuery(upsertStaticSql)
-                    .setParameter(1, tokens.get(i))
-                    .setParameter(2, sc.getId())
-                    .executeUpdate();
-
-                if ((i + 1) % UPSERT_CHUNK == 0) {
-                    em.flush();
-                    em.clear();
-                }
-                upserted++;
+            for (List<String> batch : partition(tokens, BATCH_SIZE)) {
+                List<Object[]> params = batch.stream()
+                    .map(t -> new Object[]{t, sc.getId()})
+                    .collect(Collectors.toList());
+                int[] results = jdbcTemplate.batchUpdate(sql, params);
+                totalUpserts += Arrays.stream(results).sum();
             }
-            em.flush();
-            em.clear();
-            log.info("[ManualS2Seed] STATIC name='{}' cloud_id={} tokens={}", name, sc.getId(),
+
+            log.info("ManualS2Seed STATIC name={}, cloudid={}, tokens={}", name, sc.getId(),
                 tokens.size());
         }
 
-        log.info("[ManualS2Seed] STATIC union_count={} upserted={}", union.size(), upserted);
+        log.info("ManualS2Seed STATIC unionCount={}, affectedRows~={}", union.size(), totalUpserts);
         return union;
+    }
+
+    private void upsertDynamicComplement(Set<String> staticUnion) {
+        final String sql = """
+            INSERT INTO dynamicclouds2cell (s2tokenid, cloudid)
+            VALUES (?, NULL)
+            ON DUPLICATE KEY UPDATE cloudid=VALUES(cloudid)
+            """;
+
+        List<String> complement = CAMPUS_ALL_TOKENS.stream()
+            .filter(t -> !staticUnion.contains(t))
+            .toList();
+
+        int totalUpserts = 0;
+
+        for (List<String> batch : partition(complement, BATCH_SIZE)) {
+            List<Object[]> params = batch.stream()
+                .map(t -> new Object[]{t})
+                .collect(Collectors.toList());
+            int[] results = jdbcTemplate.batchUpdate(sql, params);
+            totalUpserts += Arrays.stream(results).sum();
+        }
+
+        log.info("ManualS2Seed DYNAMIC complementCount={}, affectedRows~={} (cloudid=NULL)",
+            complement.size(), totalUpserts);
     }
 
     private StaticCloud createStaticCloudSafely(String name, Double lat, Double lng) {
         try {
             return staticCloudRepo.save(StaticCloud.createStaticCloud(name, lat, lng));
         } catch (DataIntegrityViolationException ex) {
-            return staticCloudRepo.findByName(name)
-                .orElseThrow(() -> ex);
+            return staticCloudRepo.findByName(name).orElseThrow(() -> ex);
         }
     }
 
-    private void upsertDynamicComplement(Set<String> staticUnion) {
-        String upsertDynamicSql =
-            "INSERT INTO dynamic_cloud_s2_cell (s2_token_id, cloud_id) " +
-                "VALUES (?, NULL) " +
-                "ON DUPLICATE KEY UPDATE cloud_id = VALUES(cloud_id)";
-
-        List<String> complement = new ArrayList<>();
-        for (String t : CAMPUS_ALL_TOKENS) {
-            if (!staticUnion.contains(t)) {
-                complement.add(t);
-            }
+    private static <T> List<List<T>> partition(List<T> list, int size) {
+        if (list.isEmpty()) {
+            return List.of();
         }
-
-        int upserted = 0;
-        for (int i = 0; i < complement.size(); i++) {
-            em.createNativeQuery(upsertDynamicSql)
-                .setParameter(1, complement.get(i))
-                .executeUpdate();
-
-            if ((i + 1) % UPSERT_CHUNK == 0) {
-                em.flush();
-                em.clear();
-            }
-            upserted++;
+        List<List<T>> batches = new ArrayList<>();
+        for (int i = 0; i < list.size(); i += size) {
+            batches.add(list.subList(i, Math.min(list.size(), i + size)));
         }
-        em.flush();
-        em.clear();
-        log.info("[ManualS2Seed] DYNAMIC complement_count={} upserted={} (cloud_id=NULL)",
-            complement.size(), upserted);
+        return batches;
     }
 
     private record CloudDef(Double lat, Double lng, List<String> tokens) {
