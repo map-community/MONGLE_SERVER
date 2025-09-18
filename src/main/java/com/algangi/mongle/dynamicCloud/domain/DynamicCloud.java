@@ -3,12 +3,13 @@ package com.algangi.mongle.dynamicCloud.domain;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.algangi.mongle.cell.domain.S2Cell;
 import com.algangi.mongle.global.entity.CreatedDateBaseEntity;
-
+import com.algangi.mongle.s2.domain.DynamicCloudS2Cell;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -34,28 +35,28 @@ public class DynamicCloud extends CreatedDateBaseEntity {
 
     @Column(nullable = false)
     @Builder.Default
+    @Enumerated(EnumType.STRING)
     private DynamicCloudStatus dynamicCloudStatus = DynamicCloudStatus.ACTIVE;
 
     @OneToMany(mappedBy = "dynamicCloud", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @Builder.Default
-    private List<S2Cell> s2Cells = new ArrayList<>();
+    private List<DynamicCloudS2Cell> s2Cells = new ArrayList<>();
 
-    public static DynamicCloud createDynamicCloud(List<S2Cell> s2Cells) {
-        DynamicCloud dynamicCloud = DynamicCloud.builder()
-            .build();
-
-        dynamicCloud.addS2Cells(s2Cells);
-        return dynamicCloud;
+    public static DynamicCloud createDynamicCloudFromTokens(List<String> s2TokenIds) {
+        DynamicCloud dc = DynamicCloud.builder().build();
+        s2TokenIds.forEach(dc::addS2CellToken);
+        return dc;
     }
 
-    public void addS2Cells(List<S2Cell> s2Cells) {
+    public void addS2Cells(List<DynamicCloudS2Cell> s2Cells) {
         s2Cells.forEach(this::addS2Cell);
     }
 
-    public void addS2Cell(S2Cell s2Cell) {
-        this.s2Cells.add(s2Cell);
-        s2Cell.setDynamicCloud(this);
+    public void addS2CellToken(String s2TokenId) {
+        this.s2Cells.add(DynamicCloudS2Cell.of(s2TokenId, this));
     }
 
-
+    public void addS2Cell(DynamicCloudS2Cell s2Cell) {
+        this.s2Cells.add(s2Cell);
+    }
 }
