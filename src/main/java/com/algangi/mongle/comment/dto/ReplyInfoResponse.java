@@ -2,8 +2,8 @@ package com.algangi.mongle.comment.dto;
 
 import java.time.LocalDateTime;
 
-public record CommentInfoResponse(
-        Long commentId,
+public record ReplyInfoResponse(
+        Long replyId,
         String content,
         String authorNickname,
         String authorProfileImageUrl,
@@ -11,8 +11,7 @@ public record CommentInfoResponse(
         long dislikeCount,
         LocalDateTime createdAt,
         boolean isAuthor,
-        boolean isDeleted,
-        boolean hasReplies
-) {
+        boolean isDeleted
+){
 
 }
