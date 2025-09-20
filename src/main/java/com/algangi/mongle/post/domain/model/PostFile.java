@@ -23,7 +23,7 @@ public class PostFile {
     @Column(nullable = false)
     String s3Key;
 
-    public static PostFile create(String fileUrl, String s3Key, int order) {
+    public static PostFile create(String fileUrl, String s3Key) {
         validatePostFile(fileUrl, s3Key);
         return PostFile.builder()
             .fileUrl(fileUrl)
