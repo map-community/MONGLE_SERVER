@@ -15,7 +15,7 @@ import jakarta.persistence.QueryHint;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-    @Lock(LockModeType.PESSIMISTIC_READ)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({
         @QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000")
     }
