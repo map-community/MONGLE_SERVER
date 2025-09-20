@@ -59,6 +59,9 @@ public class DynamicCloud extends CreatedDateBaseEntity {
     }
 
     public void mergeWith(DynamicCloud other) {
+        if (this == other) {
+            throw new IllegalArgumentException("동적 구름은 자기 자신과 병합할 수 없습니다.");
+        }
         if (other.status != DynamicCloudStatus.ACTIVE) {
             throw new IllegalStateException("ACTIVE 상태가 아닌 동적구름은 병합될 수 없습니다.");
         }
