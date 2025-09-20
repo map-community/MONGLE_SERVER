@@ -76,6 +76,12 @@ public class PostCreationService {
     private Post handleNewCellPost(PostCreationCommand command, String s2TokenId) {
         // 해당 셀의 기존 게시물 개수 확인
         List<Post> existingPostsInCell = postRepository.findByS2TokenIdWithLock(s2TokenId);
+        // 동적 구름 존재 재확인 (락 획득 이후)
+        Optional<DynamicCloud> cloudAfterLock = dynamicCloudRepository.findActiveByS2TokenId(s2TokenId);
+        if (cloudAfterLock.isPresent()) {
+            return createPostInExistingDynamicCloud(command, cloudAfterLock.get());
+        }
+
         int totalPostCount = existingPostsInCell.size() + 1; // 현재 생성할 게시물 포함
 
         if (totalPostCount <= 2) {
