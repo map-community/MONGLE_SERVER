@@ -75,7 +75,7 @@ public class PostCreationService {
 
     private Post handleNewCellPost(PostCreationCommand command, String s2TokenId) {
         // 해당 셀의 기존 게시물 개수 확인
-        List<Post> existingPostsInCell = postRepository.findByS2TokenId(s2TokenId);
+        List<Post> existingPostsInCell = postRepository.findByS2TokenIdWithLock(s2TokenId);
         int totalPostCount = existingPostsInCell.size() + 1; // 현재 생성할 게시물 포함
 
         if (totalPostCount <= 2) {
@@ -116,7 +116,7 @@ public class PostCreationService {
         // 가장 오래된 동적 구름 update or 새로운 동적 구름 저장
         DynamicCloud savedCloud = dynamicCloudRepository.save(newDynamicCloud);
 
-        // 기존 알갱이 게시물들을 동적 구름에 할당
+        // 기존 알갱이 게시물들을 동적 구름에 할당 (새로 생성되는 동적 구름의 경우 IDENTITY 전략에 의해 save 후 id가 생성됨)
         existingPosts.forEach(post -> post.assignToDynamicCloud(savedCloud.getId()));
         postRepository.saveAll(existingPosts);
 
