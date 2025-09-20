@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class PostRegisterService {
+public class PostCreationService {
 
     private final StaticCloudRepository staticCloudRepository;
     private final DynamicCloudRepository dynamicCloudRepository;
