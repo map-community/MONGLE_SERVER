@@ -1,13 +1,13 @@
-package com.algangi.mongle.post.service;
+package com.algangi.mongle.post.application.helper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.algangi.mongle.global.exception.ApplicationException;
-import com.algangi.mongle.post.domain.Post;
+import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.exception.PostErrorCode;
-import com.algangi.mongle.post.repository.PostJpaRepository;
+import com.algangi.mongle.post.domain.repository.PostJpaRepository;
 
 import lombok.RequiredArgsConstructor;
 

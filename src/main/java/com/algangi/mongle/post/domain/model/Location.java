@@ -1,4 +1,4 @@
-package com.algangi.mongle.post.domain;
+package com.algangi.mongle.post.domain.model;
 
 import java.util.Objects;
 

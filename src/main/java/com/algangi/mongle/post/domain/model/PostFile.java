@@ -1,19 +1,9 @@
-package com.algangi.mongle.post.domain;
+package com.algangi.mongle.post.domain.model;
 
 import java.util.Objects;
 
-import org.checkerframework.checker.units.qual.C;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,11 +31,11 @@ public class PostFile {
             .build();
     }
 
-    private static void validatePostFile(String fileUrl, String s3Key){
-        if(fileUrl == null || fileUrl.isEmpty()){
+    private static void validatePostFile(String fileUrl, String s3Key) {
+        if (fileUrl == null || fileUrl.isEmpty()) {
             throw new IllegalArgumentException("fileUrl cannot be null or empty");
         }
-        if(s3Key == null || s3Key.isEmpty()){
+        if (s3Key == null || s3Key.isEmpty()) {
             throw new IllegalArgumentException("s3Key cannot be null or empty");
         }
     }

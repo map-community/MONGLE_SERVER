@@ -1,4 +1,4 @@
-package com.algangi.mongle.post.domain;
+package com.algangi.mongle.post.domain.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,7 +90,7 @@ public class Post extends TimeBaseEntity {
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
-    public void changePostFiles(List<PostFile> postFiles){
+    public void changePostFiles(List<PostFile> postFiles) {
         this.postFiles.clear();
         this.postFiles.addAll(postFiles);
     }
