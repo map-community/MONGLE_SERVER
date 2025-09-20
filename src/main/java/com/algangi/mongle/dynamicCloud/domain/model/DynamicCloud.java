@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "dynamic_cloud")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
+@Builder(access = AccessLevel.PRIVATE)
 @Getter
 public class DynamicCloud extends CreatedDateBaseEntity {
 

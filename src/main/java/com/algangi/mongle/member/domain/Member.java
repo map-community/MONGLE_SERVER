@@ -17,7 +17,7 @@ import lombok.*;
 @Table(name = "member")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
+@Builder(access = AccessLevel.PRIVATE)
 @Getter
 public class Member extends TimeBaseEntity {
 

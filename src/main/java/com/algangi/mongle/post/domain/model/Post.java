@@ -32,7 +32,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "post")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
+@Builder(access = AccessLevel.PRIVATE)
 @Getter
 public class Post extends TimeBaseEntity {
 
