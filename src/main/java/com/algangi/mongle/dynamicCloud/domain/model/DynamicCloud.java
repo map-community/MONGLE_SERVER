@@ -40,13 +40,22 @@ public class DynamicCloud extends CreatedDateBaseEntity {
     private DynamicCloudStatus status = DynamicCloudStatus.ACTIVE;
 
     @ElementCollection
-    @CollectionTable(name = "s2_dynamic_cloud_cells",
-        joinColumns = @JoinColumn(name = "s2_token_id", unique = true)
+    @CollectionTable(
+        name = "s2_dynamic_cloud_cells",
+        joinColumns = @JoinColumn(name = "dynamic_cloud_id")
     )
+    @Column(name = "s2_token_id", nullable = false, unique = true)
     private Set<String> s2TokenIds;
 
     public static DynamicCloud create(Set<String> s2TokenIds) {
+        validateS2TokenIds(s2TokenIds);
         return DynamicCloud.builder().build();
+    }
+
+    private static void validateS2TokenIds(Set<String> s2TokenIds) {
+        if(s2TokenIds == null || s2TokenIds.isEmpty()) {
+            throw new IllegalArgumentException("동적 구름 생성 시 S2 Cell 토큰 값이 존재해야합니다.");
+        }
     }
 
     public void mergeWith(DynamicCloud other) {
