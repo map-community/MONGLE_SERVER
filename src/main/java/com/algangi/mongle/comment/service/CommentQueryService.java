@@ -33,7 +33,9 @@ public class CommentQueryService {
             Long postId, String cursor, int size, CommentSort sort, Long currentMemberId) {
 
         postFinder.getPostOrThrow(postId);
+
         int adjustedSize = clampPageSize(size);
+        sort = defaultSort(sort);
 
         List<Comment> comments = commentRepository.findCommentEntitiesByPost(postId, cursor, adjustedSize + 1, sort);
 
@@ -54,7 +56,9 @@ public class CommentQueryService {
             Long parentId, String cursor, int size, CommentSort sort, Long currentMemberId) {
 
         commentFinder.getCommentOrThrow(parentId);
+
         int adjustedSize = clampPageSize(size);
+        sort = defaultSort(sort);
 
         List<Comment> replies = commentRepository.findReplyEntitiesByParent(parentId, cursor, adjustedSize + 1, sort);
 
@@ -76,6 +80,10 @@ public class CommentQueryService {
 
     private int clampPageSize(int size) {
         return Math.max(1, Math.min(size, MAX_PAGE_SIZE));
+    }
+
+    private CommentSort defaultSort(CommentSort sort) {
+        return (sort == null ? CommentSort.LIKES : sort);
     }
 
     private <T> String createNextCursor(List<T> results, boolean hasNext, CommentSort sort) {
