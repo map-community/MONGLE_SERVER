@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -81,19 +82,24 @@ public class CommentQueryService {
         if (!hasNext || results.isEmpty()) return null;
 
         Object lastItem = results.get(results.size() - 1);
+
         return switch (sort) {
             case LIKES -> {
                 if (lastItem instanceof CommentInfoResponse r) {
-                    yield r.likeCount() + "_" + r.commentId();
+                    String formattedDate = r.createdAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    yield String.format("%d_%s_%d", r.likeCount(), formattedDate, r.commentId());
                 } else if (lastItem instanceof ReplyInfoResponse r) {
-                    yield r.likeCount() + "_" + r.replyId();
+                    String formattedDate = r.createdAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    yield String.format("%d_%s_%d", r.likeCount(), formattedDate, r.replyId());
                 } else yield null;
             }
             case LATEST -> {
                 if (lastItem instanceof CommentInfoResponse r) {
-                    yield String.valueOf(r.commentId());
+                    String formattedDate = r.createdAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    yield String.format("%s_%d", formattedDate, r.commentId());
                 } else if (lastItem instanceof ReplyInfoResponse r) {
-                    yield String.valueOf(r.replyId());
+                    String formattedDate = r.createdAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    yield String.format("%s_%d", formattedDate, r.replyId());
                 } else yield null;
             }
         };

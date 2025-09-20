@@ -10,6 +10,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -85,29 +86,43 @@ public class CommentQueryRepository {
         if (cursor == null || cursor.isBlank()) return null;
 
         try {
-            if (sort == CommentSort.LATEST) {
-                Long cursorId = Long.parseLong(cursor);
-                return comment.id.lt(cursorId);
-            }
-
-            if (sort == CommentSort.LIKES) {
-                String[] parts = cursor.split("_");
-                if (parts.length != 2) {
-                    throw new IllegalArgumentException("잘못된 커서 형식입니다.");
-                }
-
-                Long likeCount = Long.parseLong(parts[0]);
-                Long id = Long.parseLong(parts[1]);
-
-                return comment.likeCount.lt(likeCount)
-                        .or(comment.likeCount.eq(likeCount).and(comment.id.lt(id)));
-            }
-
-            throw new IllegalArgumentException("지원하지 않는 정렬 타입입니다.");
-
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("잘못된 커서 값입니다.");
+            String[] parts = cursor.split("_");
+            return switch (sort) {
+                case LATEST -> latestCondition(parts);
+                case LIKES -> likesCondition(parts);
+            };
+        } catch (Exception e) {
+            throw new IllegalArgumentException("잘못된 커서 값입니다.", e);
         }
+    }
+
+    private BooleanExpression latestCondition(String[] parts) {
+        if (parts.length != 2) throw new IllegalArgumentException("잘못된 커서 형식입니다.");
+        LocalDateTime created = parseDate(parts[0]);
+        Long id = parseLong(parts[1]);
+        return comment.createdDate.lt(created)
+                .or(comment.createdDate.eq(created).and(comment.id.lt(id)));
+    }
+
+    private BooleanExpression likesCondition(String[] parts) {
+        if (parts.length != 3) throw new IllegalArgumentException("잘못된 커서 형식입니다.");
+        Long like = parseLong(parts[0]);
+        LocalDateTime created = parseDate(parts[1]);
+        Long id = parseLong(parts[2]);
+
+        return comment.likeCount.lt(like)
+                .or(comment.likeCount.eq(like).and(comment.createdDate.lt(created)))
+                .or(comment.likeCount.eq(like).and(comment.createdDate.eq(created)).and(comment.id.lt(id)));
+    }
+
+    private LocalDateTime parseDate(String s) {
+        try { return LocalDateTime.parse(s); }
+        catch (Exception e) { throw new IllegalArgumentException("잘못된 날짜 형식입니다.", e); }
+    }
+
+    private Long parseLong(String s) {
+        try { return Long.parseLong(s); }
+        catch (Exception e) { throw new IllegalArgumentException("잘못된 숫자 형식입니다.", e); }
     }
 
     private BooleanExpression visibleCommentCondition() {
