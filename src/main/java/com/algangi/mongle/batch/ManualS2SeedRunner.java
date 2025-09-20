@@ -107,7 +107,7 @@ public class ManualS2SeedRunner implements CommandLineRunner {
 
     private StaticCloud createStaticCloudSafely(String name, Double lat, Double lng) {
         try {
-            return staticCloudRepo.save(StaticCloud.createStaticCloud(name, lat, lng));
+            return staticCloudRepo.save(StaticCloud.createStaticCloud(name, lat, lng, Set.of()));
         } catch (DataIntegrityViolationException ex) {
             return staticCloudRepo.findByName(name).orElseThrow(() -> ex);
         }
