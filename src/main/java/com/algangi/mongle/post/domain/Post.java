@@ -9,7 +9,9 @@ import com.algangi.mongle.global.entity.TimeBaseEntity;
 import com.algangi.mongle.staticCloud.domain.StaticCloud;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,6 +23,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -69,8 +72,10 @@ public class Post extends TimeBaseEntity {
     @Builder.Default
     private PostStatus status = PostStatus.ACTIVE;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
+    @ElementCollection
+    @CollectionTable(name = "post_file",
+        joinColumns = @JoinColumn(name = "post_id"))
+    @OrderColumn(name = "list_idx")
     private List<PostFile> postFiles = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -85,13 +90,9 @@ public class Post extends TimeBaseEntity {
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
-    public void addPostFiles(List<PostFile> postFiles) {
-        postFiles.forEach(this::addPostFile);
-    }
-
-    public void addPostFile(PostFile postFile) {
-        postFiles.add(postFile);
-        postFile.setPost(this);
+    public void changePostFiles(List<PostFile> postFiles){
+        this.postFiles.clear();
+        this.postFiles.addAll(postFiles);
     }
 
     public void addComment(Comment comment) {

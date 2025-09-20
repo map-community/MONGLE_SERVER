@@ -1,6 +1,11 @@
 package com.algangi.mongle.post.domain;
 
+import java.util.Objects;
+
+import org.checkerframework.checker.units.qual.C;
+
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -15,17 +20,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "post_file")
+@Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Getter
 public class PostFile {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
 
     @Column(nullable = false)
     String fileUrl;
@@ -33,22 +33,34 @@ public class PostFile {
     @Column(nullable = false)
     String s3Key;
 
-    @Column(nullable = false)
-    int orders;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
-    private Post post;
-
-    public static PostFile createPostFile(String fileUrl, String s3Key, int order) {
+    public static PostFile create(String fileUrl, String s3Key, int order) {
+        validatePostFile(fileUrl, s3Key);
         return PostFile.builder()
             .fileUrl(fileUrl)
             .s3Key(s3Key)
-            .orders(order)
             .build();
     }
 
-    public void setPost(Post post) {
-        this.post = post;
+    private static void validatePostFile(String fileUrl, String s3Key){
+        if(fileUrl == null || fileUrl.isEmpty()){
+            throw new IllegalArgumentException("fileUrl cannot be null or empty");
+        }
+        if(s3Key == null || s3Key.isEmpty()){
+            throw new IllegalArgumentException("s3Key cannot be null or empty");
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof PostFile postFile)) {
+            return false;
+        }
+        return Objects.equals(fileUrl, postFile.fileUrl) && Objects.equals(s3Key,
+            postFile.s3Key);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fileUrl, s3Key);
     }
 }
