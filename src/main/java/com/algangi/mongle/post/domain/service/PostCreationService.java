@@ -145,13 +145,14 @@ public class PostCreationService {
 
         // 2. 가장 오래된 구름을 병합 중심으로 결정
         DynamicCloud oldestCloud = allRelatedClouds.stream()
-            .min(Comparator.comparing(DynamicCloud::getCreatedDate))
-            .orElse(newCloud); // 혹시 리스트가 비어있을 경우를 대비 (실제로는 newCloud가 항상 있음)
+            .min(Comparator.comparing(DynamicCloud::getCreatedDate,
+                Comparator.nullsLast(Comparator.naturalOrder())))
+            .orElse(newCloud);
 
         // 3. 병합될 구름들(가장 오래된 구름 제외)을 필터링하여 리스트로 수집
         List<DynamicCloud> cloudsToBeMerged = allRelatedClouds.stream()
             .filter(cloud -> !cloud.getId().equals(oldestCloud.getId()))
-            .toList(); // Java 16+ toList(), 이전 버전은 .collect(Collectors.toList())
+            .toList();
 
         if (!cloudsToBeMerged.isEmpty()) {
             // 4. 병합될 구름들의 ID 목록 추출
