@@ -1,15 +1,16 @@
 package com.algangi.mongle.post.domain;
 
-import com.algangi.mongle.staticCloud.domain.StaticCloud;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.algangi.mongle.comment.domain.Comment;
 import com.algangi.mongle.dynamicCloud.domain.DynamicCloud;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
+import com.algangi.mongle.staticCloud.domain.StaticCloud;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -40,11 +41,8 @@ public class Post extends TimeBaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Double latitude;
-
-    @Column(nullable = false)
-    private Double longitude;
+    @Embedded
+    private Location location;
 
     @Column(nullable = false)
     private String s2TokenId;
@@ -64,7 +62,7 @@ public class Post extends TimeBaseEntity {
 
     @Column(nullable = false)
     @Builder.Default
-    private LocalDateTime expiredAt = LocalDateTime.now().plusDays(3);
+    private LocalDateTime expiredAt = LocalDateTime.now().plusHours(12);
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -87,27 +85,6 @@ public class Post extends TimeBaseEntity {
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
-    public static Post createPost(Double latitude, Double longitude, String s2CellId,
-        String content, List<PostFile> postFiles) {
-        validateLocation(latitude, longitude);
-        Post post = Post.builder()
-            .latitude(latitude)
-            .longitude(longitude)
-            .s2TokenId(s2CellId)
-            .content(content)
-            .build();
-
-        post.addPostFiles(postFiles);
-
-        return post;
-    }
-
-    public static void validateLocation(Double latitude, Double longitude) {
-        if (latitude == null || longitude == null) {
-            throw new IllegalArgumentException("위도와 경도는 null일 수 없습니다.");
-        }
-    }
-
     public void addPostFiles(List<PostFile> postFiles) {
         postFiles.forEach(this::addPostFile);
     }
@@ -121,4 +98,5 @@ public class Post extends TimeBaseEntity {
         this.comments.add(comment);
         comment.setPost(this);
     }
+
 }
