@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.algangi.mongle.comment.domain.Comment;
-import com.algangi.mongle.dynamicCloud.domain.DynamicCloud;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
-import com.algangi.mongle.staticCloud.domain.StaticCloud;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
@@ -16,12 +14,10 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
@@ -49,6 +45,8 @@ public class Post extends TimeBaseEntity {
 
     @Column(nullable = false)
     private String s2TokenId;
+
+    private String title;
 
     private String content;
 
@@ -78,17 +76,72 @@ public class Post extends TimeBaseEntity {
     @OrderColumn(name = "list_idx")
     private List<PostFile> postFiles = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "dynamic_cloud_id")
-    private DynamicCloud dynamicCloud;
+    @Column(nullable = false)
+    private Long authorId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "static_cloud_id")
-    private StaticCloud staticCloud;
+    private Long dynamicCloudId;
+
+    private Long staticCloudId;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
+
+    public static Post createInStaticCloud(
+        Location location,
+        String s2TokenId,
+        String title,
+        String content,
+        Long authorId,
+        Long staticCloudId
+    ) {
+        return Post.builder()
+            .location(location)
+            .s2TokenId(s2TokenId)
+            .title(title)
+            .content(content)
+            .authorId(authorId)
+            .staticCloudId(staticCloudId)
+            .build();
+    }
+
+    public static Post createInDynamicCloud(Location location,
+        String s2TokenId,
+        String title,
+        String content,
+        Long authorId,
+        Long dynamicCloudId
+    ) {
+        return Post.builder()
+            .location(location)
+            .s2TokenId(s2TokenId)
+            .title(title)
+            .content(content)
+            .authorId(authorId)
+            .dynamicCloudId(dynamicCloudId)
+            .build();
+    }
+
+    public static Post createStandalone(
+        Location location,
+        String s2TokenId,
+        String title,
+        String content,
+        Long authorId
+    ) {
+        return Post.builder()
+            .location(location)
+            .s2TokenId(s2TokenId)
+            .title(title)
+            .content(content)
+            .authorId(authorId)
+            .build();
+    }
+
+    public void assignToDynamicCloud(Long dynamicCloudId) {
+        this.dynamicCloudId = dynamicCloudId;
+        this.staticCloudId = null;
+    }
 
     public void changePostFiles(List<PostFile> postFiles) {
         this.postFiles.clear();
@@ -99,5 +152,7 @@ public class Post extends TimeBaseEntity {
         this.comments.add(comment);
         comment.setPost(this);
     }
+
+
 
 }

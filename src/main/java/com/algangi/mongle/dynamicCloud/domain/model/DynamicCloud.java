@@ -1,6 +1,5 @@
 package com.algangi.mongle.dynamicCloud.domain.model;
 
-import java.util.List;
 import java.util.Set;
 
 import com.algangi.mongle.global.entity.CreatedDateBaseEntity;
@@ -38,7 +37,7 @@ public class DynamicCloud extends CreatedDateBaseEntity {
     @Column(nullable = false)
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    private DynamicCloudStatus dynamicCloudStatus = DynamicCloudStatus.ACTIVE;
+    private DynamicCloudStatus status = DynamicCloudStatus.ACTIVE;
 
     @ElementCollection
     @CollectionTable(name = "s2_dynamic_cloud_cells",
@@ -46,8 +45,26 @@ public class DynamicCloud extends CreatedDateBaseEntity {
     )
     private Set<String> s2TokenIds;
 
-    public static DynamicCloud createDynamicCloudFromTokens(List<String> s2TokenIds) {
+    public static DynamicCloud create(Set<String> s2TokenIds) {
         return DynamicCloud.builder().build();
+    }
+
+    public void mergeWith(DynamicCloud other) {
+        if (other.status != DynamicCloudStatus.ACTIVE) {
+            throw new IllegalStateException("ACTIVE 상태가 아닌 동적구름은 병합될 수 없습니다.");
+        }
+
+        this.s2TokenIds.addAll(other.s2TokenIds);
+        other.s2TokenIds.clear();
+        other.markAsMerged();
+    }
+
+    public void markAsMerged() {
+        this.status = DynamicCloudStatus.MERGED;
+    }
+
+    public boolean containsCell(String s2TokenId) {
+        return s2TokenIds.contains(s2TokenId);
     }
 
 }
