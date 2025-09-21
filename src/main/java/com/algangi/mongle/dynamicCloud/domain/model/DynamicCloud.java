@@ -41,7 +41,7 @@ public class DynamicCloud extends CreatedDateBaseEntity {
 
     @ElementCollection
     @CollectionTable(
-        name = "s2_dynamic_cloud_cells",
+        name = "dynamic_cloud_s2_cell",
         joinColumns = @JoinColumn(name = "dynamic_cloud_id")
     )
     @Column(name = "s2_token_id", nullable = false, unique = true)
