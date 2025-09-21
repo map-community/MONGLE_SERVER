@@ -25,7 +25,11 @@ public class CommentCursorParser {
         var created = ParsingUtil.parseDate(parts[0]);
         var id = ParsingUtil.parseLong(parts[1]);
 
-        return comment.createdDate.lt(created).or(comment.createdDate.eq(created).and(comment.id.lt(id)));
+        return comment.createdDate.lt(created)
+                .or(
+                        comment.createdDate.eq(created)
+                                .and(comment.id.lt(id))
+                );
     }
 
     private static BooleanExpression likesCondition(String[] parts) {
@@ -36,7 +40,14 @@ public class CommentCursorParser {
         var id = ParsingUtil.parseLong(parts[2]);
 
         return comment.likeCount.lt(like)
-                .or(comment.likeCount.eq(like).and(comment.createdDate.lt(created)))
-                .or(comment.likeCount.eq(like).and(comment.createdDate.eq(created)).and(comment.id.lt(id)));
+                .or(
+                        comment.likeCount.eq(like)
+                                .and(comment.createdDate.lt(created))
+                )
+                .or(
+                        comment.likeCount.eq(like)
+                                .and(comment.createdDate.eq(created))
+                                .and(comment.id.lt(id))
+                );
     }
 }

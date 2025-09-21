@@ -66,16 +66,43 @@ public final class CommentResponseMapper {
     ) {
 
         static BaseInfo createForDeleted() {
-            return new BaseInfo(MASKED_CONTENT, MASKED_NICKNAME, DEFAULT_PROFILE_IMAGE_URL, 0L, 0L, false, true);
+            return new BaseInfo(
+                    MASKED_CONTENT,
+                    MASKED_NICKNAME,
+                    DEFAULT_PROFILE_IMAGE_URL,
+                    0L,
+                    0L,
+                    false,
+                    true
+            );
         }
 
         static BaseInfo createForActive(Comment comment, Long currentMemberId) {
             Member author = comment.getMember();
-            boolean isAuthor = author != null && Objects.equals(author.getMemberId(), currentMemberId);
-            String nickname = (author != null) ? author.getNickname() : MASKED_NICKNAME;
-            String profileImage = (author != null) ? author.getProfileImage() : DEFAULT_PROFILE_IMAGE_URL;
 
-            return new BaseInfo(comment.getContent(), nickname, profileImage, comment.getLikeCount(), comment.getDislikeCount(), isAuthor, false);
+            boolean isAuthor = author != null
+                    && Objects.equals(
+                            author.getMemberId(),
+                            currentMemberId
+                    );
+
+            String nickname = (author != null)
+                    ? author.getNickname()
+                    : MASKED_NICKNAME;
+
+            String profileImage = (author != null)
+                    ? author.getProfileImage()
+                    : DEFAULT_PROFILE_IMAGE_URL;
+
+            return new BaseInfo(
+                    comment.getContent(),
+                    nickname,
+                    profileImage,
+                    comment.getLikeCount(),
+                    comment.getDislikeCount(),
+                    isAuthor,
+                    false
+            );
         }
     }
 }

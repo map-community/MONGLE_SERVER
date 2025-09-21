@@ -59,10 +59,12 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
     }
 
     public Map<Long, Boolean> findHasRepliesByParentIds(List<Long> parentIds) {
+        // 1. 부모 리스트가 비어있으면 빈 맵 반환
         if (parentIds.isEmpty()) {
             return Collections.emptyMap();
         }
 
+        // 2. 대댓글이 존재하는 부모 ID 리스트 조회
         QComment reply = new QComment("reply");
         List<Long> parentIdsWithReplies = queryFactory
                 .select(reply.parentComment.id)
@@ -74,6 +76,7 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
                 .groupBy(reply.parentComment.id)
                 .fetch();
 
+        // 3. List -> Set(빠른 연산을 위해) -> Map으로 변환
         Set<Long> parentIdsWithRepliesSet = new HashSet<>(parentIdsWithReplies);
         return parentIds.stream()
                 .collect(Collectors.toMap(
