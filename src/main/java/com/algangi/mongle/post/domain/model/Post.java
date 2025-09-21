@@ -154,5 +154,4 @@ public class Post extends TimeBaseEntity {
     }
 
 
-
 }

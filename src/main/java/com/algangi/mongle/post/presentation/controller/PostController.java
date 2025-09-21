@@ -23,7 +23,8 @@ public class PostController {
     private final PostCreationService postApplicationService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<PostResponse>> createPost(@Valid @RequestBody PostCreateRequest request) {
+    public ResponseEntity<ApiResponse<PostResponse>> createPost(
+        @Valid @RequestBody PostCreateRequest request) {
         PostCreationCommand command = PostCreationCommand.from(request);
         return ResponseEntity.ok(ApiResponse.success(postApplicationService.createPost(command)));
     }

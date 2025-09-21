@@ -13,7 +13,8 @@ public record PostResponse(
     Long staticCloudId,
     Long dynamicCloudId,
     LocalDateTime createdAt
-){
+) {
+
     public static PostResponse from(Post post) {
         return new PostResponse(
             post.getId(),
