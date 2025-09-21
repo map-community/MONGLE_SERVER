@@ -5,8 +5,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.algangi.mongle.global.exception.ApplicationException;
-import com.algangi.mongle.post.application.dto.PostRepository;
 import com.algangi.mongle.post.domain.model.Post;
+import com.algangi.mongle.post.domain.repository.PostRepository;
 import com.algangi.mongle.post.exception.PostErrorCode;
 
 import lombok.RequiredArgsConstructor;

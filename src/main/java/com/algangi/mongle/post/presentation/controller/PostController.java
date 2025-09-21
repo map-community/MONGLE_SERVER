@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.algangi.mongle.global.dto.ApiResponse;
+import com.algangi.mongle.post.application.dto.PostCreationCommand;
 import com.algangi.mongle.post.application.service.PostCreationService;
-import com.algangi.mongle.post.domain.repository.PostCreationCommand;
 import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
 import com.algangi.mongle.post.presentation.dto.PostResponse;
 

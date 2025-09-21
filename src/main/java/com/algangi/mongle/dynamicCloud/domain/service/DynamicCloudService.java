@@ -11,7 +11,7 @@ import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.global.infrastructure.S2CellService;
 import com.algangi.mongle.post.domain.model.Post;
-import com.algangi.mongle.post.application.dto.PostRepository;
+import com.algangi.mongle.post.domain.repository.PostRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,13 +23,15 @@ public class DynamicCloudService {
     private final PostRepository postRepository;
     private final S2CellService s2CellService;
 
-    public DynamicCloud createDynamicCloudAndMergeIfNeeded(String s2TokenId, List<Post> existingPostsInCell) {
+    public DynamicCloud createDynamicCloudAndMergeIfNeeded(String s2TokenId,
+        List<Post> existingPostsInCell) {
         // 1. 새로운 동적 구름 생성
         DynamicCloud newDynamicCloud = DynamicCloud.create(Set.of(s2TokenId));
 
         // 2. 인접 동적 구름 조회
         Set<String> adjacentS2TokenIds = s2CellService.getAdjacentCells(s2TokenId);
-        List<DynamicCloud> adjacentClouds = dynamicCloudRepository.findActiveCloudsInCells(adjacentS2TokenIds);
+        List<DynamicCloud> adjacentClouds = dynamicCloudRepository.findActiveCloudsInCells(
+            adjacentS2TokenIds);
 
         DynamicCloud finalCloud = newDynamicCloud;
         if (!adjacentClouds.isEmpty()) {
@@ -49,12 +51,14 @@ public class DynamicCloudService {
         return savedCloud;
     }
 
-    private DynamicCloud mergeWithAdjacentClouds(DynamicCloud newCloud, List<DynamicCloud> adjacentClouds) {
+    private DynamicCloud mergeWithAdjacentClouds(DynamicCloud newCloud,
+        List<DynamicCloud> adjacentClouds) {
         List<DynamicCloud> allRelatedClouds = new ArrayList<>(adjacentClouds);
         allRelatedClouds.add(newCloud);
 
         DynamicCloud oldestCloud = allRelatedClouds.stream()
-            .min(Comparator.comparing(DynamicCloud::getCreatedDate, Comparator.nullsLast(Comparator.naturalOrder())))
+            .min(Comparator.comparing(DynamicCloud::getCreatedDate,
+                Comparator.nullsLast(Comparator.naturalOrder())))
             .orElse(newCloud);
 
         List<DynamicCloud> cloudsToBeMerged = allRelatedClouds.stream()
