@@ -1,4 +1,4 @@
-package com.algangi.mongle.post.domain.repository;
+package com.algangi.mongle.post.application.dto;
 
 import java.util.List;
 

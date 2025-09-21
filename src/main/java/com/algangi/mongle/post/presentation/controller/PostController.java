@@ -7,24 +7,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.algangi.mongle.global.dto.ApiResponse;
-import com.algangi.mongle.post.application.service.PostApplicationService;
+import com.algangi.mongle.post.application.service.PostCreationService;
+import com.algangi.mongle.post.domain.repository.PostCreationCommand;
 import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
 import com.algangi.mongle.post.presentation.dto.PostResponse;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/posts")
+@RequiredArgsConstructor
 public class PostController {
 
-    private final PostApplicationService postApplicationService;
-
-    public PostController(PostApplicationService postApplicationService) {
-        this.postApplicationService = postApplicationService;
-    }
+    private final PostCreationService postApplicationService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<PostResponse>> createPost(@Valid @RequestBody PostCreateRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(postApplicationService.createPost(request)));
+        PostCreationCommand command = PostCreationCommand.from(request);
+        return ResponseEntity.ok(ApiResponse.success(postApplicationService.createPost(command)));
     }
 }
