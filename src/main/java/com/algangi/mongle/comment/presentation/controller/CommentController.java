@@ -1,12 +1,12 @@
-package com.algangi.mongle.comment.controller;
+package com.algangi.mongle.comment.presentation.controller;
 
-import com.algangi.mongle.comment.dto.CommentCreateRequest;
-import com.algangi.mongle.comment.dto.CommentInfoResponse;
-import com.algangi.mongle.comment.dto.CommentQueryRequest;
-import com.algangi.mongle.comment.dto.CursorInfoResponse;
-import com.algangi.mongle.comment.dto.ReplyInfoResponse;
-import com.algangi.mongle.comment.service.CommentQueryService;
-import com.algangi.mongle.comment.service.CommentService;
+import com.algangi.mongle.comment.application.service.CommentCommandService;
+import com.algangi.mongle.comment.presentation.cursor.CursorInfoResponse;
+import com.algangi.mongle.comment.application.service.CommentQueryService;
+import com.algangi.mongle.comment.presentation.dto.CommentCreateRequest;
+import com.algangi.mongle.comment.presentation.dto.CommentInfoResponse;
+import com.algangi.mongle.comment.presentation.dto.CommentQueryRequest;
+import com.algangi.mongle.comment.presentation.dto.ReplyInfoResponse;
 import com.algangi.mongle.global.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class CommentController {
 
-    private final CommentService commentService;
+    private final CommentCommandService commentCommandService;
     private final CommentQueryService commentQueryService;
 
     @GetMapping("/posts/{postId}/comments")
@@ -58,24 +58,26 @@ public class CommentController {
     }
 
     @PostMapping("/posts/{postId}/comments")
-    public ResponseEntity<ApiResponse<Void>> createParentComment(@PathVariable(name = "postId") Long postId,
-                                                                 @Valid @RequestBody CommentCreateRequest dto,
-                                                                 @RequestParam Long memberId) {
-        commentService.createParentComment(postId, dto, memberId);
+    public ResponseEntity<ApiResponse<Void>> createParentComment(
+            @PathVariable(name = "postId") Long postId,
+            @Valid @RequestBody CommentCreateRequest dto,
+            @RequestParam Long memberId) {
+        commentCommandService.createParentComment(postId, dto, memberId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 
     @PostMapping("/comments/{parentCommentId}/replies")
-    public ResponseEntity<ApiResponse<Void>> createChildComment(@PathVariable(name = "parentCommentId") Long parentCommentId,
-                                                                @Valid @RequestBody CommentCreateRequest dto,
-                                                                @RequestParam Long memberId) {
-        commentService.createChildComment(parentCommentId, dto, memberId);
+    public ResponseEntity<ApiResponse<Void>> createChildComment(
+            @PathVariable(name = "parentCommentId") Long parentCommentId,
+            @Valid @RequestBody CommentCreateRequest dto,
+            @RequestParam Long memberId) {
+        commentCommandService.createChildComment(parentCommentId, dto, memberId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(@PathVariable(name = "commentId") Long commentId) {
-        commentService.deleteComment(commentId);
+        commentCommandService.deleteComment(commentId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 

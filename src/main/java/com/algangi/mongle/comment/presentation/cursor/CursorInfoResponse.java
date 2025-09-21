@@ -1,4 +1,4 @@
-package com.algangi.mongle.comment.dto;
+package com.algangi.mongle.comment.presentation.cursor;
 
 import java.util.Collections;
 import java.util.List;

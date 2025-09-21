@@ -1,7 +1,10 @@
-package com.algangi.mongle.comment.service;
+package com.algangi.mongle.comment.application.service;
 
-import com.algangi.mongle.comment.domain.Comment;
-import com.algangi.mongle.comment.dto.CommentCreateRequest;
+import com.algangi.mongle.comment.domain.model.Comment;
+import com.algangi.mongle.comment.domain.repository.CommentRepository;
+import com.algangi.mongle.comment.presentation.dto.CommentCreateRequest;
+import com.algangi.mongle.comment.domain.service.CommentDomainService;
+import com.algangi.mongle.comment.domain.service.CommentFinder;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.service.MemberFinder;
 import com.algangi.mongle.post.domain.Post;
@@ -12,40 +15,39 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class CommentService {
+public class CommentCommandService {
 
     private final MemberFinder memberFinder;
     private final PostFinder postFinder;
     private final CommentFinder commentFinder;
+    private final CommentDomainService commentDomainService;
+    private final CommentRepository commentRepository;
 
     @Transactional
     public void createParentComment(Long postId, CommentCreateRequest dto, Long memberId) {
         Member author = memberFinder.getMemberOrThrow(memberId);
         Post post = postFinder.getPostOrThrow(postId);
 
-        Comment.createParentComment(
-                dto.content(),
-                post,
-                author
-        );
+        Comment newComment = commentDomainService.createParentComment(post, author, dto.content());
+
+        commentRepository.save(newComment);
     }
 
     @Transactional
     public void createChildComment(Long parentCommentId, CommentCreateRequest dto, Long memberId) {
         Member author = memberFinder.getMemberOrThrow(memberId);
-        Comment comment = commentFinder.getCommentOrThrow(parentCommentId);
+        Comment parent = commentFinder.getCommentOrThrow(parentCommentId);
 
-        Comment.createChildComment(
-                dto.content(),
-                comment,
-                author
-        );
+        Comment newComment = commentDomainService.createChildComment(parent, author, dto.content());
+
+        commentRepository.save(newComment);
     }
 
     @Transactional
     public void deleteComment(Long commentId) {
         Comment comment = commentFinder.getCommentOrThrow(commentId);
-        comment.softDelete();
+
+        commentDomainService.deleteComment(comment);
     }
 
 }

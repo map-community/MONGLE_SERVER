@@ -1,6 +1,6 @@
-package com.algangi.mongle.comment.dto;
+package com.algangi.mongle.comment.presentation.dto;
 
-import com.algangi.mongle.comment.domain.CommentSort;
+import com.algangi.mongle.comment.domain.model.CommentSort;
 
 public record CommentQueryRequest(
         String cursor,

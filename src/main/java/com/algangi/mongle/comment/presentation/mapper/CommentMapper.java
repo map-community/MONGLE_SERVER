@@ -1,6 +1,8 @@
-package com.algangi.mongle.comment.dto;
+package com.algangi.mongle.comment.presentation.mapper;
 
-import com.algangi.mongle.comment.domain.Comment;
+import com.algangi.mongle.comment.domain.model.Comment;
+import com.algangi.mongle.comment.presentation.dto.CommentInfoResponse;
+import com.algangi.mongle.comment.presentation.dto.ReplyInfoResponse;
 import com.algangi.mongle.member.domain.Member;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

@@ -1,11 +1,13 @@
-package com.algangi.mongle.comment.service;
+package com.algangi.mongle.comment.application.service;
 
-import com.algangi.mongle.comment.domain.Comment;
-import com.algangi.mongle.comment.domain.CommentSort;
-import com.algangi.mongle.comment.dto.CommentInfoResponse;
-import com.algangi.mongle.comment.dto.CursorInfoResponse;
-import com.algangi.mongle.comment.dto.ReplyInfoResponse;
-import com.algangi.mongle.comment.repository.CommentQueryRepository;
+import com.algangi.mongle.comment.domain.model.Comment;
+import com.algangi.mongle.comment.domain.model.CommentSort;
+import com.algangi.mongle.comment.presentation.cursor.CursorConvertible;
+import com.algangi.mongle.comment.presentation.dto.CommentInfoResponse;
+import com.algangi.mongle.comment.presentation.cursor.CursorInfoResponse;
+import com.algangi.mongle.comment.presentation.dto.ReplyInfoResponse;
+import com.algangi.mongle.comment.domain.repository.CommentQueryRepository;
+import com.algangi.mongle.comment.domain.service.CommentFinder;
 import com.algangi.mongle.post.service.PostFinder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,8 +17,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
-import static com.algangi.mongle.comment.dto.CommentMapper.toCommentInfoResponse;
-import static com.algangi.mongle.comment.dto.CommentMapper.toReplyInfoResponse;
+import static com.algangi.mongle.comment.presentation.mapper.CommentMapper.toCommentInfoResponse;
+import static com.algangi.mongle.comment.presentation.mapper.CommentMapper.toReplyInfoResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -86,30 +88,17 @@ public class CommentQueryService {
         return (sort == null ? CommentSort.LIKES : sort);
     }
 
-    private <T> String createNextCursor(List<T> results, boolean hasNext, CommentSort sort) {
-        if (!hasNext || results.isEmpty()) return null;
+    private <T extends CursorConvertible> String createNextCursor(List<T> results, boolean hasNext, CommentSort sort) {
+        if (!hasNext || results.isEmpty()) {
+            return null;
+        }
 
-        Object lastItem = results.get(results.size() - 1);
+        T lastItem = results.get(results.size() - 1);
+        String formattedDate = lastItem.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
         return switch (sort) {
-            case LIKES -> {
-                if (lastItem instanceof CommentInfoResponse r) {
-                    String formattedDate = r.createdAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                    yield String.format("%d_%s_%d", r.likeCount(), formattedDate, r.commentId());
-                } else if (lastItem instanceof ReplyInfoResponse r) {
-                    String formattedDate = r.createdAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                    yield String.format("%d_%s_%d", r.likeCount(), formattedDate, r.replyId());
-                } else yield null;
-            }
-            case LATEST -> {
-                if (lastItem instanceof CommentInfoResponse r) {
-                    String formattedDate = r.createdAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                    yield String.format("%s_%d", formattedDate, r.commentId());
-                } else if (lastItem instanceof ReplyInfoResponse r) {
-                    String formattedDate = r.createdAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                    yield String.format("%s_%d", formattedDate, r.replyId());
-                } else yield null;
-            }
+            case LIKES -> String.format("%d_%s_%d", lastItem.getLikeCount(), formattedDate, lastItem.getId());
+            case LATEST -> String.format("%s_%d", formattedDate, lastItem.getId());
         };
     }
 }

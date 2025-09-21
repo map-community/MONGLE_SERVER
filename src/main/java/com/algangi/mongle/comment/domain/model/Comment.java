@@ -1,4 +1,4 @@
-package com.algangi.mongle.comment.domain;
+package com.algangi.mongle.comment.domain.model;
 
 import com.algangi.mongle.comment.exception.CommentErrorCode;
 import com.algangi.mongle.global.entity.TimeBaseEntity;

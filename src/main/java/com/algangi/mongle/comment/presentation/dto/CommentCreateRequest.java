@@ -1,4 +1,4 @@
-package com.algangi.mongle.comment.dto;
+package com.algangi.mongle.comment.presentation.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
