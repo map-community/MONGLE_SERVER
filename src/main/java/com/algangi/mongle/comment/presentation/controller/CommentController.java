@@ -2,11 +2,12 @@ package com.algangi.mongle.comment.presentation.controller;
 
 import com.algangi.mongle.comment.application.service.CommentCommandService;
 import com.algangi.mongle.comment.presentation.cursor.CursorInfoResponse;
-import com.algangi.mongle.comment.application.service.CommentQueryService;
 import com.algangi.mongle.comment.presentation.dto.CommentCreateRequest;
 import com.algangi.mongle.comment.presentation.dto.CommentInfoResponse;
 import com.algangi.mongle.comment.presentation.dto.CommentQueryRequest;
 import com.algangi.mongle.comment.presentation.dto.ReplyInfoResponse;
+import com.algangi.mongle.comment.application.service.CommentQueryService;
+import com.algangi.mongle.comment.presentation.mapper.CommentRequestMapper;
 import com.algangi.mongle.global.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,33 +29,28 @@ public class CommentController {
 
     private final CommentCommandService commentCommandService;
     private final CommentQueryService commentQueryService;
+    private final CommentRequestMapper commentRequestMapper;
 
     @GetMapping("/posts/{postId}/comments")
     public ResponseEntity<ApiResponse<CursorInfoResponse<CommentInfoResponse>>> getCommentsByPost(
             @PathVariable(name = "postId") Long postId,
-            @ModelAttribute CommentQueryRequest request) {
-        CursorInfoResponse<CommentInfoResponse> commentsCursor = commentQueryService.getCommentsByPost(
-                postId,
-                request.cursor(),
-                request.size(),
-                request.sort(),
-                request.memberId()
-        );
-        return ResponseEntity.ok(ApiResponse.success(commentsCursor));
+            @ModelAttribute CommentQueryRequest request,
+            @RequestParam Long memberId) {
+        var condition = commentRequestMapper.toPostCommentSearchCondition(postId, request);
+        var result = commentQueryService.getCommentsByPost(condition, memberId, request.size());
+
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @GetMapping("/comments/{parentCommentId}/replies")
     public ResponseEntity<ApiResponse<CursorInfoResponse<ReplyInfoResponse>>> getRepliesByParent(
             @PathVariable(name = "parentCommentId") Long parentCommentId,
-            @ModelAttribute CommentQueryRequest request) {
-        CursorInfoResponse<ReplyInfoResponse> repliesCursor = commentQueryService.getRepliesByParent(
-                parentCommentId,
-                request.cursor(),
-                request.size(),
-                request.sort(),
-                request.memberId()
-        );
-        return ResponseEntity.ok(ApiResponse.success(repliesCursor));
+            @ModelAttribute CommentQueryRequest request,
+            @RequestParam Long memberId) {
+        var condition = commentRequestMapper.toReplySearchCondition(parentCommentId, request);
+        var result = commentQueryService.getRepliesByParent(condition, memberId, request.size());
+
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @PostMapping("/posts/{postId}/comments")

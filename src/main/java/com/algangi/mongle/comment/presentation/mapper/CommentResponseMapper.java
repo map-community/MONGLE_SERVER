@@ -6,17 +6,19 @@ import com.algangi.mongle.comment.presentation.dto.ReplyInfoResponse;
 import com.algangi.mongle.member.domain.Member;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
+@Component
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class CommentMapper {
+public final class CommentResponseMapper {
 
     private static final String MASKED_CONTENT = "삭제된 댓글입니다.";
     private static final String MASKED_NICKNAME = "(알 수 없음)";
     private static final String DEFAULT_PROFILE_IMAGE_URL = "default_profile_image_url";
 
-    public static CommentInfoResponse toCommentInfoResponse(Comment comment, Long currentMemberId, boolean hasReplies) {
+    public CommentInfoResponse toCommentInfoResponse(Comment comment, Long currentMemberId, boolean hasReplies) {
         BaseInfo baseInfo = createBaseInfo(comment, currentMemberId);
         return new CommentInfoResponse(
                 comment.getId(),
@@ -32,7 +34,7 @@ public final class CommentMapper {
         );
     }
 
-    public static ReplyInfoResponse toReplyInfoResponse(Comment reply, Long currentMemberId) {
+    public ReplyInfoResponse toReplyInfoResponse(Comment reply, Long currentMemberId) {
         BaseInfo baseInfo = createBaseInfo(reply, currentMemberId);
         return new ReplyInfoResponse(
                 reply.getId(),
@@ -47,7 +49,7 @@ public final class CommentMapper {
         );
     }
 
-    private static BaseInfo createBaseInfo(Comment comment, Long currentMemberId) {
+    private BaseInfo createBaseInfo(Comment comment, Long currentMemberId) {
         return comment.isDeleted()
                 ? BaseInfo.createForDeleted()
                 : BaseInfo.createForActive(comment, currentMemberId);

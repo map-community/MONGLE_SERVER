@@ -1,16 +1,19 @@
-package com.algangi.mongle.comment.infrastructure.persistence.query;
+package com.algangi.mongle.comment.infrastructure.persistence.querydsl;
 
 import com.algangi.mongle.comment.domain.model.CommentSort;
 import com.querydsl.core.types.OrderSpecifier;
+import org.springframework.stereotype.Component;
 
 import static com.algangi.mongle.comment.domain.model.QComment.comment;
 
-public class CommentOrderSpecifiers {
+@Component
+public class CommentOrderFactory {
 
-    public static OrderSpecifier<?>[] of(CommentSort sort) {
-        if (sort == null) sort = CommentSort.LATEST;
+    public OrderSpecifier<?>[] createOrderSpecifiers(CommentSort sort) {
+        CommentSort finalSort =
+                (sort == null) ? CommentSort.LATEST : sort;
 
-        return switch (sort) {
+        return switch (finalSort) {
             case LIKES -> new OrderSpecifier[]{
                     comment.likeCount.desc(),
                     comment.createdDate.desc(),

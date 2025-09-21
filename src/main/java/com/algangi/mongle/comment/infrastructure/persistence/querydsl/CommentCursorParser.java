@@ -1,4 +1,4 @@
-package com.algangi.mongle.comment.infrastructure.persistence.query;
+package com.algangi.mongle.comment.infrastructure.persistence.querydsl;
 
 import com.algangi.mongle.comment.domain.model.CommentSort;
 import com.algangi.mongle.global.util.ParsingUtil;
