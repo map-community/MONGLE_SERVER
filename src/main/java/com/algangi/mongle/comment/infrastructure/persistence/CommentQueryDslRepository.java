@@ -63,6 +63,7 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
         return PaginationResult.of(replies, size);
     }
 
+    @Override
     public Map<Long, Boolean> findHasRepliesByParentIds(List<Long> parentIds) {
         if (parentIds.isEmpty()) {
             return Collections.emptyMap();
