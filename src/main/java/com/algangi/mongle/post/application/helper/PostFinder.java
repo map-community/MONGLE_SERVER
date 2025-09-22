@@ -1,13 +1,13 @@
-package com.algangi.mongle.post.service;
+package com.algangi.mongle.post.application.helper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.algangi.mongle.global.exception.ApplicationException;
-import com.algangi.mongle.post.domain.Post;
+import com.algangi.mongle.post.domain.model.Post;
+import com.algangi.mongle.post.domain.repository.PostRepository;
 import com.algangi.mongle.post.exception.PostErrorCode;
-import com.algangi.mongle.post.repository.PostJpaRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,10 +16,10 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class PostFinder {
 
-    private final PostJpaRepository postJpaRepository;
+    private final PostRepository postRepository;
 
     public Post getPostOrThrow(Long postId) {
-        return postJpaRepository.findById(postId)
+        return postRepository.findById(postId)
             .orElseThrow(() -> new ApplicationException(PostErrorCode.POST_NOT_FOUND));
     }
 

@@ -1,5 +1,7 @@
 package com.algangi.mongle.global.exception;
 
+import org.springframework.boot.autoconfigure.graphql.GraphQlProperties.Http;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -32,6 +34,16 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(ApiResponse.error(HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                exception.getMessage()));
+    }
+
+    @ExceptionHandler(PessimisticLockingFailureException.class)
+    public  ResponseEntity<ApiResponse<ErrorInfo>> handlePessimisticLockingFailure(
+        PessimisticLockingFailureException exception) {
+        log.error(exception.getMessage(), exception);
+
+        return ResponseEntity.status(HttpStatus.LOCKED)
+            .body(ApiResponse.error(HttpStatus.LOCKED.getReasonPhrase(),
                 exception.getMessage()));
     }
 }

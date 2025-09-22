@@ -4,7 +4,7 @@ import com.algangi.mongle.comment.exception.CommentErrorCode;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.post.domain.Post;
+import com.algangi.mongle.post.domain.model.Post;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
