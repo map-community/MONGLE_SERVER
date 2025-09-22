@@ -82,6 +82,7 @@ public class Comment extends TimeBaseEntity {
         Comment comment = Comment.builder()
             .content(content)
             .parentComment(parentComment)
+            .post(parentComment.getPost())
             .member(member)
             .build();
 
