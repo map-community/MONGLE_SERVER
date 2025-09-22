@@ -1,7 +1,7 @@
 package com.algangi.mongle.batch;
 
-import com.algangi.mongle.staticCloud.domain.StaticCloud;
-import com.algangi.mongle.staticCloud.repository.StaticCloudJpaRepository;
+import com.algangi.mongle.staticCloud.domain.model.StaticCloud;
+import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ManualS2SeedRunner implements CommandLineRunner {
 
-    private final StaticCloudJpaRepository staticCloudRepo;
+    private final StaticCloudRepository staticCloudRepo;
     private final JdbcTemplate jdbcTemplate;
 
     private static final int BATCH_SIZE = 500;
@@ -107,7 +107,7 @@ public class ManualS2SeedRunner implements CommandLineRunner {
 
     private StaticCloud createStaticCloudSafely(String name, Double lat, Double lng) {
         try {
-            return staticCloudRepo.save(StaticCloud.createStaticCloud(name, lat, lng));
+            return staticCloudRepo.save(StaticCloud.createStaticCloud(name, lat, lng, Set.of()));
         } catch (DataIntegrityViolationException ex) {
             return staticCloudRepo.findByName(name).orElseThrow(() -> ex);
         }

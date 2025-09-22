@@ -1,0 +1,157 @@
+package com.algangi.mongle.post.domain.model;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.algangi.mongle.comment.domain.model.Comment;
+import com.algangi.mongle.global.entity.TimeBaseEntity;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "post")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder(access = AccessLevel.PRIVATE)
+@Getter
+public class Post extends TimeBaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Embedded
+    private Location location;
+
+    @Column(nullable = false)
+    private String s2TokenId;
+
+    private String title;
+
+    private String content;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private long likeCount = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private long dislikeCount = 0;
+
+    @Builder.Default
+    private Double rankingScore = 0.0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private LocalDateTime expiredAt = LocalDateTime.now().plusHours(12);
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private PostStatus status = PostStatus.ACTIVE;
+
+    @ElementCollection
+    @CollectionTable(name = "post_file",
+        joinColumns = @JoinColumn(name = "post_id"))
+    @OrderColumn(name = "list_idx")
+    private List<PostFile> postFiles = new ArrayList<>();
+
+    @Column(nullable = false)
+    private Long authorId;
+
+    private Long dynamicCloudId;
+
+    private Long staticCloudId;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Comment> comments = new ArrayList<>();
+
+    public static Post createInStaticCloud(
+        Location location,
+        String s2TokenId,
+        String title,
+        String content,
+        Long authorId,
+        Long staticCloudId
+    ) {
+        return Post.builder()
+            .location(location)
+            .s2TokenId(s2TokenId)
+            .title(title)
+            .content(content)
+            .authorId(authorId)
+            .staticCloudId(staticCloudId)
+            .build();
+    }
+
+    public static Post createInDynamicCloud(Location location,
+        String s2TokenId,
+        String title,
+        String content,
+        Long authorId,
+        Long dynamicCloudId
+    ) {
+        return Post.builder()
+            .location(location)
+            .s2TokenId(s2TokenId)
+            .title(title)
+            .content(content)
+            .authorId(authorId)
+            .dynamicCloudId(dynamicCloudId)
+            .build();
+    }
+
+    public static Post createStandalone(
+        Location location,
+        String s2TokenId,
+        String title,
+        String content,
+        Long authorId
+    ) {
+        return Post.builder()
+            .location(location)
+            .s2TokenId(s2TokenId)
+            .title(title)
+            .content(content)
+            .authorId(authorId)
+            .build();
+    }
+
+    public void assignToDynamicCloud(Long dynamicCloudId) {
+        this.dynamicCloudId = dynamicCloudId;
+        this.staticCloudId = null;
+    }
+
+    public void changePostFiles(List<PostFile> postFiles) {
+        this.postFiles.clear();
+        this.postFiles.addAll(postFiles);
+    }
+
+    public void addComment(Comment comment) {
+        this.comments.add(comment);
+        comment.setPost(this);
+    }
+
+
+}

@@ -12,7 +12,7 @@ import com.algangi.mongle.comment.presentation.dto.ReplyInfoResponse;
 import com.algangi.mongle.comment.domain.repository.CommentQueryRepository;
 import com.algangi.mongle.comment.domain.service.CommentFinder;
 import com.algangi.mongle.comment.presentation.mapper.CommentResponseMapper;
-import com.algangi.mongle.post.service.PostFinder;
+import com.algangi.mongle.post.application.helper.PostFinder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
