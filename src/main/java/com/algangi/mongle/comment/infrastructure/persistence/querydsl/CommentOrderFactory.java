@@ -11,7 +11,7 @@ public class CommentOrderFactory {
 
     public OrderSpecifier<?>[] createOrderSpecifiers(CommentSort sort) {
         CommentSort finalSort =
-                (sort == null) ? CommentSort.LATEST : sort;
+                (sort == null) ? CommentSort.LIKES : sort;
 
         return switch (finalSort) {
             case LIKES -> new OrderSpecifier[]{
