@@ -58,7 +58,7 @@ public class CommentController {
             @PathVariable(name = "postId") Long postId,
             @Valid @RequestBody CommentCreateRequest dto,
             @RequestParam Long memberId) {
-        commentCommandService.createParentComment(postId, dto, memberId);
+        commentCommandService.createParentComment(postId, dto.content(), memberId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 
@@ -67,7 +67,7 @@ public class CommentController {
             @PathVariable(name = "parentCommentId") Long parentCommentId,
             @Valid @RequestBody CommentCreateRequest dto,
             @RequestParam Long memberId) {
-        commentCommandService.createChildComment(parentCommentId, dto, memberId);
+        commentCommandService.createChildComment(parentCommentId, dto.content(), memberId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 

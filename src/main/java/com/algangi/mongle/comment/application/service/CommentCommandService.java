@@ -24,21 +24,21 @@ public class CommentCommandService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public void createParentComment(Long postId, CommentCreateRequest dto, Long memberId) {
+    public void createParentComment(Long postId, String content, Long memberId) {
         Member author = memberFinder.getMemberOrThrow(memberId);
         Post post = postFinder.getPostOrThrow(postId);
 
-        Comment newComment = commentDomainService.createParentComment(post, author, dto.content());
+        Comment newComment = commentDomainService.createParentComment(post, author, content);
 
         commentRepository.save(newComment);
     }
 
     @Transactional
-    public void createChildComment(Long parentCommentId, CommentCreateRequest dto, Long memberId) {
+    public void createChildComment(Long parentCommentId, String content, Long memberId) {
         Member author = memberFinder.getMemberOrThrow(memberId);
         Comment parent = commentFinder.getCommentOrThrow(parentCommentId);
 
-        Comment newComment = commentDomainService.createChildComment(parent, author, dto.content());
+        Comment newComment = commentDomainService.createChildComment(parent, author, content);
 
         commentRepository.save(newComment);
     }
