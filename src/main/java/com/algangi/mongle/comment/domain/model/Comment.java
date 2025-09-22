@@ -1,4 +1,4 @@
-package com.algangi.mongle.comment.domain;
+package com.algangi.mongle.comment.domain.model;
 
 import com.algangi.mongle.comment.exception.CommentErrorCode;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
@@ -51,11 +51,11 @@ public class Comment extends TimeBaseEntity {
     private Comment parentComment;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
+    @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @Column(name = "deleted_at")
@@ -82,6 +82,7 @@ public class Comment extends TimeBaseEntity {
         Comment comment = Comment.builder()
             .content(content)
             .parentComment(parentComment)
+            .post(parentComment.getPost())
             .member(member)
             .build();
 

@@ -3,7 +3,7 @@ package com.algangi.mongle.post.domain.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.algangi.mongle.comment.domain.Comment;
+import com.algangi.mongle.comment.domain.model.Comment;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
 
 import jakarta.persistence.CascadeType;
