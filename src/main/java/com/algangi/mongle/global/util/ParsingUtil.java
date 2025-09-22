@@ -3,7 +3,7 @@ package com.algangi.mongle.global.util;
 import java.time.LocalDateTime;
 import java.util.function.Function;
 
-public class ParsingUtil {
+public final class ParsingUtil {
 
     private static final int PREVIEW_LIMIT = 20;
 
