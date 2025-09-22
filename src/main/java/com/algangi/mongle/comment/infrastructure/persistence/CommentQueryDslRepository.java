@@ -6,6 +6,7 @@ import com.algangi.mongle.comment.domain.repository.CommentQueryRepository;
 import com.algangi.mongle.comment.infrastructure.persistence.querydsl.CommentFilterFactory;
 import com.algangi.mongle.comment.infrastructure.persistence.querydsl.CommentOrderFactory;
 import com.algangi.mongle.comment.infrastructure.persistence.vo.CommentSearchCondition;
+import com.algangi.mongle.comment.infrastructure.persistence.vo.PaginationResult;
 import com.algangi.mongle.comment.infrastructure.persistence.vo.ReplySearchCondition;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +30,8 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
     private final CommentOrderFactory orderFactory;
 
     @Override
-    public List<Comment> findCommentsByPost(CommentSearchCondition condition, int size) {
-        return queryFactory
+    public PaginationResult<Comment> findCommentsByPost(CommentSearchCondition condition, int size) {
+        List<Comment> comments = queryFactory
                 .selectFrom(comment)
                 .leftJoin(comment.member).fetchJoin()
                 .where(
@@ -40,13 +41,15 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
                         filterFactory.visibleCommentCondition()
                 )
                 .orderBy(orderFactory.createOrderSpecifiers(condition.sort()))
-                .limit(size)
+                .limit(size + 1)
                 .fetch();
+
+        return PaginationResult.of(comments, size);
     }
 
     @Override
-    public List<Comment> findRepliesByParent(ReplySearchCondition condition, int size) {
-        return queryFactory
+    public PaginationResult<Comment> findRepliesByParent(ReplySearchCondition condition, int size) {
+        List<Comment> replies = queryFactory
                 .selectFrom(comment)
                 .leftJoin(comment.member).fetchJoin()
                 .where(
@@ -54,17 +57,17 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
                         filterFactory.cursorCondition(condition.cursor(), condition.sort())
                 )
                 .orderBy(orderFactory.createOrderSpecifiers(condition.sort()))
-                .limit(size)
+                .limit(size + 1)
                 .fetch();
+
+        return PaginationResult.of(replies, size);
     }
 
     public Map<Long, Boolean> findHasRepliesByParentIds(List<Long> parentIds) {
-        // 1. 부모 리스트가 비어있으면 빈 맵 반환
         if (parentIds.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        // 2. 대댓글이 존재하는 부모 ID 리스트 조회
         QComment reply = new QComment("reply");
         List<Long> parentIdsWithReplies = queryFactory
                 .select(reply.parentComment.id)
@@ -76,7 +79,6 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
                 .groupBy(reply.parentComment.id)
                 .fetch();
 
-        // 3. List -> Set(빠른 연산을 위해) -> Map으로 변환
         Set<Long> parentIdsWithRepliesSet = new HashSet<>(parentIdsWithReplies);
         return parentIds.stream()
                 .collect(Collectors.toMap(
