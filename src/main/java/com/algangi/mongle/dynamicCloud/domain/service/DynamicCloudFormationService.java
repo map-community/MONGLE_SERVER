@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class DynamicCloudService {
+public class DynamicCloudFormationService {
 
     private final DynamicCloudRepository dynamicCloudRepository;
     private final PostRepository postRepository;

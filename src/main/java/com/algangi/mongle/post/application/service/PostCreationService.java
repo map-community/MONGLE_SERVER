@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
-import com.algangi.mongle.dynamicCloud.domain.service.DynamicCloudService;
+import com.algangi.mongle.dynamicCloud.domain.service.DynamicCloudFormationService;
 import com.algangi.mongle.post.application.dto.PostCreationCommand;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
@@ -26,7 +26,7 @@ public class PostCreationService {
     private final StaticCloudRepository staticCloudRepository;
     private final DynamicCloudRepository dynamicCloudRepository;
     private final PostRepository postRepository;
-    private final DynamicCloudService dynamicCloudService;
+    private final DynamicCloudFormationService dynamicCloudFormationService;
 
     @Transactional
     public PostResponse createPost(PostCreationCommand command) {
@@ -64,7 +64,7 @@ public class PostCreationService {
             return createStandalonePost(command);
         } else {
             // DynamicCloudService에 동적 구름 생성 및 병합 책임을 위임
-            DynamicCloud targetCloud = dynamicCloudService.createDynamicCloudAndMergeIfNeeded(
+            DynamicCloud targetCloud = dynamicCloudFormationService.createDynamicCloudAndMergeIfNeeded(
                 s2TokenId, existingPostsInCell);
             return createPostInDynamicCloud(command, targetCloud);
         }
