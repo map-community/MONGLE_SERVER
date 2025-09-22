@@ -2,7 +2,6 @@ package com.algangi.mongle.comment.application.service;
 
 import com.algangi.mongle.comment.domain.model.Comment;
 import com.algangi.mongle.comment.domain.repository.CommentRepository;
-import com.algangi.mongle.comment.presentation.dto.CommentCreateRequest;
 import com.algangi.mongle.comment.domain.service.CommentDomainService;
 import com.algangi.mongle.comment.domain.service.CommentFinder;
 import com.algangi.mongle.member.domain.Member;

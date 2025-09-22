@@ -11,8 +11,12 @@ public class CommentCursorParser {
     public static BooleanExpression parse(String cursor, CommentSort sort) {
         if (cursor == null || cursor.isBlank()) return null;
 
+        CommentSort finalSort = (sort == null)
+                ? CommentSort.LIKES
+                : sort;
+
         String[] parts = cursor.split("_");
-        return switch (sort) {
+        return switch (finalSort) {
             case LATEST -> latestCondition(parts);
             case LIKES -> likesCondition(parts);
         };
