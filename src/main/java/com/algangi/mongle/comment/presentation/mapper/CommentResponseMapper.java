@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 
 @Component
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class CommentResponseMapper {
 
     private static final String MASKED_CONTENT = "삭제된 댓글입니다.";
