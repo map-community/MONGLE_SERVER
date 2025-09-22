@@ -5,11 +5,15 @@ import java.util.function.Function;
 
 public class ParsingUtil {
 
+    private static final int PREVIEW_LIMIT = 20;
+
     public static <T> T parse(String value, Function<String, T> parser, String errorMsg) {
+        String normalized = normalizeInput(value, errorMsg);
+
         try {
-            return parser.apply(value);
+            return parser.apply(normalized);
         } catch (Exception e) {
-            throw new IllegalArgumentException(errorMsg + ": " + value, e);
+            throw buildParseException(errorMsg, normalized, e);
         }
     }
 
@@ -20,4 +24,26 @@ public class ParsingUtil {
     public static Long parseLong(String value) {
         return parse(value, Long::parseLong, "잘못된 숫자 형식");
     }
+
+    private static String normalizeInput(String value, String errorMsg) {
+        if (value == null) {
+            throw new IllegalArgumentException(errorMsg + " (입력값이 null입니다)");
+        }
+        return value.strip();
+    }
+
+    private static IllegalArgumentException buildParseException(String errorMsg, String value, Exception e) {
+        return new IllegalArgumentException(
+                errorMsg + " (입력 일부: '" + preview(value) + "')", e
+        );
+    }
+
+    private static String preview(String s) {
+        if (s == null) return "null";
+
+        return s.length() <= PREVIEW_LIMIT
+                ? s
+                : s.substring(0, PREVIEW_LIMIT) + "…";
+    }
+
 }
