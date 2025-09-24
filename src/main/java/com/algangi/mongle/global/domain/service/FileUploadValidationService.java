@@ -42,17 +42,7 @@ public class FileUploadValidationService {
         }
     }
 
-    public void validateFileCollection(List<FileMetadata> files) {
-        // 총 파일 개수 검증
-        validateMaxFileCount(files);
-        // 총 비디오 개수 검증
-        validateMaxVideoCount(files);
-        // 총 이미지 사이즈 검증
-        validateTotalImageSize(files);
-        files.forEach(this::validateFile);
-    }
-
-    private void validateFile(FileMetadata file) {
+    private static void validateFile(FileMetadata file) {
         if (file.isImage()) {
             if (file.fileSize() > FileUploadConstants.MAX_IMAGE_SIZE_MB) {
                 throw new ApplicationException(FileErrorCode.INVALID_IMAGE_SIZE);
@@ -62,5 +52,15 @@ public class FileUploadValidationService {
                 throw new ApplicationException(FileErrorCode.INVALID_VIDEO_SIZE);
             }
         }
+    }
+
+    public void validateFileCollection(List<FileMetadata> files) {
+        // 총 파일 개수 검증
+        validateMaxFileCount(files);
+        // 총 비디오 개수 검증
+        validateMaxVideoCount(files);
+        // 총 이미지 사이즈 검증
+        validateTotalImageSize(files);
+        files.forEach(FileUploadValidationService::validateFile);
     }
 }
