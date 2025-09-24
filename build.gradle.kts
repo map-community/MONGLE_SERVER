@@ -24,24 +24,40 @@ repositories {
     mavenCentral()
 }
 
+dependencyManagement {
+    imports {
+        mavenBom("software.amazon.awssdk:bom:2.25.41")
+    }
+}
+
 dependencies {
+    //spring data jpa
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    //jdbc
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    //validation
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    //web
     implementation("org.springframework.boot:spring-boot-starter-web")
+    //s2
     implementation("io.sgr:s2-geometry-library-java:1.0.1") {
         exclude(group = "com.google.guava", module = "guava")
     }
     implementation("com.google.guava:guava:32.0.1-jre")
+    //lombok
     compileOnly("org.projectlombok:lombok")
-    runtimeOnly("com.mysql:mysql-connector-j")
     annotationProcessor("org.projectlombok:lombok")
+    //mysql
+    runtimeOnly("com.mysql:mysql-connector-j")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    //queryDSL
     implementation("io.github.openfeign.querydsl:querydsl-jpa:6.10.1")
     annotationProcessor("io.github.openfeign.querydsl:querydsl-apt:6.10.1:jpa")
     annotationProcessor("jakarta.annotation:jakarta.annotation-api")
     annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+    //aws cloud
+    implementation("io.awspring.cloud:spring-cloud-aws-starter-s3:3.1.1")
 }
 
 tasks.withType<Test> {
