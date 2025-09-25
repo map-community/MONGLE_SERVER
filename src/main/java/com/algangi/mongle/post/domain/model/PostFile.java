@@ -18,25 +18,18 @@ import lombok.NoArgsConstructor;
 public class PostFile {
 
     @Column(nullable = false)
-    String fileUrl;
+    String fileKey;
 
-    @Column(nullable = false)
-    String s3Key;
-
-    public static PostFile create(String fileUrl, String s3Key) {
-        validatePostFile(fileUrl, s3Key);
+    public static PostFile create(String fileKey) {
+        validatePostFile(fileKey);
         return PostFile.builder()
-            .fileUrl(fileUrl)
-            .s3Key(s3Key)
+            .fileKey(fileKey)
             .build();
     }
 
-    private static void validatePostFile(String fileUrl, String s3Key) {
-        if (fileUrl == null || fileUrl.isEmpty()) {
-            throw new IllegalArgumentException("fileUrl cannot be null or empty");
-        }
-        if (s3Key == null || s3Key.isEmpty()) {
-            throw new IllegalArgumentException("s3Key cannot be null or empty");
+    private static void validatePostFile(String fileKey) {
+        if (fileKey == null || fileKey.isEmpty()) {
+            throw new IllegalArgumentException("fileKey는 null이나 빈 값일 수 없습니다.");
         }
     }
 
@@ -45,12 +38,11 @@ public class PostFile {
         if (!(o instanceof PostFile postFile)) {
             return false;
         }
-        return Objects.equals(fileUrl, postFile.fileUrl) && Objects.equals(s3Key,
-            postFile.s3Key);
+        return Objects.equals(fileKey, postFile.fileKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fileUrl, s3Key);
+        return Objects.hashCode(fileKey);
     }
 }
