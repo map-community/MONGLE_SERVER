@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public record IssuedUrlInfo(
     String fileKey,
-    String uploadUrl,
+    String presignedUrl,
     LocalDateTime expiresAt
 ) {
 
