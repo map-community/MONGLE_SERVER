@@ -11,11 +11,13 @@ import com.algangi.mongle.global.exception.AwsErrorCode;
 import com.algangi.mongle.global.presentation.dto.IssuedUrlInfo;
 import com.algangi.mongle.global.presentation.dto.ViewUrlRequest;
 import com.algangi.mongle.global.presentation.dto.ViewUrlResponse;
+import com.algangi.mongle.global.utils.PemUtils;
 
-import java.io.FileInputStream;
-import java.security.KeyFactory;
+import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -29,23 +31,19 @@ public class CloudFrontViewUrlIssueService implements ViewUrlIssueService {
     public static final String DIR_DELIMITER = "/";
     private final CloudFrontProperties cloudFrontProperties;
     private final CloudFrontUtilities cloudFrontUtilities;
+    private PrivateKey privateKey;
 
     public CloudFrontViewUrlIssueService(CloudFrontProperties cloudFrontProperties) {
         this.cloudFrontProperties = cloudFrontProperties;
         this.cloudFrontUtilities = CloudFrontUtilities.create();
     }
 
-    private static PrivateKey loadPrivateKey(String filePath) {
+    @PostConstruct
+    public void init() {
         try {
-            byte[] keyBytes;
-            try (FileInputStream fis = new FileInputStream(filePath)) {
-                keyBytes = fis.readAllBytes();
-            }
-            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-            KeyFactory kf = KeyFactory.getInstance("RSA");
-            return kf.generatePrivate(spec);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("private Key를 로드할 수 없습니다,");
+            this.privateKey = PemUtils.loadPrivateKey(cloudFrontProperties.privateKeyFilePath());
+        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new IllegalStateException("Private Key 로딩 중 오류 발생", e);
         }
     }
 
@@ -58,15 +56,15 @@ public class CloudFrontViewUrlIssueService implements ViewUrlIssueService {
         return ViewUrlResponse.of(issuedUrls);
     }
 
-    public IssuedUrlInfo issueViewUrl(String s3Key) {
+    public IssuedUrlInfo issueViewUrl(String fileKey) {
         try {
-            String resourceUrl = HTTPS + cloudFrontProperties.domain() + DIR_DELIMITER + s3Key;
+            String resourceUrl = HTTPS + cloudFrontProperties.domain() + DIR_DELIMITER + fileKey;
             Instant expirationTime = Instant.now()
                 .plus(cloudFrontProperties.expirationMinutes(), ChronoUnit.MINUTES);
 
             CustomSignerRequest signerRequest = CustomSignerRequest.builder()
                 .resourceUrl(resourceUrl)
-                .privateKey(loadPrivateKey(cloudFrontProperties.privateKeyFilePath()))
+                .privateKey(privateKey)
                 .keyPairId(cloudFrontProperties.keyPairId())
                 .expirationDate(expirationTime)
                 .build();
@@ -75,11 +73,12 @@ public class CloudFrontViewUrlIssueService implements ViewUrlIssueService {
                 .toString();
             LocalDateTime expiresAt = LocalDateTime.now()
                 .plusMinutes(cloudFrontProperties.expirationMinutes());
-            return new IssuedUrlInfo(s3Key, issuedUrl, expiresAt);
+            return new IssuedUrlInfo(fileKey, issuedUrl, expiresAt);
 
         } catch (Exception e) {
             throw new ApplicationException(AwsErrorCode.CLOUDFRONT_ERROR)
                 .addErrorInfo("errorDetail", e.getMessage());
         }
     }
+
 }

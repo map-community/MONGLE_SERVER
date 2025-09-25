@@ -67,7 +67,6 @@ public class S3UploadUrlIssueService implements UploadUrlIssueService {
             .putObjectRequest(builder -> builder
                 .bucket(bucket)
                 .key(s3Key)
-                .contentLength(fileMetadata.fileSize())
                 .build())
             .build();
 
