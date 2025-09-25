@@ -23,8 +23,14 @@ spring:
       region:
         static: ap-northeast-2
 
+
 mongle:
   aws:
     s3:
       bucket: ${BUCKET_NAME}
-      presigned-url-expiration-minutes: ${PRESIGNED_URL_EXPIRATION_MIN}
+      presigned-url-expiration-minutes: ${PUT_PRESIGNED_URL_EXPIRATION_MIN}
+    cloudfront:
+      domain: ${CLOUDFRONT_DOMAIN}
+      private-key-file-path: ${CLOUDFRONT_PRIVATE_KEY_FILE_PATH}
+      key-pair-id: ${CLOUDFRONT_KEY_PAIR_ID}
+      presigned-url-expiration-minutes: ${GET_PRESIGNED_URL_EXPIRATION_MIN}

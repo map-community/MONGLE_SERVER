@@ -58,6 +58,8 @@ dependencies {
     annotationProcessor("jakarta.persistence:jakarta.persistence-api")
     //aws cloud
     implementation("io.awspring.cloud:spring-cloud-aws-starter-s3:3.1.1")
+    // AWS CloudFront 연동을 위한 SDK
+    implementation("software.amazon.awssdk:cloudfront")
 }
 
 tasks.withType<Test> {
