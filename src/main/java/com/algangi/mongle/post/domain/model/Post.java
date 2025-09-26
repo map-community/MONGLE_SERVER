@@ -65,7 +65,7 @@ public class Post extends TimeBaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private PostStatus status = PostStatus.ACTIVE;
+    private PostStatus status = PostStatus.UPLOADING;
 
     @ElementCollection
     @CollectionTable(name = "post_file",
@@ -159,6 +159,10 @@ public class Post extends TimeBaseEntity {
     public void addComment(Comment comment) {
         this.comments.add(comment);
         comment.setPost(this);
+    }
+
+    public void markAsActive() {
+        this.status = PostStatus.ACTIVE;
     }
 
 
