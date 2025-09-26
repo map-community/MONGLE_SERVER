@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class PostFileUploadValidateService {
+public class PostFileUploadValidationService {
 
     private static void validateTotalImageSize(List<FileMetadata> files) {
         long totalImageSize = files.stream()
@@ -61,6 +61,6 @@ public class PostFileUploadValidateService {
         validateMaxVideoCount(files);
         // 총 이미지 사이즈 검증
         validateTotalImageSize(files);
-        files.forEach(PostFileUploadValidateService::validateFile);
+        files.forEach(PostFileUploadValidationService::validateFile);
     }
 }

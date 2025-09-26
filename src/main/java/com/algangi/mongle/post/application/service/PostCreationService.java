@@ -14,7 +14,7 @@ import com.algangi.mongle.post.application.dto.PostCreationCommand;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
-import com.algangi.mongle.post.domain.service.PostFileCommitValidateService;
+import com.algangi.mongle.post.domain.service.PostFileCommitValidationService;
 import com.algangi.mongle.post.domain.service.PostIdService;
 import com.algangi.mongle.post.event.PostFileCommitEvent;
 import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
@@ -33,7 +33,7 @@ public class PostCreationService {
     private final DynamicCloudRepository dynamicCloudRepository;
     private final PostRepository postRepository;
     private final DynamicCloudFormationService dynamicCloudFormationService;
-    private final PostFileCommitValidateService postFileCommitValidateService;
+    private final PostFileCommitValidationService postFileCommitValidationService;
     private final PostIdService postIdService;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -68,7 +68,7 @@ public class PostCreationService {
         createdPost = handleNewPost(command, s2TokenId);
 
         // 4. 임시 PostFile 검증
-        postFileCommitValidateService.validateTemporaryFiles(request.fileKeys());
+        postFileCommitValidationService.validateTemporaryFiles(request.fileKeys());
         Post savedPost = postRepository.save(createdPost);
 
         eventPublisher.publishEvent(new PostFileCommitEvent(savedPost.getId(), request.fileKeys()));
