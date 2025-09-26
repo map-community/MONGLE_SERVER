@@ -25,7 +25,7 @@ import software.amazon.awssdk.services.cloudfront.CloudFrontUtilities;
 import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
 
 @Service
-public class GlobalViewUrlIssueService implements ViewUrlIssueService {
+public class S3ViewUrlIssueService implements ViewUrlIssueService {
 
     public static final String HTTPS = "https://";
     public static final String DIR_DELIMITER = "/";
@@ -33,7 +33,7 @@ public class GlobalViewUrlIssueService implements ViewUrlIssueService {
     private final CloudFrontUtilities cloudFrontUtilities;
     private PrivateKey privateKey;
 
-    public GlobalViewUrlIssueService(CloudFrontProperties cloudFrontProperties) {
+    public S3ViewUrlIssueService(CloudFrontProperties cloudFrontProperties) {
         this.cloudFrontProperties = cloudFrontProperties;
         this.cloudFrontUtilities = CloudFrontUtilities.create();
     }
