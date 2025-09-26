@@ -41,7 +41,7 @@ public class PostFileCommitService implements
 
     private void validateTemporaryFile(String tempKey) {
         if (!tempKey.startsWith(PostFileUploadConstants.TEMP_DIR)) {
-            throw new IllegalArgumentException("유효하지 않은 임시 파일 경로입니다: " + tempKey);
+            throw new ApplicationException(PostFileErrorCode.INVALID_TEMPORARY_KEY);
         }
         try {
             s3Client.headObject(HeadObjectRequest.builder()
