@@ -4,6 +4,7 @@ import java.util.Set;
 
 public class FileUploadConstants {
 
+    public static final String TEMP_DIR = "temp/";
     public static final String POST_IMAGE_DIR = "posts/images/";
     public static final String POST_VIDEO_DIR = "posts/videos/";
 

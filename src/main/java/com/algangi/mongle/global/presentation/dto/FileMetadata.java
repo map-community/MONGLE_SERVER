@@ -9,19 +9,8 @@ public record FileMetadata(
     FileType fileType
 ) {
 
-    public static FileMetadata from(String fileName, Long fileSize) {
-        String extension = Files.getFileExtension(fileName).toLowerCase();
-        return new FileMetadata(fileName, fileSize, determineFileType(extension));
-    }
-
-    private static FileType determineFileType(String extension) {
-        if (FileUploadConstants.ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
-            return FileType.IMAGE;
-        }
-        if (FileUploadConstants.ALLOWED_VIDEO_EXTENSIONS.contains(extension)) {
-            return FileType.VIDEO;
-        }
-        throw new IllegalArgumentException("지원하지 않는 파일 확장자입니다: " + extension);
+    public static FileMetadata of(String fileName, Long fileSize) {
+        return new FileMetadata(fileName, fileSize, FileType.from(fileName));
     }
 
     public boolean isImage() {
@@ -32,5 +21,18 @@ public record FileMetadata(
         return this.fileType == FileType.VIDEO;
     }
 
-    public enum FileType {IMAGE, VIDEO}
+    public enum FileType {
+        IMAGE, VIDEO;
+
+        public static FileType from(String fileName) {
+            String extension = Files.getFileExtension(fileName).toLowerCase();
+            if (FileUploadConstants.ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
+                return FileType.IMAGE;
+            }
+            if (FileUploadConstants.ALLOWED_VIDEO_EXTENSIONS.contains(extension)) {
+                return FileType.VIDEO;
+            }
+            throw new IllegalArgumentException("지원하지 않는 파일 확장자입니다: " + extension);
+        }
+    }
 }
