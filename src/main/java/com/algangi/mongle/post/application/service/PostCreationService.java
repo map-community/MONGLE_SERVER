@@ -3,6 +3,7 @@ package com.algangi.mongle.post.application.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,9 +13,10 @@ import com.algangi.mongle.dynamicCloud.domain.service.DynamicCloudFormationServi
 import com.algangi.mongle.post.application.dto.PostCreationCommand;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
-import com.algangi.mongle.post.domain.model.PostFile;
 import com.algangi.mongle.post.domain.repository.PostRepository;
+import com.algangi.mongle.post.domain.service.PostFileCommitValidateService;
 import com.algangi.mongle.post.domain.service.PostIdService;
+import com.algangi.mongle.post.event.PostFileCommitEvent;
 import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
 import com.algangi.mongle.post.presentation.dto.PostResponse;
 import com.algangi.mongle.staticCloud.domain.model.StaticCloud;
@@ -31,8 +33,9 @@ public class PostCreationService {
     private final DynamicCloudRepository dynamicCloudRepository;
     private final PostRepository postRepository;
     private final DynamicCloudFormationService dynamicCloudFormationService;
-    private final PostFileCommitService postFileCommitService;
+    private final PostFileCommitValidateService postFileCommitValidateService;
     private final PostIdService postIdService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public PostResponse createPost(PostCreateRequest request) {
@@ -64,11 +67,12 @@ public class PostCreationService {
         // 3. 동적 구름이 없는 경우
         createdPost = handleNewPost(command, s2TokenId);
 
-        // 4. 임시 PostFile 검증 및 Post에 추가
-        List<PostFile> postFiles = postFileCommitService.commit(postId, request.fileKeys());
-        createdPost.addPostFiles(postFiles);
+        // 4. 임시 PostFile 검증
+        postFileCommitValidateService.validateTemporaryFiles(request.fileKeys());
+        Post savedPost = postRepository.save(createdPost);
 
-        return PostResponse.from(postRepository.save(createdPost));
+        eventPublisher.publishEvent(new PostFileCommitEvent(savedPost.getId(), request.fileKeys()));
+        return PostResponse.from(savedPost);
     }
 
     private Post handleNewPost(PostCreationCommand command, String s2TokenId) {
