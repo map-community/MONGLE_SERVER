@@ -13,7 +13,7 @@ import com.algangi.mongle.post.domain.model.Post;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
 
-public interface PostRepository extends JpaRepository<Post, Long> {
+public interface PostRepository extends JpaRepository<Post, String> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({

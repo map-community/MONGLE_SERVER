@@ -18,7 +18,7 @@ public class PostFinder {
 
     private final PostRepository postRepository;
 
-    public Post getPostOrThrow(Long postId) {
+    public Post getPostOrThrow(String postId) {
         return postRepository.findById(postId)
             .orElseThrow(() -> new ApplicationException(PostErrorCode.POST_NOT_FOUND));
     }
