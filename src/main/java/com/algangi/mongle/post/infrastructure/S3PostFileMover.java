@@ -1,5 +1,8 @@
 package com.algangi.mongle.post.infrastructure;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -20,8 +23,13 @@ public class S3PostFileMover implements PostFileMover {
     @Value("${mongle.aws.s3.bucket}")
     private String bucket;
 
-    @Override
-    public String moveToPermanentStorage(String postId, String tempKey) {
+    public Set<String> moveBulkTempToPermanent(String postId, Set<String> tempKeys) {
+        return tempKeys.stream()
+            .map(tempKey -> moveTempToPermanent(postId, tempKey))
+            .collect(Collectors.toSet());
+    }
+
+    public String moveTempToPermanent(String postId, String tempKey) {
         String permanentKey = postFileKeyGenerator.generatePermanentKey(postId, tempKey);
 
         s3Client.copyObject(CopyObjectRequest.builder()

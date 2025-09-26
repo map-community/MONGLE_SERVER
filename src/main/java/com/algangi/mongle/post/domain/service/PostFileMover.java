@@ -1,7 +1,9 @@
 package com.algangi.mongle.post.domain.service;
 
+import java.util.Set;
+
 public interface PostFileMover {
 
-    String moveToPermanentStorage(String postId, String tempKey);
+    Set<String> moveBulkTempToPermanent(String postId, Set<String> tempKey);
 
 }

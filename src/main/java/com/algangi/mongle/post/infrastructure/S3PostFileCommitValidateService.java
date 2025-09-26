@@ -1,12 +1,13 @@
 package com.algangi.mongle.post.infrastructure;
 
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.post.domain.PostFileUploadConstants;
 import com.algangi.mongle.post.domain.service.PostFileCommitValidateService;
-import com.algangi.mongle.post.domain.service.PostFileKeyGenerator;
 import com.algangi.mongle.post.exception.PostFileErrorCode;
 
 import lombok.RequiredArgsConstructor;
@@ -18,11 +19,14 @@ import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 public class S3PostFileCommitValidateService implements PostFileCommitValidateService {
 
     private final S3Client s3Client;
-    private final PostFileKeyGenerator postFileKeyGenerator;
     @Value("${mongle.aws.s3.bucket}")
     private String bucket;
 
     @Override
+    public void validateTemporaryFiles(Set<String> temporaryFileKeys) {
+        temporaryFileKeys.forEach(this::validateTemporaryFile);
+    }
+
     public void validateTemporaryFile(String tempKey) {
         if (!tempKey.startsWith(PostFileUploadConstants.TEMP_DIR)) {
             throw new ApplicationException(PostFileErrorCode.INVALID_TEMPORARY_KEY);
