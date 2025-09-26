@@ -1,5 +1,7 @@
 package com.algangi.mongle.post.presentation.dto;
 
+import java.util.Set;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -18,7 +20,8 @@ public record PostCreateRequest(
     @Size(max = 2000)
     String content,
     @NotNull(message = "작성자 ID는 필수값입니다.")
-    Long authorId //인증 도입 시 제거 예정
+    Long authorId,//인증 도입 시 제거 예정
+    Set<String> fileKeys
 ) {
 
 }
