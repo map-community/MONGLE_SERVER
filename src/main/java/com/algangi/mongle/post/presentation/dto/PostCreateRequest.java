@@ -11,8 +11,6 @@ public record PostCreateRequest(
     Double latitude,
     @NotNull(message = "경도는 필수값입니다.")
     Double longitude,
-    @NotBlank(message = "S2 Cell 토큰 ID는 필수값입니다.")
-    String s2TokenId,
     @NotBlank(message = "게시글 제목은 필수값입니다.")
     @Size(max = 100)
     String title,

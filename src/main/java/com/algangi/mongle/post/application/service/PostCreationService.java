@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.dynamicCloud.domain.service.DynamicCloudFormationService;
+import com.algangi.mongle.global.domain.service.CellService;
 import com.algangi.mongle.post.application.dto.PostCreationCommand;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
@@ -36,11 +37,13 @@ public class PostCreationService {
     private final PostFileCommitValidationService postFileCommitValidationService;
     private final PostIdService postIdService;
     private final ApplicationEventPublisher eventPublisher;
+    private final CellService cellService;
 
     @Transactional
     public PostResponse createPost(PostCreateRequest request) {
         String postId = postIdService.createId();
-        String s2TokenId = request.s2TokenId(); //TODO: s2Token 라이브러리로 계산
+        String s2TokenId = cellService.generateS2TokenIdFrom(request.latitude(),
+            request.longitude());
 
         PostCreationCommand command = PostCreationCommand.of(
             postId,
