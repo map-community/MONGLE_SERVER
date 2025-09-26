@@ -1,8 +1,8 @@
-package com.algangi.mongle.global.domain;
+package com.algangi.mongle.post.domain;
 
 import java.util.Set;
 
-public class FileUploadConstants {
+public class PostFileUploadConstants {
 
     public static final String TEMP_DIR = "temp/";
     public static final String POST_IMAGE_DIR = "posts/images/";

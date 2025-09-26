@@ -1,4 +1,4 @@
-package com.algangi.mongle.global.presentation.dto;
+package com.algangi.mongle.post.presentation.dto;
 
 import java.util.Set;
 

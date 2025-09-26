@@ -1,13 +1,15 @@
-package com.algangi.mongle.global.exception;
+package com.algangi.mongle.post.exception;
 
 import org.springframework.http.HttpStatus;
+
+import com.algangi.mongle.global.exception.ErrorCode;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum FileErrorCode implements ErrorCode {
+public enum PostFileErrorCode implements ErrorCode {
 
     INVALID_FILE_COUNT(HttpStatus.BAD_REQUEST, "FILE-001", "이미지 파일의 총 용량이 최대 허용치를 초과했습니다."),
     INVALID_VIDEO_COUNT(HttpStatus.BAD_REQUEST, "FILE-002", "업로드할 수 있는 동영상의 최대 개수를 초과했습니다."),

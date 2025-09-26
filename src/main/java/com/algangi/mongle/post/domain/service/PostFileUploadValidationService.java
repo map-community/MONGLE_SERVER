@@ -1,19 +1,19 @@
-package com.algangi.mongle.global.domain.service;
+package com.algangi.mongle.post.domain.service;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.algangi.mongle.global.domain.FileUploadConstants;
 import com.algangi.mongle.global.exception.ApplicationException;
-import com.algangi.mongle.global.exception.FileErrorCode;
-import com.algangi.mongle.global.presentation.dto.FileMetadata;
+import com.algangi.mongle.post.application.dto.FileMetadata;
+import com.algangi.mongle.post.domain.PostFileUploadConstants;
+import com.algangi.mongle.post.exception.PostFileErrorCode;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class FileUploadValidationService {
+public class PostFileUploadValidationService {
 
     private static void validateTotalImageSize(List<FileMetadata> files) {
         long totalImageSize = files.stream()
@@ -21,8 +21,8 @@ public class FileUploadValidationService {
             .mapToLong(FileMetadata::fileSize)
             .sum();
 
-        if (totalImageSize > FileUploadConstants.MAX_TOTAL_IMAGE_SIZE_MB) {
-            throw new ApplicationException(FileErrorCode.INVALID_TOTAL_IMAGE_SIZE);
+        if (totalImageSize > PostFileUploadConstants.MAX_TOTAL_IMAGE_SIZE_MB) {
+            throw new ApplicationException(PostFileErrorCode.INVALID_TOTAL_IMAGE_SIZE);
         }
     }
 
@@ -31,25 +31,25 @@ public class FileUploadValidationService {
             .filter(file -> file.fileType() == FileMetadata.FileType.VIDEO)
             .count();
 
-        if (videoCount > FileUploadConstants.MAX_VIDEO_COUNT) {
-            throw new ApplicationException(FileErrorCode.INVALID_VIDEO_COUNT);
+        if (videoCount > PostFileUploadConstants.MAX_VIDEO_COUNT) {
+            throw new ApplicationException(PostFileErrorCode.INVALID_VIDEO_COUNT);
         }
     }
 
     private static void validateMaxFileCount(List<FileMetadata> files) {
-        if (files.size() > FileUploadConstants.MAX_FILE_COUNT) {
-            throw new ApplicationException(FileErrorCode.INVALID_FILE_COUNT);
+        if (files.size() > PostFileUploadConstants.MAX_FILE_COUNT) {
+            throw new ApplicationException(PostFileErrorCode.INVALID_FILE_COUNT);
         }
     }
 
     private static void validateFile(FileMetadata file) {
         if (file.isImage()) {
-            if (file.fileSize() > FileUploadConstants.MAX_IMAGE_SIZE_MB) {
-                throw new ApplicationException(FileErrorCode.INVALID_IMAGE_SIZE);
+            if (file.fileSize() > PostFileUploadConstants.MAX_IMAGE_SIZE_MB) {
+                throw new ApplicationException(PostFileErrorCode.INVALID_IMAGE_SIZE);
             }
         } else if (file.isVideo()) {
-            if (file.fileSize() > FileUploadConstants.MAX_VIDEO_SIZE_MB) {
-                throw new ApplicationException(FileErrorCode.INVALID_VIDEO_SIZE);
+            if (file.fileSize() > PostFileUploadConstants.MAX_VIDEO_SIZE_MB) {
+                throw new ApplicationException(PostFileErrorCode.INVALID_VIDEO_SIZE);
             }
         }
     }
@@ -61,6 +61,6 @@ public class FileUploadValidationService {
         validateMaxVideoCount(files);
         // 총 이미지 사이즈 검증
         validateTotalImageSize(files);
-        files.forEach(FileUploadValidationService::validateFile);
+        files.forEach(PostFileUploadValidationService::validateFile);
     }
 }

@@ -6,12 +6,11 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.algangi.mongle.global.domain.FileUploadConstants;
-import com.algangi.mongle.global.domain.service.FileKeyGenerator;
 import com.algangi.mongle.global.exception.ApplicationException;
-import com.algangi.mongle.global.exception.FileErrorCode;
-import com.algangi.mongle.post.application.service.PostFileCommitService;
+import com.algangi.mongle.post.domain.PostFileUploadConstants;
 import com.algangi.mongle.post.domain.model.PostFile;
+import com.algangi.mongle.post.domain.service.PostFileKeyGenerator;
+import com.algangi.mongle.post.exception.PostFileErrorCode;
 
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -21,10 +20,11 @@ import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 
 @Service
 @RequiredArgsConstructor
-public class S3PostFileCommitService implements PostFileCommitService {
+public class PostFileCommitService implements
+    com.algangi.mongle.post.application.service.PostFileCommitService {
 
     private final S3Client s3Client;
-    private final FileKeyGenerator fileKeyGenerator;
+    private final PostFileKeyGenerator postFileKeyGenerator;
     @Value("${mongle.aws.s3.bucket}")
     private String bucket;
 
@@ -40,7 +40,7 @@ public class S3PostFileCommitService implements PostFileCommitService {
     }
 
     private void validateTemporaryFile(String tempKey) {
-        if (!tempKey.startsWith(FileUploadConstants.TEMP_DIR)) {
+        if (!tempKey.startsWith(PostFileUploadConstants.TEMP_DIR)) {
             throw new IllegalArgumentException("유효하지 않은 임시 파일 경로입니다: " + tempKey);
         }
         try {
@@ -49,13 +49,13 @@ public class S3PostFileCommitService implements PostFileCommitService {
                 .key(tempKey)
                 .build());
         } catch (Exception e) {
-            throw new ApplicationException(FileErrorCode.FILE_NOT_FOUND_STORAGE)
+            throw new ApplicationException(PostFileErrorCode.FILE_NOT_FOUND_STORAGE)
                 .addErrorInfo("key", tempKey);
         }
     }
 
     private String moveToPermanentStorage(String postId, String tempKey) {
-        String permanentKey = fileKeyGenerator.generatePermanentKey(postId, tempKey);
+        String permanentKey = postFileKeyGenerator.generatePermanentKey(postId, tempKey);
 
         s3Client.copyObject(CopyObjectRequest.builder()
             .sourceBucket(bucket)

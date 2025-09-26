@@ -5,32 +5,23 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.algangi.mongle.global.application.service.UploadUrlIssueService;
 import com.algangi.mongle.global.application.service.ViewUrlIssueService;
 import com.algangi.mongle.global.dto.ApiResponse;
-import com.algangi.mongle.global.presentation.dto.UploadUrlRequest;
-import com.algangi.mongle.global.presentation.dto.UploadUrlResponse;
-import com.algangi.mongle.global.presentation.dto.ViewUrlRequest;
-import com.algangi.mongle.global.presentation.dto.ViewUrlResponse;
+import com.algangi.mongle.post.presentation.dto.ViewUrlRequest;
+import com.algangi.mongle.post.presentation.dto.ViewUrlResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
+@RequestMapping("/api/files/view-urls")
 @RequiredArgsConstructor
-@RequestMapping("/api")
-public class FileUrlIssueController {
+public class FileViewUrlIssueController {
 
-    private final UploadUrlIssueService uploadUrlIssueService;
     private final ViewUrlIssueService viewUrlIssueService;
 
-    @PostMapping("/upload-urls")
-    public ApiResponse<UploadUrlResponse> getUploadUrls(
-        @Valid @RequestBody UploadUrlRequest request) {
-        return ApiResponse.success(uploadUrlIssueService.issueUploadUrls(request));
-    }
-
-    @PostMapping("/view-urls")
+    //테스트 api(실제 게시물 파일 조회 url은 게시물 조회 응답으로 포함해야함)
+    @PostMapping
     public ApiResponse<ViewUrlResponse> getViewUrls(
         @Valid @RequestBody ViewUrlRequest request) {
         return ApiResponse.success(viewUrlIssueService.issueViewUrls(request));

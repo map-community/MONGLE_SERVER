@@ -1,4 +1,4 @@
-package com.algangi.mongle.global.infrastructure;
+package com.algangi.mongle.post.infrastructure;
 
 import java.util.List;
 
@@ -6,12 +6,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.algangi.mongle.global.application.service.UploadUrlIssueService;
-import com.algangi.mongle.global.domain.service.FileKeyGenerator;
-import com.algangi.mongle.global.domain.service.FileUploadValidationService;
-import com.algangi.mongle.global.presentation.dto.FileMetadata;
-import com.algangi.mongle.global.presentation.dto.IssuedUrlInfo;
-import com.algangi.mongle.global.presentation.dto.UploadUrlRequest;
-import com.algangi.mongle.global.presentation.dto.UploadUrlResponse;
+import com.algangi.mongle.post.application.dto.FileMetadata;
+import com.algangi.mongle.post.application.dto.IssuedUrlInfo;
+import com.algangi.mongle.post.domain.service.PostFileKeyGenerator;
+import com.algangi.mongle.post.domain.service.PostFileUploadValidationService;
+import com.algangi.mongle.post.presentation.dto.UploadUrlRequest;
+import com.algangi.mongle.post.presentation.dto.UploadUrlResponse;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -21,11 +21,11 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 
 @Service
 @RequiredArgsConstructor
-public class S3UploadUrlIssueService implements UploadUrlIssueService {
+public class PostFileUploadUrlIssueService implements UploadUrlIssueService {
 
     private final S3Presigner s3Presigner;
-    private final FileUploadValidationService fileUploadValidationService;
-    private final FileKeyGenerator fileKeyGenerator;
+    private final PostFileUploadValidationService postFileUploadValidationService;
+    private final PostFileKeyGenerator postFileKeyGenerator;
     @Value("${mongle.aws.s3.bucket}")
     private String bucket;
     @Value("${mongle.aws.s3.presigned-url-expiration-minutes}")
@@ -37,7 +37,7 @@ public class S3UploadUrlIssueService implements UploadUrlIssueService {
             .map(fileInfo -> FileMetadata.of(fileInfo.fileName(), fileInfo.fileSize()))
             .toList();
 
-        fileUploadValidationService.validateFileCollection(files);
+        postFileUploadValidationService.validateFileCollection(files);
 
         List<IssuedUrlInfo> issuedUrls = files.stream().map(this::issueUploadUrl)
             .toList();
@@ -46,7 +46,7 @@ public class S3UploadUrlIssueService implements UploadUrlIssueService {
     }
 
     private IssuedUrlInfo issueUploadUrl(FileMetadata fileMetadata) {
-        String s3Key = fileKeyGenerator.generateTemporaryKey(fileMetadata.fileName());
+        String s3Key = postFileKeyGenerator.generateTemporaryKey(fileMetadata.fileName());
 
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
             .signatureDuration(Duration.ofMinutes(expirationMinutes))

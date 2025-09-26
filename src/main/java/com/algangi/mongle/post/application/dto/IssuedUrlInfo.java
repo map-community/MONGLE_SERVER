@@ -1,4 +1,4 @@
-package com.algangi.mongle.global.presentation.dto;
+package com.algangi.mongle.post.application.dto;
 
 import java.time.LocalDateTime;
 

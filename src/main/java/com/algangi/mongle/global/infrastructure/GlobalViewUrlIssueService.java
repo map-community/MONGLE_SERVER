@@ -8,10 +8,10 @@ import com.algangi.mongle.global.application.service.ViewUrlIssueService;
 import com.algangi.mongle.global.config.CloudFrontProperties;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.global.exception.AwsErrorCode;
-import com.algangi.mongle.global.presentation.dto.IssuedUrlInfo;
-import com.algangi.mongle.global.presentation.dto.ViewUrlRequest;
-import com.algangi.mongle.global.presentation.dto.ViewUrlResponse;
 import com.algangi.mongle.global.utils.PemUtils;
+import com.algangi.mongle.post.application.dto.IssuedUrlInfo;
+import com.algangi.mongle.post.presentation.dto.ViewUrlRequest;
+import com.algangi.mongle.post.presentation.dto.ViewUrlResponse;
 
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
@@ -25,7 +25,7 @@ import software.amazon.awssdk.services.cloudfront.CloudFrontUtilities;
 import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
 
 @Service
-public class CloudFrontViewUrlIssueService implements ViewUrlIssueService {
+public class GlobalViewUrlIssueService implements ViewUrlIssueService {
 
     public static final String HTTPS = "https://";
     public static final String DIR_DELIMITER = "/";
@@ -33,7 +33,7 @@ public class CloudFrontViewUrlIssueService implements ViewUrlIssueService {
     private final CloudFrontUtilities cloudFrontUtilities;
     private PrivateKey privateKey;
 
-    public CloudFrontViewUrlIssueService(CloudFrontProperties cloudFrontProperties) {
+    public GlobalViewUrlIssueService(CloudFrontProperties cloudFrontProperties) {
         this.cloudFrontProperties = cloudFrontProperties;
         this.cloudFrontUtilities = CloudFrontUtilities.create();
     }
