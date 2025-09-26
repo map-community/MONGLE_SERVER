@@ -1,9 +1,9 @@
 package com.algangi.mongle.post.domain.service;
 
-import java.util.Set;
+import java.util.List;
 
 public interface PostFileCommitValidationService {
 
-    void validateTemporaryFiles(Set<String> tempKey);
+    void validateTemporaryFiles(List<String> tempKey);
 
 }

@@ -68,10 +68,11 @@ public class PostCreationService {
         createdPost = handleNewPost(command, s2TokenId);
 
         // 4. 임시 PostFile 검증
-        postFileCommitValidationService.validateTemporaryFiles(request.fileKeys());
+        postFileCommitValidationService.validateTemporaryFiles(request.fileKeyList());
         Post savedPost = postRepository.save(createdPost);
 
-        eventPublisher.publishEvent(new PostFileCommitEvent(savedPost.getId(), request.fileKeys()));
+        eventPublisher.publishEvent(
+            new PostFileCommitEvent(savedPost.getId(), request.fileKeyList()));
         return PostResponse.from(savedPost);
     }
 

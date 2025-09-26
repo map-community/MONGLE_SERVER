@@ -1,7 +1,6 @@
 package com.algangi.mongle.post.event;
 
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -32,7 +31,7 @@ public class PostFileCommitEventListener {
         log.info("비동기 파일 이동 시작: PostId={}", event.postId());
         try {
             Post post = postFinder.getPostOrThrow(event.postId());
-            Set<String> permanentKeys = postFileMover.moveBulkTempToPermanent(event.postId(),
+            List<String> permanentKeys = postFileMover.moveBulkTempToPermanent(event.postId(),
                 event.temporaryFileKeys());
 
             List<PostFile> postFiles = permanentKeys.stream()

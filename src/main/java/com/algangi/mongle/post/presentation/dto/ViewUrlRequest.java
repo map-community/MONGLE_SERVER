@@ -1,12 +1,12 @@
 package com.algangi.mongle.post.presentation.dto;
 
-import java.util.Set;
+import java.util.List;
 
 import jakarta.validation.constraints.NotNull;
 
 public record ViewUrlRequest(
     @NotNull
-    Set<String> s3KeySet
+    List<String> fileKeyList
 ) {
 
 }

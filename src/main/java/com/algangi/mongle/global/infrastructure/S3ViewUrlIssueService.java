@@ -49,7 +49,7 @@ public class S3ViewUrlIssueService implements ViewUrlIssueService {
 
     @Override
     public ViewUrlResponse issueViewUrls(ViewUrlRequest request) {
-        List<IssuedUrlInfo> issuedUrls = request.s3KeySet().stream()
+        List<IssuedUrlInfo> issuedUrls = request.fileKeyList().stream()
             .map(this::issueViewUrl)
             .toList();
 

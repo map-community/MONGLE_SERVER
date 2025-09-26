@@ -1,6 +1,6 @@
 package com.algangi.mongle.post.infrastructure;
 
-import java.util.Set;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ public class S3PostFileCommitValidationService implements PostFileCommitValidati
     private String bucket;
 
     @Override
-    public void validateTemporaryFiles(Set<String> temporaryFileKeys) {
+    public void validateTemporaryFiles(List<String> temporaryFileKeys) {
         temporaryFileKeys.forEach(this::validateTemporaryFile);
     }
 
