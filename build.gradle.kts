@@ -67,6 +67,12 @@ dependencies {
     // shedlock
     implementation("net.javacrumbs.shedlock:shedlock-spring:6.10.0")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.10.0")
+    //spring security
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    //jwt
+    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+    implementation("io.jsonwebtoken:jjwt-impl:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-gson:0.12.6")
 }
 
 tasks.withType<Test> {
