@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import software.amazon.awssdk.services.cloudfront.CloudFrontUtilities;
 import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
+import software.amazon.awssdk.services.cloudfront.model.CloudFrontException;
 
 @Service
 public class S3ViewUrlIssueService implements ViewUrlIssueService {
@@ -57,11 +58,11 @@ public class S3ViewUrlIssueService implements ViewUrlIssueService {
     }
 
     public IssuedUrlInfo issueViewUrl(String fileKey) {
-        try {
-            String resourceUrl = HTTPS + cloudFrontProperties.domain() + DIR_DELIMITER + fileKey;
-            Instant expirationTime = Instant.now()
-                .plus(cloudFrontProperties.expirationMinutes(), ChronoUnit.MINUTES);
+        String resourceUrl = HTTPS + cloudFrontProperties.domain() + DIR_DELIMITER + fileKey;
+        Instant expirationTime = Instant.now()
+            .plus(cloudFrontProperties.expirationMinutes(), ChronoUnit.MINUTES);
 
+        try {
             CannedSignerRequest signerRequest = CannedSignerRequest.builder()
                 .resourceUrl(resourceUrl)
                 .privateKey(privateKey)
@@ -75,9 +76,9 @@ public class S3ViewUrlIssueService implements ViewUrlIssueService {
                 .plusMinutes(cloudFrontProperties.expirationMinutes());
             return new IssuedUrlInfo(fileKey, issuedUrl, expiresAt);
 
-        } catch (Exception e) {
-            throw new ApplicationException(AwsErrorCode.CLOUDFRONT_ERROR)
-                .addErrorInfo("errorDetail", e.getMessage());
+        } catch (CloudFrontException e) {
+            throw new ApplicationException(AwsErrorCode.CLOUDFRONT_PRESIGNED_URL_ISSUE_FAILED, e)
+                .addErrorInfo("awsErrorMessage", e.getMessage());
         }
     }
 

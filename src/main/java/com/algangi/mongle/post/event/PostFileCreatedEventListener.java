@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import com.algangi.mongle.global.exception.ApplicationException;
+import com.algangi.mongle.global.exception.AwsErrorCode;
 import com.algangi.mongle.post.application.helper.PostFinder;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.model.PostFile;
@@ -29,7 +31,11 @@ public class PostFileCreatedEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleFileCommit(PostFileCreatedEvent event) {
-        log.info("비동기 파일 이동 시작: PostId={}", event.postId());
+        if (event.temporaryFileKeys().isEmpty()) {
+            return;
+        }
+
+        log.info("게시물 파일 커밋작업 시작: PostId={}", event.postId());
         try {
             Post post = postFinder.getPostOrThrow(event.postId());
             List<String> permanentKeys = postFileMover.moveBulkTempToPermanent(event.postId(),
@@ -42,9 +48,12 @@ public class PostFileCreatedEventListener {
             post.addPostFiles(postFiles);
             post.markAsActive();
 
+        } catch (ApplicationException e) {
+            throw e;
         } catch (Exception e) {
-            // 이 트랜잭션은 롤백되지만, 이미 S3에서 일부 파일이 이동되었을 수 있음 (복구 로직 필요)
-            log.error("비동기 파일 처리 중 심각한 오류 발생. PostId: {}", event.postId(), e);
+            log.error("게시물 파일 커밋작업 중 예상치 못한 오류 발생. PostId={}", event.postId(), e);
+            throw new ApplicationException(AwsErrorCode.S3_UNKNOWN_ERROR, e)
+                .addErrorInfo("postId", event.postId());
         }
     }
 }

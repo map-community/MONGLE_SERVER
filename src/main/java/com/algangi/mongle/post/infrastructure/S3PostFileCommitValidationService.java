@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.algangi.mongle.global.exception.ApplicationException;
+import com.algangi.mongle.global.exception.AwsErrorCode;
 import com.algangi.mongle.post.domain.PostFileUploadConstants;
 import com.algangi.mongle.post.domain.service.PostFileCommitValidationService;
 import com.algangi.mongle.post.exception.PostFileErrorCode;
@@ -35,17 +36,24 @@ public class S3PostFileCommitValidationService implements PostFileCommitValidati
         if (!tempKey.startsWith(PostFileUploadConstants.TEMP_DIR)) {
             throw new ApplicationException(PostFileErrorCode.INVALID_TEMPORARY_KEY);
         }
+
         try {
             s3Client.headObject(HeadObjectRequest.builder()
                 .bucket(bucket)
                 .key(tempKey)
                 .build());
         } catch (S3Exception e) {
-            if (e.statusCode() == 404) {
-                throw new ApplicationException(PostFileErrorCode.FILE_NOT_FOUND_STORAGE)
-                    .addErrorInfo("key", tempKey);
+            int statusCode = e.statusCode();
+            if (statusCode == 404) {
+                throw new ApplicationException(AwsErrorCode.S3_FILE_NOT_FOUND_IN_STORAGE, e)
+                    .addErrorInfo("tempKey", tempKey)
+                    .addErrorInfo("awsErrorMessage", e.getMessage());
+            } else {
+                throw new ApplicationException(AwsErrorCode.S3_UNKNOWN_ERROR, e)
+                    .addErrorInfo("tempKey", tempKey)
+                    .addErrorInfo("statusCode", statusCode)
+                    .addErrorInfo("awsErrorMessage", e.getMessage());
             }
-            throw e;
         }
     }
 
