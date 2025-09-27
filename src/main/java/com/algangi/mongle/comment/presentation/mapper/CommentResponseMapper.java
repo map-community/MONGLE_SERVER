@@ -21,7 +21,7 @@ public final class CommentResponseMapper {
     public CommentInfoResponse toCommentInfoResponse(Comment comment, Long currentMemberId, boolean hasReplies) {
         BaseInfo baseInfo = createBaseInfo(comment, currentMemberId);
         return new CommentInfoResponse(
-                comment.getId(),
+                comment.getId().toString(),
                 baseInfo.content(),
                 baseInfo.authorNickname(),
                 baseInfo.authorProfileImageUrl(),
@@ -37,7 +37,7 @@ public final class CommentResponseMapper {
     public ReplyInfoResponse toReplyInfoResponse(Comment reply, Long currentMemberId) {
         BaseInfo baseInfo = createBaseInfo(reply, currentMemberId);
         return new ReplyInfoResponse(
-                reply.getId(),
+                reply.getId().toString(),
                 baseInfo.content(),
                 baseInfo.authorNickname(),
                 baseInfo.authorProfileImageUrl(),

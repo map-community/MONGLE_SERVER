@@ -3,7 +3,7 @@ package com.algangi.mongle.comment.presentation.dto;
 import java.time.LocalDateTime;
 
 public record ReplyInfoResponse(
-        Long replyId,
+        String replyId,
         String content,
         String authorNickname,
         String authorProfileImageUrl,
