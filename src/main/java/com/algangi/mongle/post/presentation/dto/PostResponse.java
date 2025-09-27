@@ -5,7 +5,7 @@ import com.algangi.mongle.post.domain.model.Post;
 import java.time.LocalDateTime;
 
 public record PostResponse(
-    Long id,
+    String id,
     String title,
     String content,
     Long authorId,

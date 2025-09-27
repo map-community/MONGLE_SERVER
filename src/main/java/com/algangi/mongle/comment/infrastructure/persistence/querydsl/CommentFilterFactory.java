@@ -1,17 +1,18 @@
 package com.algangi.mongle.comment.infrastructure.persistence.querydsl;
 
+import static com.algangi.mongle.comment.domain.model.QComment.comment;
+
+import org.springframework.stereotype.Component;
+
 import com.algangi.mongle.comment.domain.model.CommentSort;
+import com.algangi.mongle.comment.domain.model.QComment;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
-import org.springframework.stereotype.Component;
-import com.algangi.mongle.comment.domain.model.QComment;
-
-import static com.algangi.mongle.comment.domain.model.QComment.comment;
 
 @Component
 public class CommentFilterFactory {
 
-    public BooleanExpression eqPostId(Long postId) {
+    public BooleanExpression eqPostId(String postId) {
         if (postId == null) {
             return null;
         }
@@ -36,13 +37,13 @@ public class CommentFilterFactory {
     public BooleanExpression visibleCommentCondition() {
         QComment reply = new QComment("reply");
         return comment.deletedAt.isNull()
-                .or(comment.deletedAt.isNotNull()
-                        .and(JPAExpressions.selectOne()
-                                .from(reply)
-                                .where(reply.parentComment.id.eq(comment.id)
-                                        .and(reply.deletedAt.isNull()))
-                                .exists()
-                        )
-                );
+            .or(comment.deletedAt.isNotNull()
+                .and(JPAExpressions.selectOne()
+                    .from(reply)
+                    .where(reply.parentComment.id.eq(comment.id)
+                        .and(reply.deletedAt.isNull()))
+                    .exists()
+                )
+            );
     }
 }

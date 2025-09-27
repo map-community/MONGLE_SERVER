@@ -15,3 +15,22 @@ spring:
   sql:
     init:
       mode: always
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ap-northeast-2
+
+
+mongle:
+  aws:
+    s3:
+      bucket: ${BUCKET_NAME}
+      presigned-url-expiration-minutes: ${PUT_PRESIGNED_URL_EXPIRATION_MIN}
+    cloudfront:
+      domain: ${CLOUDFRONT_DOMAIN}
+      private-key-file-path: ${CLOUDFRONT_PRIVATE_KEY_FILE_PATH}
+      key-pair-id: ${CLOUDFRONT_KEY_PAIR_ID}
+      presigned-url-expiration-minutes: ${GET_PRESIGNED_URL_EXPIRATION_MIN}

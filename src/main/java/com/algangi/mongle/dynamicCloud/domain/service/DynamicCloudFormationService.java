@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
-import com.algangi.mongle.global.infrastructure.S2CellService;
+import com.algangi.mongle.global.domain.service.CellService;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
 
@@ -21,7 +21,7 @@ public class DynamicCloudFormationService {
 
     private final DynamicCloudRepository dynamicCloudRepository;
     private final PostRepository postRepository;
-    private final S2CellService s2CellService;
+    private final CellService cellService;
 
     public DynamicCloud createDynamicCloudAndMergeIfNeeded(String s2TokenId,
         List<Post> existingPostsInCell) {
@@ -29,7 +29,7 @@ public class DynamicCloudFormationService {
         DynamicCloud newDynamicCloud = DynamicCloud.create(Set.of(s2TokenId));
 
         // 2. 인접 동적 구름 조회
-        Set<String> adjacentS2TokenIds = s2CellService.getAdjacentCells(s2TokenId);
+        Set<String> adjacentS2TokenIds = cellService.getAdjacentCells(s2TokenId);
         List<DynamicCloud> adjacentClouds = dynamicCloudRepository.findActiveCloudsInCells(
             adjacentS2TokenIds);
 
