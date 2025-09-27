@@ -54,22 +54,21 @@ public class PostCreationService {
             request.authorId());
 
         Post createdPost;
-        // 1. 정적 구름 존재 여부 확인
         Optional<StaticCloud> staticCloud = staticCloudRepository.findByS2TokenId(s2TokenId);
+        Optional<DynamicCloud> existingDynamicCloud = dynamicCloudRepository.findActiveByS2TokenId(
+            s2TokenId);
+        // 1. 정적 구름 존재 여부 확인
         if (staticCloud.isPresent()) {
             createdPost = createPostInStaticCloud(command, staticCloud.get());
         }
-
         // 2. 동적 구름 존재 여부 확인
-        Optional<DynamicCloud> existingDynamicCloud = dynamicCloudRepository.findActiveByS2TokenId(
-            s2TokenId);
-        if (existingDynamicCloud.isPresent()) {
+        else if (existingDynamicCloud.isPresent()) {
             createdPost = createPostInDynamicCloud(command, existingDynamicCloud.get());
         }
-
         // 3. 동적 구름이 없는 경우
-        createdPost = handleNewPost(command, s2TokenId);
-
+        else {
+            createdPost = handleNewPost(command, s2TokenId);
+        }
         // 4. 임시 PostFile 검증
         postFileCommitValidationService.validateTemporaryFiles(request.fileKeyList());
         Post savedPost = postRepository.save(createdPost);
