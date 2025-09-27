@@ -34,12 +34,14 @@ public class S3PostFileUploadUrlIssueService implements UploadUrlIssueService {
     @Override
     public UploadUrlResponse issueUploadUrls(UploadUrlRequest dto) {
         List<FileMetadata> files = dto.files().stream()
-            .map(fileInfo -> FileMetadata.of(fileInfo.fileName(), fileInfo.fileSize()))
+            .map(fileInfo ->
+                FileMetadata.of(fileInfo.fileName(), fileInfo.fileSize()))
             .toList();
 
         postFileUploadValidationService.validateFileCollection(files);
 
-        List<IssuedUrlInfo> issuedUrls = files.stream().map(this::issueUploadUrl)
+        List<IssuedUrlInfo> issuedUrls = files.stream()
+            .map(this::issueUploadUrl)
             .toList();
 
         return UploadUrlResponse.of(issuedUrls);

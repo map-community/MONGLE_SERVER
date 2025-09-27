@@ -17,7 +17,6 @@ public class PostFileKeyGenerator {
         String extension = Files.getFileExtension(fileName);
 
         return PostFileUploadConstants.TEMP_DIR
-            + DIR_DELIMITER
             + UUID.randomUUID()
             + FILE_NAME_DELIMITER
             + extension;
