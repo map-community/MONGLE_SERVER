@@ -42,6 +42,7 @@ dependencies {
     annotationProcessor("io.github.openfeign.querydsl:querydsl-apt:6.10.1:jpa")
     annotationProcessor("jakarta.annotation:jakarta.annotation-api")
     annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+    implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.8.2")
 }
 
 tasks.withType<Test> {
