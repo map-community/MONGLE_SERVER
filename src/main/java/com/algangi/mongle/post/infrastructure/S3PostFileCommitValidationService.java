@@ -13,6 +13,7 @@ import com.algangi.mongle.post.exception.PostFileErrorCode;
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +31,7 @@ public class S3PostFileCommitValidationService implements PostFileCommitValidati
         temporaryFileKeys.forEach(this::validateTemporaryFile);
     }
 
-    public void validateTemporaryFile(String tempKey) {
+    private void validateTemporaryFile(String tempKey) {
         if (!tempKey.startsWith(PostFileUploadConstants.TEMP_DIR)) {
             throw new ApplicationException(PostFileErrorCode.INVALID_TEMPORARY_KEY);
         }
@@ -39,9 +40,12 @@ public class S3PostFileCommitValidationService implements PostFileCommitValidati
                 .bucket(bucket)
                 .key(tempKey)
                 .build());
-        } catch (Exception e) {
-            throw new ApplicationException(PostFileErrorCode.FILE_NOT_FOUND_STORAGE)
-                .addErrorInfo("key", tempKey);
+        } catch (S3Exception e) {
+            if (e.statusCode() == 404) {
+                throw new ApplicationException(PostFileErrorCode.FILE_NOT_FOUND_STORAGE)
+                    .addErrorInfo("key", tempKey);
+            }
+            throw e;
         }
     }
 

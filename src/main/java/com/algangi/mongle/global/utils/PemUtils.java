@@ -19,6 +19,9 @@ public final class PemUtils {
     public static PrivateKey loadPrivateKey(String keyPath)
         throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 
+        if (keyPath == null || keyPath.isBlank()) {
+            throw new IllegalArgumentException("Private Key 경로가 비어 있습니다.");
+        }
         String sanitizedPath = keyPath.replace("classpath:", "");
         if (!sanitizedPath.startsWith("/")) {
             sanitizedPath = "/" + sanitizedPath;
