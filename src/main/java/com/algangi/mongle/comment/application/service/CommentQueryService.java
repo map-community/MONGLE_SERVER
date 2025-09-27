@@ -12,12 +12,12 @@ import com.algangi.mongle.comment.presentation.dto.ReplyInfoResponse;
 import com.algangi.mongle.comment.domain.repository.CommentQueryRepository;
 import com.algangi.mongle.comment.domain.service.CommentFinder;
 import com.algangi.mongle.comment.presentation.mapper.CommentResponseMapper;
+import com.algangi.mongle.global.util.DateTimeUtil;
 import com.algangi.mongle.post.application.helper.PostFinder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -105,7 +105,7 @@ public class CommentQueryService {
 
         T lastItem = results.get(results.size() - 1);
         String formattedDate = lastItem.getCreatedAt()
-                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                .format(DateTimeUtil.CURSOR_DATE_FORMATTER);
 
         return switch (sort) {
             case LIKES -> String.format("%d_%s_%d", lastItem.getLikeCount(), formattedDate, lastItem.getId());
