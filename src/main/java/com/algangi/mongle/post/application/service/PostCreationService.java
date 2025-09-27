@@ -17,7 +17,7 @@ import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
 import com.algangi.mongle.post.domain.service.PostFileCommitValidationService;
 import com.algangi.mongle.post.domain.service.PostIdService;
-import com.algangi.mongle.post.event.PostFileCommitEvent;
+import com.algangi.mongle.post.event.PostFileCreatedEvent;
 import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
 import com.algangi.mongle.post.presentation.dto.PostResponse;
 import com.algangi.mongle.staticCloud.domain.model.StaticCloud;
@@ -75,7 +75,7 @@ public class PostCreationService {
         Post savedPost = postRepository.save(createdPost);
 
         eventPublisher.publishEvent(
-            new PostFileCommitEvent(savedPost.getId(), request.fileKeyList()));
+            new PostFileCreatedEvent(savedPost.getId(), request.fileKeyList()));
         return PostResponse.from(savedPost);
     }
 
