@@ -20,6 +20,9 @@ public final class PemUtils {
         throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 
         String sanitizedPath = keyPath.replace("classpath:", "");
+        if (!sanitizedPath.startsWith("/")) {
+            sanitizedPath = "/" + sanitizedPath;
+        }
 
         try (InputStream is = PemUtils.class.getResourceAsStream(sanitizedPath)) {
             if (is == null) {
