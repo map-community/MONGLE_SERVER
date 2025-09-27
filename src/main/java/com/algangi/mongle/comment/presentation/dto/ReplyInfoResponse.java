@@ -5,8 +5,7 @@ import java.time.LocalDateTime;
 public record ReplyInfoResponse(
         String replyId,
         String content,
-        String authorNickname,
-        String authorProfileImageUrl,
+        AuthorInfoResponse author,
         long likeCount,
         long dislikeCount,
         LocalDateTime createdAt,
