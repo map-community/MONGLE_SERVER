@@ -22,7 +22,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import software.amazon.awssdk.services.cloudfront.CloudFrontUtilities;
-import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
+import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
 
 @Service
 public class S3ViewUrlIssueService implements ViewUrlIssueService {
@@ -62,14 +62,14 @@ public class S3ViewUrlIssueService implements ViewUrlIssueService {
             Instant expirationTime = Instant.now()
                 .plus(cloudFrontProperties.expirationMinutes(), ChronoUnit.MINUTES);
 
-            CustomSignerRequest signerRequest = CustomSignerRequest.builder()
+            CannedSignerRequest signerRequest = CannedSignerRequest.builder()
                 .resourceUrl(resourceUrl)
                 .privateKey(privateKey)
                 .keyPairId(cloudFrontProperties.keyPairId())
                 .expirationDate(expirationTime)
                 .build();
 
-            String issuedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(signerRequest)
+            String issuedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(signerRequest)
                 .toString();
             LocalDateTime expiresAt = LocalDateTime.now()
                 .plusMinutes(cloudFrontProperties.expirationMinutes());
