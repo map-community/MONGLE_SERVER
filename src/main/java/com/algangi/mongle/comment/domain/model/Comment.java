@@ -32,6 +32,7 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
 
     @Id
     @Tsid
+    @Column(nullable = false, updatable = false)
     private Long id;
 
     @Column(nullable = false)
