@@ -1,6 +1,7 @@
 package com.algangi.mongle.comment.presentation.mapper;
 
 import com.algangi.mongle.comment.domain.model.Comment;
+import com.algangi.mongle.comment.presentation.dto.AuthorInfoResponse;
 import com.algangi.mongle.comment.presentation.dto.CommentInfoResponse;
 import com.algangi.mongle.comment.presentation.dto.ReplyInfoResponse;
 import com.algangi.mongle.member.domain.Member;
@@ -19,90 +20,66 @@ public final class CommentResponseMapper {
     private static final String DEFAULT_PROFILE_IMAGE_URL = "default_profile_image_url";
 
     public CommentInfoResponse toCommentInfoResponse(Comment comment, Long currentMemberId, boolean hasReplies) {
-        BaseInfo baseInfo = createBaseInfo(comment, currentMemberId);
+        boolean deleted = comment.isDeleted();
+        Member author = comment.getMember();
+
         return new CommentInfoResponse(
                 comment.getId().toString(),
-                baseInfo.content(),
-                baseInfo.authorNickname(),
-                baseInfo.authorProfileImageUrl(),
-                baseInfo.likeCount(),
-                baseInfo.dislikeCount(),
+                mapContent(comment, deleted),
+                mapAuthor(author, deleted),
+                mapLikeCount(comment, deleted),
+                mapDislikeCount(comment, deleted),
                 comment.getCreatedDate(),
-                baseInfo.isAuthor(),
-                baseInfo.isDeleted(),
+                mapIsAuthor(author, currentMemberId, deleted),
+                deleted,
                 hasReplies
         );
     }
 
     public ReplyInfoResponse toReplyInfoResponse(Comment reply, Long currentMemberId) {
-        BaseInfo baseInfo = createBaseInfo(reply, currentMemberId);
+        boolean deleted = reply.isDeleted();
+        Member author = reply.getMember();
+
         return new ReplyInfoResponse(
                 reply.getId().toString(),
-                baseInfo.content(),
-                baseInfo.authorNickname(),
-                baseInfo.authorProfileImageUrl(),
-                baseInfo.likeCount(),
-                baseInfo.dislikeCount(),
+                mapContent(reply, deleted),
+                mapAuthor(author, deleted),
+                mapLikeCount(reply, deleted),
+                mapDislikeCount(reply, deleted),
                 reply.getCreatedDate(),
-                baseInfo.isAuthor(),
-                baseInfo.isDeleted()
+                mapIsAuthor(author, currentMemberId, deleted),
+                deleted
         );
     }
 
-    private BaseInfo createBaseInfo(Comment comment, Long currentMemberId) {
-        return comment.isDeleted()
-                ? BaseInfo.createForDeleted()
-                : BaseInfo.createForActive(comment, currentMemberId);
+    private String mapContent(Comment comment, boolean deleted) {
+        return deleted ? MASKED_CONTENT : comment.getContent();
     }
 
-    private record BaseInfo(
-            String content,
-            String authorNickname,
-            String authorProfileImageUrl,
-            long likeCount,
-            long dislikeCount,
-            boolean isAuthor,
-            boolean isDeleted
-    ) {
-
-        static BaseInfo createForDeleted() {
-            return new BaseInfo(
-                    MASKED_CONTENT,
-                    MASKED_NICKNAME,
-                    DEFAULT_PROFILE_IMAGE_URL,
-                    0L,
-                    0L,
-                    false,
-                    true
-            );
+    private AuthorInfoResponse mapAuthor(Member author, boolean deleted) {
+        if (deleted || author == null) {
+            return new AuthorInfoResponse(null, MASKED_NICKNAME, DEFAULT_PROFILE_IMAGE_URL);
         }
 
-        static BaseInfo createForActive(Comment comment, Long currentMemberId) {
-            Member author = comment.getMember();
-
-            boolean isAuthor = author != null
-                    && Objects.equals(
-                            author.getMemberId(),
-                            currentMemberId
-                    );
-
-            String nickname = (author != null)
-                    ? author.getNickname()
-                    : MASKED_NICKNAME;
-
-            String profileImage = (author != null)
-                    ? author.getProfileImage()
-                    : DEFAULT_PROFILE_IMAGE_URL;
-
-            return new BaseInfo(
-                    comment.getContent(),
-                    nickname,
-                    profileImage,
-                    comment.getLikeCount(),
-                    comment.getDislikeCount(),
-                    isAuthor,
-                    false
-            );
-        }
+        return new AuthorInfoResponse(
+                author.getMemberId().toString(),
+                author.getNickname(),
+                author.getProfileImage()
+        );
     }
+
+    private boolean mapIsAuthor(Member author, Long currentMemberId, boolean deleted) {
+        return !deleted
+                && author != null
+                && Objects.equals(author.getMemberId(), currentMemberId);
+    }
+
+    private long mapLikeCount(Comment comment, boolean deleted) {
+        return deleted ? 0 : comment.getLikeCount();
+    }
+
+    private long mapDislikeCount(Comment comment, boolean deleted) {
+        return deleted ? 0 : comment.getDislikeCount();
+    }
+
 }
