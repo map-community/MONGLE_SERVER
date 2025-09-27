@@ -47,16 +47,16 @@ public class CommentQueryService {
         // 4. 각 댓글의 대댓글 존재 여부 Map<댓글ID, Boolean> 형태로 조회
         Map<Long, Boolean> hasRepliesMap = getHasRepliesMap(pageResult.content());
 
-        // 5. Dto 변환
+        // 5. 커서 생성
+        String nextCursor = createNextCursor(pageResult.content(), pageResult.hasNext(), condition.sort());
+
+        // 6. Dto 변환
         List<CommentInfoResponse> responses = pageResult.content().stream()
                 .map(comment -> commentResponseMapper.toCommentInfoResponse(
                         comment,
                         currentMemberId,
                         hasRepliesMap.getOrDefault(comment.getId(), false)))
                 .toList();
-
-        // 6. 커서 생성
-        String nextCursor = createNextCursor(responses, pageResult.hasNext(), condition.sort());
 
         return CursorInfoResponse.of(responses, nextCursor, pageResult.hasNext());
     }
@@ -72,15 +72,15 @@ public class CommentQueryService {
         // 3. 대댓글 조회(hasNext 확인을 위해 +1만큼 조회)
         PaginationResult<Comment> pageResult = commentQueryRepository.findRepliesByParent(condition, adjustedSize);
 
-        // 4. Dto 변환
+        // 4. 커서 생성
+        String nextCursor = createNextCursor(pageResult.content(), pageResult.hasNext(), condition.sort());
+
+        // 5. Dto 변환
         List<ReplyInfoResponse> responses = pageResult.content().stream()
                 .map(reply -> commentResponseMapper.toReplyInfoResponse(
                         reply,
                         currentMemberId))
                 .toList();
-
-        // 5. 커서 생성
-        String nextCursor = createNextCursor(responses, pageResult.hasNext(), condition.sort());
 
         return CursorInfoResponse.of(responses, nextCursor, pageResult.hasNext());
     }

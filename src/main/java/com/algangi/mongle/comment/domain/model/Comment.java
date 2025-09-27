@@ -1,6 +1,7 @@
 package com.algangi.mongle.comment.domain.model;
 
 import com.algangi.mongle.comment.exception.CommentErrorCode;
+import com.algangi.mongle.comment.presentation.cursor.CursorConvertible;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.Member;
@@ -28,7 +29,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
 @Getter
-public class Comment extends TimeBaseEntity {
+public class Comment extends TimeBaseEntity implements CursorConvertible {
 
     @Id
     @Tsid
@@ -106,4 +107,20 @@ public class Comment extends TimeBaseEntity {
     public void setPost(Post post) {
         this.post = post;
     }
+
+    @Override
+    public Long getId() {
+        return this.id;
+    }
+
+    @Override
+    public long getLikeCount() {
+        return this.likeCount;
+    }
+
+    @Override
+    public LocalDateTime getCreatedAt() {
+        return this.getCreatedDate();
+    }
+
 }
