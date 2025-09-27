@@ -18,7 +18,7 @@ public final class ParsingUtil {
     }
 
     public static LocalDateTime parseDate(String value) {
-        return parse(value, LocalDateTime::parse, "잘못된 날짜 형식");
+        return parse(value, s -> LocalDateTime.parse(s, DateTimeUtil.CURSOR_DATE_FORMATTER), "잘못된 날짜 형식");
     }
 
     public static Long parseLong(String value) {

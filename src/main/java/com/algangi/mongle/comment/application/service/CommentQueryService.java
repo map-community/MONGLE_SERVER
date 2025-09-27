@@ -5,19 +5,19 @@ import com.algangi.mongle.comment.domain.model.CommentSort;
 import com.algangi.mongle.comment.infrastructure.persistence.vo.CommentSearchCondition;
 import com.algangi.mongle.comment.infrastructure.persistence.vo.PaginationResult;
 import com.algangi.mongle.comment.infrastructure.persistence.vo.ReplySearchCondition;
-import com.algangi.mongle.comment.presentation.cursor.CursorConvertible;
+import com.algangi.mongle.comment.domain.model.CursorConvertible;
 import com.algangi.mongle.comment.presentation.dto.CommentInfoResponse;
 import com.algangi.mongle.comment.presentation.cursor.CursorInfoResponse;
 import com.algangi.mongle.comment.presentation.dto.ReplyInfoResponse;
 import com.algangi.mongle.comment.domain.repository.CommentQueryRepository;
 import com.algangi.mongle.comment.domain.service.CommentFinder;
 import com.algangi.mongle.comment.presentation.mapper.CommentResponseMapper;
+import com.algangi.mongle.global.util.DateTimeUtil;
 import com.algangi.mongle.post.application.helper.PostFinder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -47,16 +47,16 @@ public class CommentQueryService {
         // 4. 각 댓글의 대댓글 존재 여부 Map<댓글ID, Boolean> 형태로 조회
         Map<Long, Boolean> hasRepliesMap = getHasRepliesMap(pageResult.content());
 
-        // 5. Dto 변환
+        // 5. 커서 생성
+        String nextCursor = createNextCursor(pageResult.content(), pageResult.hasNext(), condition.sort());
+
+        // 6. Dto 변환
         List<CommentInfoResponse> responses = pageResult.content().stream()
                 .map(comment -> commentResponseMapper.toCommentInfoResponse(
                         comment,
                         currentMemberId,
                         hasRepliesMap.getOrDefault(comment.getId(), false)))
                 .toList();
-
-        // 6. 커서 생성
-        String nextCursor = createNextCursor(responses, pageResult.hasNext(), condition.sort());
 
         return CursorInfoResponse.of(responses, nextCursor, pageResult.hasNext());
     }
@@ -72,15 +72,15 @@ public class CommentQueryService {
         // 3. 대댓글 조회(hasNext 확인을 위해 +1만큼 조회)
         PaginationResult<Comment> pageResult = commentQueryRepository.findRepliesByParent(condition, adjustedSize);
 
-        // 4. Dto 변환
+        // 4. 커서 생성
+        String nextCursor = createNextCursor(pageResult.content(), pageResult.hasNext(), condition.sort());
+
+        // 5. Dto 변환
         List<ReplyInfoResponse> responses = pageResult.content().stream()
                 .map(reply -> commentResponseMapper.toReplyInfoResponse(
                         reply,
                         currentMemberId))
                 .toList();
-
-        // 5. 커서 생성
-        String nextCursor = createNextCursor(responses, pageResult.hasNext(), condition.sort());
 
         return CursorInfoResponse.of(responses, nextCursor, pageResult.hasNext());
     }
@@ -105,7 +105,7 @@ public class CommentQueryService {
 
         T lastItem = results.get(results.size() - 1);
         String formattedDate = lastItem.getCreatedAt()
-                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                .format(DateTimeUtil.CURSOR_DATE_FORMATTER);
 
         return switch (sort) {
             case LIKES -> String.format("%d_%s_%d", lastItem.getLikeCount(), formattedDate, lastItem.getId());

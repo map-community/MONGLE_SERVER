@@ -3,12 +3,11 @@ package com.algangi.mongle.member.domain;
 import com.algangi.mongle.auth.domain.OAuthProvider;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
 
+import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
@@ -22,7 +21,7 @@ import lombok.*;
 public class Member extends TimeBaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Tsid
     Long memberId;
 
     @Column(nullable = false, unique = true)
