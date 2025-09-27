@@ -1,4 +1,4 @@
-package com.algangi.mongle.comment.presentation.cursor;
+package com.algangi.mongle.comment.domain.model;
 
 import java.time.LocalDateTime;
 

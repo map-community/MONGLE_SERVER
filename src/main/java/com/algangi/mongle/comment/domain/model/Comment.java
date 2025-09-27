@@ -1,7 +1,6 @@
 package com.algangi.mongle.comment.domain.model;
 
 import com.algangi.mongle.comment.exception.CommentErrorCode;
-import com.algangi.mongle.comment.presentation.cursor.CursorConvertible;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.Member;

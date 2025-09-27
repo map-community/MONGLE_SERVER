@@ -5,7 +5,7 @@ import com.algangi.mongle.comment.domain.model.CommentSort;
 import com.algangi.mongle.comment.infrastructure.persistence.vo.CommentSearchCondition;
 import com.algangi.mongle.comment.infrastructure.persistence.vo.PaginationResult;
 import com.algangi.mongle.comment.infrastructure.persistence.vo.ReplySearchCondition;
-import com.algangi.mongle.comment.presentation.cursor.CursorConvertible;
+import com.algangi.mongle.comment.domain.model.CursorConvertible;
 import com.algangi.mongle.comment.presentation.dto.CommentInfoResponse;
 import com.algangi.mongle.comment.presentation.cursor.CursorInfoResponse;
 import com.algangi.mongle.comment.presentation.dto.ReplyInfoResponse;
