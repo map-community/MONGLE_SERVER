@@ -24,6 +24,9 @@ public class S3PostFileCommitValidationService implements PostFileCommitValidati
 
     @Override
     public void validateTemporaryFiles(List<String> temporaryFileKeys) {
+        if (temporaryFileKeys == null || temporaryFileKeys.isEmpty()) {
+            return;
+        }
         temporaryFileKeys.forEach(this::validateTemporaryFile);
     }
 
