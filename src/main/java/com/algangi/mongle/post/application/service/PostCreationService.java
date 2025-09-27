@@ -3,15 +3,22 @@ package com.algangi.mongle.post.application.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.dynamicCloud.domain.service.DynamicCloudFormationService;
+import com.algangi.mongle.global.domain.service.CellService;
 import com.algangi.mongle.post.application.dto.PostCreationCommand;
+import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
+import com.algangi.mongle.post.domain.service.PostFileCommitValidationService;
+import com.algangi.mongle.post.domain.service.PostIdService;
+import com.algangi.mongle.post.event.PostFileCreatedEvent;
+import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
 import com.algangi.mongle.post.presentation.dto.PostResponse;
 import com.algangi.mongle.staticCloud.domain.model.StaticCloud;
 import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
@@ -27,26 +34,48 @@ public class PostCreationService {
     private final DynamicCloudRepository dynamicCloudRepository;
     private final PostRepository postRepository;
     private final DynamicCloudFormationService dynamicCloudFormationService;
+    private final PostFileCommitValidationService postFileCommitValidationService;
+    private final PostIdService postIdService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final CellService cellService;
 
     @Transactional
-    public PostResponse createPost(PostCreationCommand command) {
-        String s2TokenId = command.s2TokenId();
+    public PostResponse createPost(PostCreateRequest request) {
+        String postId = postIdService.createId();
+        String s2TokenId = cellService.generateS2TokenIdFrom(request.latitude(),
+            request.longitude());
 
-        // 1. 정적 구름 존재 여부 확인
+        PostCreationCommand command = PostCreationCommand.of(
+            postId,
+            Location.create(request.latitude(), request.longitude()),
+            s2TokenId,
+            request.title(),
+            request.content(),
+            request.authorId());
+
+        Post createdPost;
         Optional<StaticCloud> staticCloud = staticCloudRepository.findByS2TokenId(s2TokenId);
-        if (staticCloud.isPresent()) {
-            return PostResponse.from(createPostInStaticCloud(command, staticCloud.get()));
-        }
-
-        // 2. 동적 구름 존재 여부 확인
         Optional<DynamicCloud> existingDynamicCloud = dynamicCloudRepository.findActiveByS2TokenId(
             s2TokenId);
-        if (existingDynamicCloud.isPresent()) {
-            return PostResponse.from(createPostInDynamicCloud(command, existingDynamicCloud.get()));
+        // 1. 정적 구름 존재 여부 확인
+        if (staticCloud.isPresent()) {
+            createdPost = createPostInStaticCloud(command, staticCloud.get());
         }
-
+        // 2. 동적 구름 존재 여부 확인
+        else if (existingDynamicCloud.isPresent()) {
+            createdPost = createPostInDynamicCloud(command, existingDynamicCloud.get());
+        }
         // 3. 동적 구름이 없는 경우
-        return PostResponse.from(handleNewPost(command, s2TokenId));
+        else {
+            createdPost = handleNewPost(command, s2TokenId);
+        }
+        // 4. 임시 PostFile 검증
+        postFileCommitValidationService.validateTemporaryFiles(request.fileKeyList());
+        Post savedPost = postRepository.save(createdPost);
+
+        eventPublisher.publishEvent(
+            new PostFileCreatedEvent(savedPost.getId(), request.fileKeyList()));
+        return PostResponse.from(savedPost);
     }
 
     private Post handleNewPost(PostCreationCommand command, String s2TokenId) {
@@ -73,7 +102,8 @@ public class PostCreationService {
 
     //게시물 생성 헬퍼 메서드
     private Post createPostInStaticCloud(PostCreationCommand command, StaticCloud staticCloud) {
-        Post post = Post.createInStaticCloud(
+        return Post.createInStaticCloud(
+            command.id(),
             command.location(),
             command.s2TokenId(),
             command.title(),
@@ -81,11 +111,11 @@ public class PostCreationService {
             command.authorId(),
             staticCloud.getId()
         );
-        return postRepository.save(post);
     }
 
     private Post createPostInDynamicCloud(PostCreationCommand command, DynamicCloud dynamicCloud) {
-        Post post = Post.createInDynamicCloud(
+        return Post.createInDynamicCloud(
+            command.id(),
             command.location(),
             command.s2TokenId(),
             command.title(),
@@ -93,18 +123,17 @@ public class PostCreationService {
             command.authorId(),
             dynamicCloud.getId()
         );
-        return postRepository.save(post);
     }
 
     private Post createStandalonePost(PostCreationCommand command) {
-        Post post = Post.createStandalone(
+        return Post.createStandalone(
+            command.id(),
             command.location(),
             command.s2TokenId(),
             command.title(),
             command.content(),
             command.authorId()
         );
-        return postRepository.save(post);
     }
 
 }

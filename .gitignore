@@ -39,3 +39,6 @@ out/
 ### env ###
 .env*
 
+# Private Keys
+*.pem
+/src/main/resources/keys/

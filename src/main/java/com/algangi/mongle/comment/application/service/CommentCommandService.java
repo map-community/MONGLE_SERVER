@@ -1,5 +1,8 @@
 package com.algangi.mongle.comment.application.service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.algangi.mongle.comment.domain.model.Comment;
 import com.algangi.mongle.comment.domain.repository.CommentRepository;
 import com.algangi.mongle.comment.domain.service.CommentDomainService;
@@ -8,9 +11,8 @@ import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.service.MemberFinder;
 import com.algangi.mongle.post.application.helper.PostFinder;
 import com.algangi.mongle.post.domain.model.Post;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +25,7 @@ public class CommentCommandService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public void createParentComment(Long postId, String content, Long memberId) {
+    public void createParentComment(String postId, String content, Long memberId) {
         Member author = memberFinder.getMemberOrThrow(memberId);
         Post post = postFinder.getPostOrThrow(postId);
 

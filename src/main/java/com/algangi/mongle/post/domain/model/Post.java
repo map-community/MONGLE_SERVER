@@ -14,8 +14,6 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
@@ -37,8 +35,7 @@ import lombok.NoArgsConstructor;
 public class Post extends TimeBaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     @Embedded
     private Location location;
@@ -68,7 +65,7 @@ public class Post extends TimeBaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private PostStatus status = PostStatus.ACTIVE;
+    private PostStatus status = PostStatus.UPLOADING;
 
     @ElementCollection
     @CollectionTable(name = "post_file",
@@ -88,6 +85,7 @@ public class Post extends TimeBaseEntity {
     private List<Comment> comments = new ArrayList<>();
 
     public static Post createInStaticCloud(
+        String postId,
         Location location,
         String s2TokenId,
         String title,
@@ -96,6 +94,7 @@ public class Post extends TimeBaseEntity {
         Long staticCloudId
     ) {
         return Post.builder()
+            .id(postId)
             .location(location)
             .s2TokenId(s2TokenId)
             .title(title)
@@ -105,7 +104,9 @@ public class Post extends TimeBaseEntity {
             .build();
     }
 
-    public static Post createInDynamicCloud(Location location,
+    public static Post createInDynamicCloud(
+        String postId,
+        Location location,
         String s2TokenId,
         String title,
         String content,
@@ -113,6 +114,7 @@ public class Post extends TimeBaseEntity {
         Long dynamicCloudId
     ) {
         return Post.builder()
+            .id(postId)
             .location(location)
             .s2TokenId(s2TokenId)
             .title(title)
@@ -123,6 +125,7 @@ public class Post extends TimeBaseEntity {
     }
 
     public static Post createStandalone(
+        String postId,
         Location location,
         String s2TokenId,
         String title,
@@ -130,6 +133,7 @@ public class Post extends TimeBaseEntity {
         Long authorId
     ) {
         return Post.builder()
+            .id(postId)
             .location(location)
             .s2TokenId(s2TokenId)
             .title(title)
@@ -143,6 +147,10 @@ public class Post extends TimeBaseEntity {
         this.staticCloudId = null;
     }
 
+    public void addPostFiles(List<PostFile> postFiles) {
+        this.postFiles.addAll(postFiles);
+    }
+
     public void changePostFiles(List<PostFile> postFiles) {
         this.postFiles.clear();
         this.postFiles.addAll(postFiles);
@@ -151,6 +159,10 @@ public class Post extends TimeBaseEntity {
     public void addComment(Comment comment) {
         this.comments.add(comment);
         comment.setPost(this);
+    }
+
+    public void markAsActive() {
+        this.status = PostStatus.ACTIVE;
     }
 
 
