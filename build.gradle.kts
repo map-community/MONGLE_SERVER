@@ -57,11 +57,10 @@ dependencies {
     annotationProcessor("jakarta.annotation:jakarta.annotation-api")
     annotationProcessor("jakarta.persistence:jakarta.persistence-api")
     // JPA 편의 기능
-    implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.8.2")
+    implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.11.0")
     //aws cloud
     implementation("io.awspring.cloud:spring-cloud-aws-starter-s3:3.1.1")
     // AWS CloudFront 연동을 위한 SDK
-    implementation("software.amazon.awssdk:cloudfront")
 }
 
 tasks.withType<Test> {
