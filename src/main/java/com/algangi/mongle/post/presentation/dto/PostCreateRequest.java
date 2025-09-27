@@ -1,6 +1,8 @@
 package com.algangi.mongle.post.presentation.dto;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,5 +23,9 @@ public record PostCreateRequest(
     Long authorId,//인증 도입 시 제거 예정
     List<String> fileKeyList
 ) {
+    
+    public PostCreateRequest {
+        fileKeyList = Optional.ofNullable(fileKeyList).orElse(Collections.emptyList());
+    }
 
 }
