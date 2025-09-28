@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.application;
+package com.algangi.mongle.auth.application.service;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
