@@ -24,7 +24,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.algangi.mongle.auth.infrastructure.jwt.JwtValidationFilter;
+import com.algangi.mongle.auth.infrastructure.security.TokenValidationFilter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtValidationFilter jwtValidationFilter;
+    private final TokenValidationFilter tokenValidationFilter;
     private final AccessDeniedHandler accessDeniedHandler;
     private final AuthenticationEntryPoint authenticationEntryPoint;
     private final LogoutHandler logoutHandler;
@@ -54,7 +54,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .anyRequest().permitAll()
             )
-            .addFilterBefore(jwtValidationFilter, LogoutFilter.class)
+            .addFilterBefore(tokenValidationFilter, LogoutFilter.class)
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint(authenticationEntryPoint)
                 .accessDeniedHandler(accessDeniedHandler)

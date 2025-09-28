@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.infrastructure.jwt;
+package com.algangi.mongle.auth.infrastructure.security;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class JwtValidationFilter extends OncePerRequestFilter {
+public class TokenValidationFilter extends OncePerRequestFilter {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
