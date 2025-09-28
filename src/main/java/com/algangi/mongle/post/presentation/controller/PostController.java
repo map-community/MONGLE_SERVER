@@ -42,14 +42,11 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // 아래 메서드는 Commit 3에서 사용될 예정입니다.
     @GetMapping("/posts/{postId}")
     public ResponseEntity<ApiResponse<PostDetailResponse>> getPostDetail(
         @PathVariable String postId) {
-        // TODO: Commit 3에서 상세 조회 로직 구현 예정. 현재는 임시 응답 반환.
-        // PostDetailResponse response = postQueryService.getPostDetail(postId);
-        // return ResponseEntity.ok(ApiResponse.success("게시글 상세 조회에 성공했습니다.", response));
-        return ResponseEntity.ok(ApiResponse.success(null));
+        PostDetailResponse response = postQueryService.getPostDetail(postId);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
 
