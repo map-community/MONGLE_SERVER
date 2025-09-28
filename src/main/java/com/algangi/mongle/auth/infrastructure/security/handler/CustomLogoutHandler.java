@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.infrastructure.security;
+package com.algangi.mongle.auth.infrastructure.security.handler;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import com.algangi.mongle.auth.application.service.LogoutService;
 import com.algangi.mongle.auth.exception.AuthErrorCode;
+import com.algangi.mongle.auth.infrastructure.security.CustomUserDetails;
 import com.algangi.mongle.global.exception.ApplicationException;
 
 import jakarta.servlet.http.HttpServletRequest;

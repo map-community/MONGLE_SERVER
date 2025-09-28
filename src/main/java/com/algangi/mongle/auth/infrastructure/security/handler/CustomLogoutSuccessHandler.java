@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.infrastructure.security;
+package com.algangi.mongle.auth.infrastructure.security.handler;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
