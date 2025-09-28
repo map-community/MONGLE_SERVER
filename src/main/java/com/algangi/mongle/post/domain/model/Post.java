@@ -71,6 +71,7 @@ public class Post extends TimeBaseEntity {
     @CollectionTable(name = "post_file",
         joinColumns = @JoinColumn(name = "post_id"))
     @OrderColumn(name = "list_idx")
+    @Builder.Default
     private List<PostFile> postFiles = new ArrayList<>();
 
     @Column(nullable = false)
