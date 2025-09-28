@@ -15,13 +15,7 @@ public interface StaticCloudRepository extends JpaRepository<StaticCloud, Long> 
     @Query("select sc from StaticCloud sc join sc.s2TokenIds s2TokenId where s2TokenId = :s2TokenId")
     Optional<StaticCloud> findByS2TokenId(@Param("s2TokenId") String s2TokenId);
 
-    /**
-     * 주어진 S2 Cell 목록과 겹치는 정적 구름을 모두 조회합니다.
-     *
-     * @param s2TokenIds S2 Cell 토큰 ID 목록
-     * @return 정적 구름(StaticCloud) 목록
-     */
-    @Query("select DISTINCT sc from StaticCloud sc join sc.s2TokenIds s2TokenId where s2TokenId in :s2TokenIds")
-    List<StaticCloud> findCloudsInCells(@Param("s2TokenIds") List<String> s2TokenIds);
+    // 주어진 S2 Cell 목록과 겹치는 정적 구름들을 조회
+    @Query("select distinct sc from StaticCloud sc join sc.s2TokenIds s2TokenId where s2TokenId in :s2cellTokens")
+    List<StaticCloud> findCloudsInCells(@Param("s2cellTokens") List<String> s2cellTokens);
 }
-

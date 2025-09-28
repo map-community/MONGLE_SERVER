@@ -5,6 +5,7 @@ import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostQueryRepository;
 import com.algangi.mongle.post.presentation.dto.PostListRequest;
 import com.algangi.mongle.post.presentation.dto.PostSort;
+import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -15,6 +16,7 @@ import org.springframework.util.StringUtils;
 import jakarta.annotation.Nullable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import static com.algangi.mongle.post.domain.model.QPost.post;
 
@@ -40,19 +42,45 @@ public class PostQueryDslRepository implements PostQueryRepository {
     }
 
     @Override
-    public List<Post> findGrainsInCells(List<String> s2TokenIds) {
-        if (s2TokenIds == null || s2TokenIds.isEmpty()) {
-            return List.of();
-        }
+    public List<Post> findGrainsInCells(List<String> s2cellTokens) {
         return queryFactory
             .selectFrom(post)
             .where(
-                post.s2TokenId.in(s2TokenIds),
+                post.s2TokenId.in(s2cellTokens),
                 post.staticCloudId.isNull(),
                 post.dynamicCloudId.isNull()
             )
             .fetch();
     }
+
+    @Override
+    public Map<Long, Long> countPostsByStaticCloudIds(List<Long> cloudIds) {
+        return queryFactory
+            .from(post)
+            .where(post.staticCloudId.in(cloudIds))
+            .groupBy(post.staticCloudId)
+            .transform(GroupBy.groupBy(post.staticCloudId).as(post.count()));
+    }
+
+    @Override
+    public Map<Long, Long> countPostsByDynamicCloudIds(List<Long> cloudIds) {
+        return queryFactory
+            .from(post)
+            .where(post.dynamicCloudId.in(cloudIds))
+            .groupBy(post.dynamicCloudId)
+            .transform(GroupBy.groupBy(post.dynamicCloudId).as(post.count()));
+    }
+
+    private void applySorting(JPAQuery<Post> query, @Nullable PostSort sortBy) {
+        PostSort sort = (sortBy == null) ? PostSort.ranking_score : sortBy;
+
+        switch (sort) {
+            case ranking_score ->
+                query.orderBy(post.rankingScore.desc(), post.createdDate.desc(), post.id.desc());
+            case createdAt -> query.orderBy(post.createdDate.desc(), post.id.desc());
+        }
+    }
+
 
     private BooleanExpression eqPlaceId(String placeId) {
         if (!StringUtils.hasText(placeId)) {
@@ -76,24 +104,14 @@ public class PostQueryDslRepository implements PostQueryRepository {
         }
     }
 
-    private void applySorting(JPAQuery<Post> query, @Nullable PostSort sortBy) {
-        PostSort sort = (sortBy == null) ? PostSort.ranking_score : sortBy;
-
-        switch (sort) {
-            case ranking_score ->
-                query.orderBy(post.rankingScore.desc(), post.createdDate.desc(), post.id.desc());
-            case createdAt -> query.orderBy(post.createdDate.desc(), post.id.desc());
-        }
-    }
-
     private BooleanExpression cursorCondition(String cursor, PostSort sort) {
         if (!StringUtils.hasText(cursor)) {
             return null;
         }
 
         PostSort finalSort = (sort == null) ? PostSort.ranking_score : sort;
-        String[] parts = cursor.split("_");
 
+        String[] parts = cursor.split("_");
         if (finalSort == PostSort.ranking_score) {
             if (parts.length != 3) {
                 return null;

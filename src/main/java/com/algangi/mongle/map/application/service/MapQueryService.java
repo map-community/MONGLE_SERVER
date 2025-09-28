@@ -3,6 +3,7 @@ package com.algangi.mongle.map.application.service;
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.global.infrastructure.S2CellService;
+import com.algangi.mongle.global.util.S2PolygonConverter;
 import com.algangi.mongle.map.presentation.dto.MapObjectsRequest;
 import com.algangi.mongle.map.presentation.dto.MapObjectsResponse;
 import com.algangi.mongle.member.domain.Member;
@@ -31,8 +32,10 @@ public class MapQueryService {
     private final StaticCloudRepository staticCloudRepository;
     private final DynamicCloudRepository dynamicCloudRepository;
     private final MemberFinder memberFinder;
+    private final S2PolygonConverter s2PolygonConverter;
 
     public MapObjectsResponse getMapObjects(MapObjectsRequest request) {
+        // 1. 요청된 위경도 사각 영역을 커버하는 S2 Cell 목록을 가져옵니다.
         List<String> s2cellTokens = s2CellService.getCellsForRect(
             request.swLat(), request.swLng(), request.neLat(), request.neLng()
         );
@@ -41,13 +44,18 @@ public class MapQueryService {
             return MapObjectsResponse.empty();
         }
 
+        // 2. 각 타입의 객체를 DB에서 조회합니다.
         List<Post> grains = postQueryRepository.findGrainsInCells(s2cellTokens);
         List<StaticCloud> staticClouds = staticCloudRepository.findCloudsInCells(s2cellTokens);
         List<DynamicCloud> dynamicClouds = dynamicCloudRepository.findActiveCloudsInCells(
             s2cellTokens);
 
-        Map<Long, Member> authors = getAuthorsForGrains(grains);
+        // 3. 조회된 객체들에 필요한 추가 정보를 조회합니다.
+        Map<Long, Member> authors = getAuthors(grains);
+        Map<Long, Long> staticCloudPostCounts = getStaticCloudPostCounts(staticClouds);
+        Map<Long, Long> dynamicCloudPostCounts = getDynamicCloudPostCounts(dynamicClouds);
 
+        // 4. 조회된 엔티티를 DTO로 변환합니다.
         List<MapObjectsResponse.Grain> grainDtos = grains.stream()
             .map(post -> {
                 Member author = authors.get(post.getAuthorId());
@@ -67,27 +75,23 @@ public class MapQueryService {
                 cloud.getName(),
                 cloud.getLatitude(),
                 cloud.getLongitude(),
-                // TODO: 해당 구름의 게시글 수 집계 로직 필요
-                42,
-                // TODO: 구름의 폴리곤 좌표 생성 로직 필요
-                Collections.emptyList()
+                staticCloudPostCounts.getOrDefault(cloud.getId(), 0L),
+                s2PolygonConverter.convertS2TokensToPolygon(cloud.getS2TokenIds())
             ))
             .toList();
 
         List<MapObjectsResponse.DynamicCloudInfo> dynamicCloudDtos = dynamicClouds.stream()
             .map(cloud -> new MapObjectsResponse.DynamicCloudInfo(
                 cloud.getId().toString(),
-                // TODO: 해당 구름의 게시글 수 집계 로직 필요
-                15,
-                // TODO: 구름의 폴리곤 좌표 생성 로직 필요
-                Collections.emptyList()
+                dynamicCloudPostCounts.getOrDefault(cloud.getId(), 0L),
+                s2PolygonConverter.convertS2TokensToPolygon(cloud.getS2TokenIds())
             ))
             .toList();
 
         return new MapObjectsResponse(grainDtos, staticCloudDtos, dynamicCloudDtos);
     }
 
-    private Map<Long, Member> getAuthorsForGrains(List<Post> grains) {
+    private Map<Long, Member> getAuthors(List<Post> grains) {
         if (grains.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -95,8 +99,25 @@ public class MapQueryService {
             .map(Post::getAuthorId)
             .distinct()
             .toList();
+
         return memberFinder.findMembersByIds(authorIds).stream()
             .collect(Collectors.toMap(Member::getMemberId, Function.identity()));
+    }
+
+    private Map<Long, Long> getStaticCloudPostCounts(List<StaticCloud> clouds) {
+        if (clouds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        List<Long> cloudIds = clouds.stream().map(StaticCloud::getId).toList();
+        return postQueryRepository.countPostsByStaticCloudIds(cloudIds);
+    }
+
+    private Map<Long, Long> getDynamicCloudPostCounts(List<DynamicCloud> clouds) {
+        if (clouds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        List<Long> cloudIds = clouds.stream().map(DynamicCloud::getId).toList();
+        return postQueryRepository.countPostsByDynamicCloudIds(cloudIds);
     }
 }
 

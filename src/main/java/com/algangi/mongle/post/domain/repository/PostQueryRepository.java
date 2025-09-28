@@ -4,23 +4,32 @@ import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.presentation.dto.PostListRequest;
 
 import java.util.List;
+import java.util.Map;
 
 public interface PostQueryRepository {
 
     /**
-     * 게시글 목록을 조건에 따라 동적으로 조회합니다. (정렬, 필터링, 커서 기반 페이징)
-     *
-     * @param request 필터링 및 정렬 조건
-     * @return Post 목록
+     * 조건에 맞는 게시글 목록을 커서 기반으로 조회합니다.
      */
     List<Post> findPostsByCondition(PostListRequest request);
 
     /**
-     * 주어진 S2 Cell 목록 내에 있으면서, 구름에 속하지 않은 '알갱이' 상태의 게시글을 조회합니다.
-     *
-     * @param s2TokenIds S2 Cell 토큰 ID 목록
-     * @return 알갱이(Post) 목록
+     * 주어진 S2 Cell 목록 내에 '알갱이' 상태로 존재하는 게시글들을 조회합니다.
      */
-    List<Post> findGrainsInCells(List<String> s2TokenIds);
+    List<Post> findGrainsInCells(List<String> s2cellTokens);
+
+    /**
+     * 주어진 정적 구름 ID 목록에 대해 각 구름에 속한 게시글 수를 조회합니다.
+     *
+     * @return Map<CloudId, PostCount>
+     */
+    Map<Long, Long> countPostsByStaticCloudIds(List<Long> cloudIds);
+
+    /**
+     * 주어진 동적 구름 ID 목록에 대해 각 구름에 속한 게시글 수를 조회합니다.
+     *
+     * @return Map<CloudId, PostCount>
+     */
+    Map<Long, Long> countPostsByDynamicCloudIds(List<Long> cloudIds);
 }
 
