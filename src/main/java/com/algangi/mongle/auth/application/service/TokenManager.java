@@ -13,4 +13,6 @@ public interface TokenManager {
 
     boolean validateToken(String token);
 
+    Long getUserId(String token);
+
 }

@@ -107,4 +107,15 @@ public class JwtManager implements TokenManager {
             .parseSignedClaims(token)
             .getPayload();
     }
+
+    public Long getUserId(String token) {
+        return Long.parseLong(
+            Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject()
+        );
+    }
 }

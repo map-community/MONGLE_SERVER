@@ -60,7 +60,7 @@ public class SecurityConfig {
                 .accessDeniedHandler(accessDeniedHandler)
             )
             .logout(logout -> logout
-                .logoutUrl("/api/logout")
+                .logoutUrl("/api/auth/logout")
                 .addLogoutHandler(logoutHandler)
                 .logoutSuccessHandler(logoutSuccessHandler)
             )

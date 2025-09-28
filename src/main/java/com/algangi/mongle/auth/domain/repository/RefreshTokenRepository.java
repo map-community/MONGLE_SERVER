@@ -6,4 +6,5 @@ import com.algangi.mongle.auth.domain.model.RefreshToken;
 
 public interface RefreshTokenRepository extends CrudRepository<RefreshToken, Long> {
 
+    boolean existsByRefreshToken(String refreshToken);
 }
