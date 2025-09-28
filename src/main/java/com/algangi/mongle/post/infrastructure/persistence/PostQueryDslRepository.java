@@ -5,14 +5,14 @@ import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostQueryRepository;
 import com.algangi.mongle.post.presentation.dto.PostListRequest;
 import com.algangi.mongle.post.presentation.dto.PostSort;
-import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import jakarta.annotation.Nullable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,15 +26,31 @@ public class PostQueryDslRepository implements PostQueryRepository {
 
     @Override
     public List<Post> findPostsByCondition(PostListRequest request) {
-        return queryFactory
+        JPAQuery<Post> query = queryFactory
             .selectFrom(post)
             .where(
                 eqPlaceId(request.placeId()),
                 eqCloudId(request.cloudId()),
                 cursorCondition(request.cursor(), request.sortBy())
             )
-            .orderBy(orderSpecifiers(request.sortBy()))
-            .limit(request.size() + 1)
+            .limit(request.size() + 1);
+
+        applySorting(query, request.sortBy());
+        return query.fetch();
+    }
+
+    @Override
+    public List<Post> findGrainsInCells(List<String> s2TokenIds) {
+        if (s2TokenIds == null || s2TokenIds.isEmpty()) {
+            return List.of();
+        }
+        return queryFactory
+            .selectFrom(post)
+            .where(
+                post.s2TokenId.in(s2TokenIds),
+                post.staticCloudId.isNull(),
+                post.dynamicCloudId.isNull()
+            )
             .fetch();
     }
 
@@ -60,67 +76,51 @@ public class PostQueryDslRepository implements PostQueryRepository {
         }
     }
 
-    private OrderSpecifier<?>[] orderSpecifiers(@Nullable PostSort postSort) {
-        PostSort sort = (postSort == null) ? PostSort.ranking_score : postSort;
+    private void applySorting(JPAQuery<Post> query, @Nullable PostSort sortBy) {
+        PostSort sort = (sortBy == null) ? PostSort.ranking_score : sortBy;
 
-        if (sort == PostSort.ranking_score) {
-            return new OrderSpecifier[]{
-                post.rankingScore.desc(),
-                post.createdDate.desc(),
-                post.id.desc()
-            };
+        switch (sort) {
+            case ranking_score ->
+                query.orderBy(post.rankingScore.desc(), post.createdDate.desc(), post.id.desc());
+            case createdAt -> query.orderBy(post.createdDate.desc(), post.id.desc());
         }
-
-        return new OrderSpecifier[]{
-            post.createdDate.desc(),
-            post.id.desc()
-        };
     }
 
-    private BooleanExpression cursorCondition(@Nullable String cursor,
-        @Nullable PostSort postSort) {
+    private BooleanExpression cursorCondition(String cursor, PostSort sort) {
         if (!StringUtils.hasText(cursor)) {
             return null;
         }
 
-        PostSort sort = (postSort == null) ? PostSort.ranking_score : postSort;
-
+        PostSort finalSort = (sort == null) ? PostSort.ranking_score : sort;
         String[] parts = cursor.split("_");
-        if (sort == PostSort.ranking_score) {
+
+        if (finalSort == PostSort.ranking_score) {
             if (parts.length != 3) {
                 return null;
             }
-            try {
-                Double score = Double.parseDouble(parts[0]);
-                LocalDateTime createdAt = ParsingUtil.parseDate(parts[1]);
-                String id = parts[2];
+            Double score = Double.parseDouble(parts[0]);
+            LocalDateTime createdAt = ParsingUtil.parseDate(parts[1]);
+            String id = parts[2];
 
-                return post.rankingScore.lt(score)
-                    .or(post.rankingScore.eq(score)
-                        .and(post.createdDate.lt(createdAt))
-                    ).or(post.rankingScore.eq(score)
-                        .and(post.createdDate.eq(createdAt))
-                        .and(post.id.lt(id))
-                    );
-            } catch (Exception e) {
-                return null;
-            }
+            return post.rankingScore.lt(score)
+                .or(post.rankingScore.eq(score)
+                    .and(post.createdDate.lt(createdAt))
+                ).or(post.rankingScore.eq(score)
+                    .and(post.createdDate.eq(createdAt))
+                    .and(post.id.lt(id))
+                );
 
         } else {
             if (parts.length != 2) {
                 return null;
             }
-            try {
-                LocalDateTime createdAt = ParsingUtil.parseDate(parts[0]);
-                String id = parts[1];
+            LocalDateTime createdAt = ParsingUtil.parseDate(parts[0]);
+            String id = parts[1];
 
-                return post.createdDate.lt(createdAt)
-                    .or(post.createdDate.eq(createdAt)
-                        .and(post.id.lt(id))
-                    );
-            } catch (Exception e) {
-                return null;
-            }
+            return post.createdDate.lt(createdAt)
+                .or(post.createdDate.eq(createdAt)
+                    .and(post.id.lt(id))
+                );
         }
     }
 }
