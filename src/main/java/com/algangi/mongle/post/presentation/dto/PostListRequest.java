@@ -17,7 +17,7 @@ public record PostListRequest(
         return Optional.ofNullable(sortBy).orElse(PostSort.createdAt);
     }
 
-    public int size() {
+    public Integer size() {
         return Optional.ofNullable(size)
             .map(s -> Math.min(s, MAX_SIZE))
             .orElse(DEFAULT_SIZE);
