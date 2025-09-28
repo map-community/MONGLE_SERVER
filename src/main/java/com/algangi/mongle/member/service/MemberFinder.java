@@ -11,6 +11,8 @@ import com.algangi.mongle.global.exception.ApplicationException;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -20,7 +22,15 @@ public class MemberFinder {
 
     public Member getMemberOrThrow(Long memberId) {
         return memberJpaRepository.findById(memberId)
-                .orElseThrow(() -> new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    public List<Member> findMembersByIds(List<Long> memberIds) {
+        if (memberIds == null || memberIds.isEmpty()) {
+            return List.of();
+        }
+        return memberJpaRepository.findAllByMemberIdIn(memberIds);
     }
 
 }
+

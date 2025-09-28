@@ -2,12 +2,10 @@ package com.algangi.mongle.post.presentation.dto;
 
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.post.domain.model.Post;
-import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Builder
 public record PostDetailResponse(
     String postId,
     Author author,
@@ -17,13 +15,12 @@ public record PostDetailResponse(
     List<String> photoUrls,
     List<String> videoUrls,
     LocalDateTime createdAt,
-    long viewCount,
+    long viewCount, // TODO: 조회수 기능 구현 필요
     long likeCount,
     long dislikeCount,
     long commentCount
 ) {
 
-    @Builder
     public record Author(
         String id,
         String nickname,
@@ -31,31 +28,33 @@ public record PostDetailResponse(
     ) {
 
         public static Author from(Member member) {
-            // TODO: Member 엔티티에 profileImageUrl 필드 추가 시 반영 필요
-            return Author.builder()
-                .id(member.getMemberId().toString())
-                .nickname(member.getNickname())
-                .profileImageUrl("https://i.pravatar.cc/150?u=" + member.getMemberId()) // 임시 URL
-                .build();
+            if (member == null) {
+                return new Author(null, "익명의 몽글러", null);
+            }
+            return new Author(
+                member.getMemberId().toString(),
+                member.getNickname(),
+                member.getProfileImage()
+            );
         }
     }
 
     public static PostDetailResponse from(Post post, Member author, long commentCount,
         List<String> photoUrls, List<String> videoUrls) {
-        return PostDetailResponse.builder()
-            .postId(post.getId())
-            .author(Author.from(author))
-            .content(post.getContent())
-            .latitude(post.getLocation().getLatitude())
-            .longitude(post.getLocation().getLongitude())
-            .photoUrls(photoUrls)
-            .videoUrls(videoUrls)
-            .createdAt(post.getCreatedDate())
-            .viewCount(0) // TODO: 조회수 기능 구현 필요
-            .likeCount(post.getLikeCount())
-            .dislikeCount(post.getDislikeCount())
-            .commentCount(commentCount)
-            .build();
+        return new PostDetailResponse(
+            post.getId(),
+            Author.from(author),
+            post.getContent(),
+            post.getLocation().getLatitude(),
+            post.getLocation().getLongitude(),
+            photoUrls,
+            videoUrls,
+            post.getCreatedDate(),
+            0, // TODO: 조회수 기능 구현 후 반영
+            post.getLikeCount(),
+            post.getDislikeCount(),
+            commentCount
+        );
     }
 }
 

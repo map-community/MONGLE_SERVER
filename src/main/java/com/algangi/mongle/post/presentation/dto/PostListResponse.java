@@ -1,48 +1,51 @@
 package com.algangi.mongle.post.presentation.dto;
 
+import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.post.domain.model.Post;
+import lombok.Getter;
+
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
-import lombok.Builder;
 
-@Builder
-public record PostListResponse(
-    List<PostSummary> posts,
-    String lastCursor
-) {
+@Getter
+public class PostListResponse {
 
-    public static PostListResponse of(List<PostSummary> posts, String lastCursor) {
-        return new PostListResponse(posts, lastCursor);
+    private final List<PostSummary> posts;
+    private final String nextCursor;
+    private final boolean hasNext;
+
+    public PostListResponse(List<PostSummary> posts, String nextCursor, boolean hasNext) {
+        this.posts = posts;
+        this.nextCursor = nextCursor;
+        this.hasNext = hasNext;
     }
 
-    @Builder
+    public static PostListResponse empty() {
+        return new PostListResponse(Collections.emptyList(), null, false);
+    }
+
     public record PostSummary(
         String postId,
         String authorNickname,
         String content,
         List<String> photoUrls,
-        List<String> videoUrls,
         long upvotes,
         long downvotes,
         long commentCount,
         LocalDateTime createdAt
     ) {
 
-        public static PostSummary from(Post post, long commentCount) {
-            // TODO: 실제 Member 정보를 조회하여 닉네임 설정
-            String nickname = "익명의 몽글러";
-
-            // TODO: 실제 PostFile 정보를 기반으로 photoUrls, videoUrls 생성
-            List<String> photos = List.of(
-                "https://picsum.photos/seed/" + post.getId() + "/400/300");
-            List<String> videos = List.of();
+        public static PostSummary from(Post post, Member author, long commentCount,
+            List<String> photoUrls) {
+            String nickname =
+                (author != null) ? author.getNickname() : "익명의 몽글러"; // author가 null일 경우 대비
 
             return new PostSummary(
                 post.getId(),
                 nickname,
                 post.getContent(),
-                photos,
-                videos,
+                photoUrls,
                 post.getLikeCount(),
                 post.getDislikeCount(),
                 commentCount,
@@ -51,3 +54,4 @@ public record PostListResponse(
         }
     }
 }
+
