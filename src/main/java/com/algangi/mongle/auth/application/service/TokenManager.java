@@ -7,10 +7,10 @@ import com.algangi.mongle.member.domain.MemberRole;
 
 public interface TokenManager {
 
-    public TokenInfo generateTokens(Long memberId, MemberRole role);
+    TokenInfo generateTokens(Long memberId, MemberRole role);
 
-    public Authentication getAuthentication(String accessToken);
+    Authentication getAuthentication(String accessToken);
 
-    public boolean validateToken(String token);
+    boolean validateToken(String token);
 
 }

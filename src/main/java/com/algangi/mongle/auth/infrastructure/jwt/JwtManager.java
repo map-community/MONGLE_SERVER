@@ -105,6 +105,6 @@ public class JwtManager implements TokenManager {
             .verifyWith(key)
             .build()
             .parseSignedClaims(token)
-            .getPayload(); // getBody() 대신 getPayload() 사용
+            .getPayload();
     }
 }
