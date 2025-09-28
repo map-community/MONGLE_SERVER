@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.domain;
+package com.algangi.mongle.auth.infrastructure.jwt;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

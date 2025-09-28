@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.domain;
+package com.algangi.mongle.auth.infrastructure.security;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -9,19 +9,19 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 
 public record CustomUserDetails(
-    Long memberId,
+    Long userId,
     Collection<? extends GrantedAuthority> authorities
 ) implements UserDetails {
 
-    public static CustomUserDetails of(Long memberId,
+    public static CustomUserDetails of(Long userId,
         Collection<? extends GrantedAuthority> authorities) {
-        if (memberId == null) {
+        if (userId == null) {
             throw new IllegalArgumentException("memberId는 null일 수 없습니다.");
         }
         if (authorities == null) {
             authorities = Collections.singleton(new SimpleGrantedAuthority("ROLE_GUEST"));
         }
-        return new CustomUserDetails(memberId, authorities);
+        return new CustomUserDetails(userId, authorities);
     }
 
     @Override
@@ -56,7 +56,7 @@ public record CustomUserDetails(
 
     @Override
     public String getUsername() {
-        return String.valueOf(memberId);
+        return String.valueOf(userId);
     }
 
 }

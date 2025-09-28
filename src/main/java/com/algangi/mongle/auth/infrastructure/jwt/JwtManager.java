@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.infrastructure;
+package com.algangi.mongle.auth.infrastructure.jwt;
 
 import java.util.Collections;
 import java.util.Date;
@@ -11,8 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.algangi.mongle.auth.application.service.TokenManager;
-import com.algangi.mongle.auth.domain.CustomUserDetails;
-import com.algangi.mongle.auth.domain.JwtProperties;
+import com.algangi.mongle.auth.infrastructure.security.CustomUserDetails;
 import com.algangi.mongle.auth.presentation.dto.TokenInfo;
 import com.algangi.mongle.member.domain.MemberRole;
 
