@@ -17,8 +17,15 @@ public class CommentFinder {
     private final CommentRepository commentJpaRepository;
 
     public Comment getCommentOrThrow(String commentId) {
+        validateCommentId(commentId);
         return commentJpaRepository.findById(commentId)
                 .orElseThrow(() -> new ApplicationException(CommentErrorCode.COMMENT_NOT_FOUND));
+    }
+
+    private void validateCommentId(String commentId) {
+        if (commentId == null || commentId.isBlank()) {
+            throw new ApplicationException(CommentErrorCode.COMMENT_NOT_FOUND);
+        }
     }
 
 }
