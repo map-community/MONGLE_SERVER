@@ -19,7 +19,7 @@ public class ReactionApplicationService {
     private final PostFinder postFinder;
     private final CommentFinder commentFinder;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ReactionResponse updateReaction(String targetTypeStr, String targetId, String memberId, ReactionType reactionType) {
         TargetType targetType = TargetType.from(targetTypeStr);
         validateTargetExists(targetType, targetId);
