@@ -12,9 +12,9 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.algangi.mongle.auth.domain.oauth2.OAuth2UserInfo;
+import com.algangi.mongle.auth.domain.oauth2.OAuth2UserInfoFactory;
 import com.algangi.mongle.auth.exception.AuthErrorCode;
-import com.algangi.mongle.auth.infrastructure.oauth2.OAuth2UserInfo;
-import com.algangi.mongle.auth.infrastructure.oauth2.OAuth2UserInfoFactory;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.domain.SocialAccount;
