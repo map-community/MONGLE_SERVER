@@ -99,7 +99,7 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
         Long count = queryFactory
             .select(comment.count())
             .from(comment)
-            .where(comment.post.id.eq(postId))
+            .where(comment.post.id.eq(postId), comment.deletedAt.isNull())
             .fetchOne();
         return count != null ? count : 0L;
     }
@@ -111,7 +111,7 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
         }
         return queryFactory
             .from(comment)
-            .where(comment.post.id.in(postIds))
+            .where(comment.post.id.in(postIds), comment.deletedAt.isNull())
             .groupBy(comment.post.id)
             .transform(GroupBy.groupBy(comment.post.id).as(comment.count()));
     }
