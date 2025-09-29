@@ -12,12 +12,14 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.algangi.mongle.auth.domain.oauth2.OAuth2Provider;
 import com.algangi.mongle.auth.domain.oauth2.OAuth2UserInfo;
 import com.algangi.mongle.auth.domain.oauth2.OAuth2UserInfoFactory;
 import com.algangi.mongle.auth.exception.AuthErrorCode;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.domain.SocialAccount;
+import com.algangi.mongle.member.domain.SocialId;
 import com.algangi.mongle.member.repository.SocialAccountRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -40,8 +42,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String provider = userInfo.getProvider();
         String providerId = userInfo.getProviderId();
 
-        SocialAccount socialAccount = socialAccountRepository.findByProviderAndProviderId(provider,
-                providerId)
+        SocialAccount socialAccount = socialAccountRepository.findBySocialId(
+                SocialId.of(OAuth2Provider.from(provider), providerId))
             .orElseThrow(() -> new ApplicationException(AuthErrorCode.NOT_LINKED_ACCOUNT));
 
         Member member = socialAccount.getMember();
