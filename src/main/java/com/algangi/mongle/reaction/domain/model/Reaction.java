@@ -1,4 +1,4 @@
-package com.algangi.mongle.reaction.domain;
+package com.algangi.mongle.reaction.domain.model;
 
 import com.algangi.mongle.global.entity.CreatedDateBaseEntity;
 import com.algangi.mongle.member.domain.Member;
