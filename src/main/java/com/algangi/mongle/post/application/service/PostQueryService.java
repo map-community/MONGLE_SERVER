@@ -5,6 +5,7 @@ import com.algangi.mongle.global.application.service.ViewUrlIssueService;
 import com.algangi.mongle.global.util.DateTimeUtil;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.service.MemberFinder;
+import com.algangi.mongle.post.application.dto.IssuedUrlInfo;
 import com.algangi.mongle.post.application.helper.PostFinder;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.model.PostFile;
@@ -14,6 +15,7 @@ import com.algangi.mongle.post.presentation.dto.PostListRequest;
 import com.algangi.mongle.post.presentation.dto.PostListResponse;
 import com.algangi.mongle.post.presentation.dto.PostSort;
 import com.algangi.mongle.post.presentation.dto.ViewUrlRequest;
+import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,16 +39,23 @@ public class PostQueryService {
 
 
     public PostListResponse getPostList(PostListRequest request) {
-        List<Post> content = postQueryRepository.findPostsByCondition(request);
-        if (content.isEmpty()) {
+        // 1. DB에서 다음 페이지 존재 여부 확인을 위해 요청 사이즈보다 1개 더 조회
+        List<Post> fetchedPosts = postQueryRepository.findPostsByCondition(request);
+        boolean hasNext = fetchedPosts.size() > request.size();
+        // 2. 실제 페이지에 해당하는 데이터만 잘라냄
+        List<Post> postsOnPage = hasNext ? fetchedPosts.subList(0, request.size()) : fetchedPosts;
+
+        if (postsOnPage.isEmpty()) {
             return PostListResponse.empty();
         }
 
-        Map<String, Long> commentCounts = getCommentCounts(content);
-        Map<Long, Member> authors = getAuthors(content);
-        Map<String, String> photoUrls = getFirstPhotoUrls(content);
+        // 3. 잘라낸 postsOnPage를 기준으로 후속 작업을 처리하여 불필요한 연산을 방지
+        Map<String, Long> commentCounts = getCommentCounts(postsOnPage);
+        Map<Long, Member> authors = getAuthors(postsOnPage);
+        Map<String, String> photoUrls = getFirstPhotoUrls(postsOnPage);
 
-        List<PostListResponse.PostSummary> summaries = content.stream().map(post -> {
+        // 4. DTO 조립
+        List<PostListResponse.PostSummary> summaries = postsOnPage.stream().map(post -> {
             Member author = authors.get(post.getAuthorId());
             long commentCount = commentCounts.getOrDefault(post.getId(), 0L);
             String photoUrl = photoUrls.get(post.getId());
@@ -56,10 +65,9 @@ public class PostQueryService {
             return PostListResponse.PostSummary.from(post, author, commentCount, photoUrlList);
         }).toList();
 
-        String nextCursor = createNextCursor(content,
-            request.size() != null && content.size() > request.size(), request.sortBy());
+        String nextCursor = createNextCursor(postsOnPage, hasNext, request.sortBy());
 
-        return new PostListResponse(summaries, nextCursor, nextCursor != null);
+        return new PostListResponse(summaries, nextCursor, hasNext);
     }
 
     public PostDetailResponse getPostDetail(String postId) {
@@ -86,54 +94,84 @@ public class PostQueryService {
 
     private Map<String, Long> getCommentCounts(List<Post> posts) {
         List<String> postIds = posts.stream().map(Post::getId).toList();
+        if (postIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
         return commentQueryRepository.countCommentsByPostIds(postIds);
     }
 
     private Map<Long, Member> getAuthors(List<Post> posts) {
         List<Long> authorIds = posts.stream().map(Post::getAuthorId).distinct().toList();
+        if (authorIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
         return memberFinder.findMembersByIds(authorIds).stream()
             .collect(Collectors.toMap(Member::getMemberId, Function.identity()));
     }
 
     private Map<String, String> getFirstPhotoUrls(List<Post> posts) {
-        List<String> firstPhotoKeys = posts.stream()
-            .map(p -> p.getPostFiles().stream()
-                .map(PostFile::getFileKey)
-                .filter(key -> key.startsWith("posts/images/"))
-                .findFirst()
-                .orElse(null))
-            .filter(key -> key != null)
-            .toList();
+        Map<String, String> postIdToPhotoKeyMap = posts.stream()
+            .collect(Collectors.toMap(
+                Post::getId,
+                p -> p.getPostFiles().stream()
+                    .map(PostFile::getFileKey)
+                    .filter(key -> key.startsWith("posts/images/"))
+                    .findFirst()
+                    .orElse(null)
+            ))
+            .entrySet().stream()
+            .filter(entry -> entry.getValue() != null)
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        return issueFileUrlsToMap(firstPhotoKeys);
+        if (postIdToPhotoKeyMap.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<String> distinctPhotoKeys = new ArrayList<>(postIdToPhotoKeyMap.values());
+        distinctPhotoKeys = distinctPhotoKeys.stream().distinct().toList();
+        Map<String, String> photoKeyToUrlMap = issueFileUrlsToMap(distinctPhotoKeys);
+
+        return postIdToPhotoKeyMap.entrySet().stream()
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> photoKeyToUrlMap.get(entry.getValue())
+            ));
     }
 
+
     private List<String> issueFileUrls(List<String> fileKeys) {
-        if (fileKeys.isEmpty()) {
+        if (fileKeys == null || fileKeys.isEmpty()) {
             return Collections.emptyList();
         }
-        return viewUrlIssueService.issueViewUrls(new ViewUrlRequest(fileKeys)).issuedUrls().stream()
-            .map(info -> info.presignedUrl())
+        List<String> distinctFileKeys = fileKeys.stream().distinct().toList();
+        return viewUrlIssueService.issueViewUrls(new ViewUrlRequest(distinctFileKeys)).issuedUrls()
+            .stream()
+            .map(IssuedUrlInfo::presignedUrl)
             .toList();
     }
 
     private Map<String, String> issueFileUrlsToMap(List<String> fileKeys) {
-        if (fileKeys.isEmpty()) {
+        if (fileKeys == null || fileKeys.isEmpty()) {
             return Collections.emptyMap();
         }
-        return viewUrlIssueService.issueViewUrls(new ViewUrlRequest(fileKeys)).issuedUrls().stream()
-            .collect(Collectors.toMap(info -> info.fileKey(), info -> info.presignedUrl()));
+        List<String> distinctFileKeys = fileKeys.stream().distinct().toList();
+        return viewUrlIssueService.issueViewUrls(new ViewUrlRequest(distinctFileKeys)).issuedUrls()
+            .stream()
+            .collect(
+                Collectors.toMap(IssuedUrlInfo::fileKey, IssuedUrlInfo::presignedUrl, (a, b) -> a));
     }
 
     private String createNextCursor(List<Post> content, boolean hasNext, PostSort sort) {
-        if (!hasNext) {
+        if (!hasNext || content.isEmpty()) {
             return null;
         }
 
         Post lastPost = content.get(content.size() - 1);
         String formattedDate = lastPost.getCreatedDate().format(DateTimeUtil.CURSOR_DATE_FORMATTER);
 
-        if (sort == PostSort.ranking_score) {
+        PostSort finalSort = (sort == null) ? PostSort.ranking_score : sort;
+
+        if (finalSort == PostSort.ranking_score) {
             return String.join("_",
                 String.valueOf(lastPost.getRankingScore()),
                 formattedDate,
@@ -144,5 +182,5 @@ public class PostQueryService {
                 lastPost.getId());
         }
     }
-
 }
+
