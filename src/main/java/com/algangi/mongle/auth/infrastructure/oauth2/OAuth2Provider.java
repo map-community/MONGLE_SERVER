@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.domain;
+package com.algangi.mongle.auth.infrastructure.oauth2;
 
 import java.util.Arrays;
 
