@@ -67,13 +67,13 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
     }
 
     @Override
-    public Map<Long, Boolean> findHasRepliesByParentIds(List<Long> parentIds) {
+    public Map<String, Boolean> findHasRepliesByParentIds(List<String> parentIds) {
         if (parentIds.isEmpty()) {
             return Collections.emptyMap();
         }
 
         QComment reply = new QComment("reply");
-        List<Long> parentIdsWithReplies = queryFactory
+        List<String> parentIdsWithReplies = queryFactory
             .select(reply.parentComment.id)
             .from(reply)
             .where(
@@ -83,7 +83,7 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
             .groupBy(reply.parentComment.id)
             .fetch();
 
-        Set<Long> parentIdsWithRepliesSet = new HashSet<>(parentIdsWithReplies);
+        Set<String> parentIdsWithRepliesSet = new HashSet<>(parentIdsWithReplies);
         return parentIds.stream()
             .collect(Collectors.toMap(
                 id -> id,

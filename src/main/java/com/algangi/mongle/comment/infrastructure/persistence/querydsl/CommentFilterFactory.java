@@ -19,7 +19,7 @@ public class CommentFilterFactory {
         return comment.post.id.eq(postId);
     }
 
-    public BooleanExpression eqParentId(Long parentId) {
+    public BooleanExpression eqParentId(String parentId) {
         if (parentId == null) {
             return null;
         }

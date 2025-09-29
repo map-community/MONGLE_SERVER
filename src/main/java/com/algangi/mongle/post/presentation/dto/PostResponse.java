@@ -8,7 +8,7 @@ public record PostResponse(
     String id,
     String title,
     String content,
-    Long authorId,
+    String authorId,
     String s2TokenId,
     Long staticCloudId,
     Long dynamicCloudId,

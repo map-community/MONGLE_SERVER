@@ -51,7 +51,7 @@ public class MapQueryService {
             s2cellTokens);
 
         // 3. 조회된 객체들에 필요한 추가 정보를 조회합니다.
-        Map<Long, Member> authors = getAuthors(grains);
+        Map<String, Member> authors = getAuthors(grains);
         Map<Long, Long> staticCloudPostCounts = getStaticCloudPostCounts(staticClouds);
         Map<Long, Long> dynamicCloudPostCounts = getDynamicCloudPostCounts(dynamicClouds);
 
@@ -76,7 +76,7 @@ public class MapQueryService {
                 cloud.getLatitude(),
                 cloud.getLongitude(),
                 staticCloudPostCounts.getOrDefault(cloud.getId(), 0L),
-                s2PolygonConverter.convertS2TokensToPolygon(cloud.getS2TokenIds())
+                s2PolygonConverter.convert(cloud.getS2TokenIds())
             ))
             .toList();
 
@@ -84,18 +84,18 @@ public class MapQueryService {
             .map(cloud -> new MapObjectsResponse.DynamicCloudInfo(
                 cloud.getId().toString(),
                 dynamicCloudPostCounts.getOrDefault(cloud.getId(), 0L),
-                s2PolygonConverter.convertS2TokensToPolygon(cloud.getS2TokenIds())
+                s2PolygonConverter.convert(cloud.getS2TokenIds())
             ))
             .toList();
 
         return new MapObjectsResponse(grainDtos, staticCloudDtos, dynamicCloudDtos);
     }
 
-    private Map<Long, Member> getAuthors(List<Post> grains) {
+    private Map<String, Member> getAuthors(List<Post> grains) {
         if (grains.isEmpty()) {
             return Collections.emptyMap();
         }
-        List<Long> authorIds = grains.stream()
+        List<String> authorIds = grains.stream()
             .map(Post::getAuthorId)
             .distinct()
             .toList();

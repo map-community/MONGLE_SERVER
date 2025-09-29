@@ -33,7 +33,7 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
     @Id
     @Tsid
     @Column(nullable = false, updatable = false)
-    private Long id;
+    private String id;
 
     @Column(nullable = false)
     private String content;
@@ -109,7 +109,7 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
     }
 
     @Override
-    public Long getId() {
+    public String getId() {
         return this.id;
     }
 

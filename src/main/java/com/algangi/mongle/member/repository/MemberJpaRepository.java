@@ -5,9 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface MemberJpaRepository extends JpaRepository<Member, Long> {
+public interface MemberJpaRepository extends JpaRepository<Member, String> {
 
-    List<Member> findAllByMemberIdIn(List<Long> memberIds);
+    List<Member> findAllByMemberIdIn(List<String> memberIds);
 
 }
-

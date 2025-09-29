@@ -20,16 +20,23 @@ public class MemberFinder {
 
     private final MemberJpaRepository memberJpaRepository;
 
-    public Member getMemberOrThrow(Long memberId) {
+    public Member getMemberOrThrow(String memberId) {
+        validateMemberId(memberId);
         return memberJpaRepository.findById(memberId)
-            .orElseThrow(() -> new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
 
-    public List<Member> findMembersByIds(List<Long> memberIds) {
+    public List<Member> findMembersByIds(List<String> memberIds) {
         if (memberIds == null || memberIds.isEmpty()) {
             return List.of();
         }
         return memberJpaRepository.findAllByMemberIdIn(memberIds);
+    }
+
+    private void validateMemberId(String memberId) {
+        if (memberId == null || memberId.isBlank()) {
+            throw new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND);
+        }
     }
 
 }

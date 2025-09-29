@@ -8,11 +8,11 @@ public record PostCreationCommand(
     String s2TokenId,
     String title,
     String content,
-    Long authorId
+    String authorId
 ) {
 
     public static PostCreationCommand of(String id, Location location, String s2TokenId,
-        String title, String content, Long authorId) {
+        String title, String content, String authorId) {
         return new PostCreationCommand(id, location, s2TokenId, title, content, authorId);
     }
 

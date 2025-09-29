@@ -1,5 +1,9 @@
 package com.algangi.mongle.comment.application.service;
 
+import com.algangi.mongle.comment.application.event.CommentCreatedEvent;
+import com.algangi.mongle.comment.application.event.CommentDeletedEvent;
+import com.algangi.mongle.stats.application.service.ContentStatsService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,32 +27,41 @@ public class CommentCommandService {
     private final CommentFinder commentFinder;
     private final CommentDomainService commentDomainService;
     private final CommentRepository commentRepository;
+    private final ContentStatsService contentStatsService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public void createParentComment(String postId, String content, Long memberId) {
+    public void createParentComment(String postId, String content, String memberId) {
         Member author = memberFinder.getMemberOrThrow(memberId);
         Post post = postFinder.getPostOrThrow(postId);
 
         Comment newComment = commentDomainService.createParentComment(post, author, content);
 
         commentRepository.save(newComment);
+        eventPublisher.publishEvent(new CommentCreatedEvent(postId));
     }
 
     @Transactional
-    public void createChildComment(Long parentCommentId, String content, Long memberId) {
+    public void createChildComment(String parentCommentId, String content, String memberId) {
         Member author = memberFinder.getMemberOrThrow(memberId);
         Comment parent = commentFinder.getCommentOrThrow(parentCommentId);
 
         Comment newComment = commentDomainService.createChildComment(parent, author, content);
 
         commentRepository.save(newComment);
+        eventPublisher.publishEvent(new CommentCreatedEvent(parent.getPost().getId()));
     }
 
     @Transactional
-    public void deleteComment(Long commentId) {
+    public void deleteComment(String commentId) {
         Comment comment = commentFinder.getCommentOrThrow(commentId);
 
+        boolean wasAlreadyDeleted = comment.isDeleted();
         commentDomainService.deleteComment(comment);
+
+        if (!wasAlreadyDeleted) {
+            eventPublisher.publishEvent(new CommentDeletedEvent(comment.getPost().getId()));
+        }
     }
 
 }

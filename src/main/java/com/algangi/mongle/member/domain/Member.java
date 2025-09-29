@@ -22,7 +22,7 @@ public class Member extends TimeBaseEntity {
 
     @Id
     @Tsid
-    Long memberId;
+    String memberId;
 
     @Column(nullable = false, unique = true)
     String email;

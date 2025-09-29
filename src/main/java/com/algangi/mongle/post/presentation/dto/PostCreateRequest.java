@@ -20,7 +20,7 @@ public record PostCreateRequest(
     @Size(max = 2000)
     String content,
     @NotNull(message = "작성자 ID는 필수값입니다.")
-    Long authorId,//인증 도입 시 제거 예정
+    String authorId,//인증 도입 시 제거 예정
     List<String> fileKeyList
 ) {
     
