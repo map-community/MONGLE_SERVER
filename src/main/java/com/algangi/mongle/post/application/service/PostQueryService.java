@@ -15,7 +15,6 @@ import com.algangi.mongle.post.presentation.dto.PostListRequest;
 import com.algangi.mongle.post.presentation.dto.PostListResponse;
 import com.algangi.mongle.post.presentation.dto.PostSort;
 import com.algangi.mongle.post.presentation.dto.ViewUrlRequest;
-import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -42,17 +42,17 @@ public class PostQueryService {
         // 1. DB에서 다음 페이지 존재 여부 확인을 위해 요청 사이즈보다 1개 더 조회
         List<Post> fetchedPosts = postQueryRepository.findPostsByCondition(request);
         boolean hasNext = fetchedPosts.size() > request.size();
-        // 2. 실제 페이지에 해당하는 데이터만 잘라냄
+        // 2. 실제 페이지에 해당하는 데이터만 잘라냄 (가장 중요한 리팩토링 포인트)
         List<Post> postsOnPage = hasNext ? fetchedPosts.subList(0, request.size()) : fetchedPosts;
 
         if (postsOnPage.isEmpty()) {
             return PostListResponse.empty();
         }
 
-        // 3. 잘라낸 postsOnPage를 기준으로 후속 작업을 처리하여 불필요한 연산을 방지
+        // 3. 잘라낸 'postsOnPage'를 기준으로 후속 작업을 처리하여 불필요한 연산을 방지
         Map<String, Long> commentCounts = getCommentCounts(postsOnPage);
         Map<Long, Member> authors = getAuthors(postsOnPage);
-        Map<String, String> photoUrls = getFirstPhotoUrls(postsOnPage);
+        Map<String, String> photoUrls = getFirstPhotoUrls(postsOnPage); // postId -> URL 맵
 
         // 4. DTO 조립
         List<PostListResponse.PostSummary> summaries = postsOnPage.stream().map(post -> {
@@ -110,6 +110,8 @@ public class PostQueryService {
     }
 
     private Map<String, String> getFirstPhotoUrls(List<Post> posts) {
+        // 1. postId를 Key로, 첫 번째 이미지의 fileKey를 Value로 갖는 Map을 생성합니다.
+        // 이미지가 없는 게시글의 경우 Value는 null이 됩니다.
         Map<String, String> postIdToPhotoKeyMap = posts.stream()
             .collect(Collectors.toMap(
                 Post::getId,
@@ -118,20 +120,24 @@ public class PostQueryService {
                     .filter(key -> key.startsWith("posts/images/"))
                     .findFirst()
                     .orElse(null)
-            ))
-            .entrySet().stream()
-            .filter(entry -> entry.getValue() != null)
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            ));
 
-        if (postIdToPhotoKeyMap.isEmpty()) {
+        // 2. 이미지가 있는 게시글의 fileKey 목록만 추출하여 중복을 제거합니다.
+        List<String> distinctPhotoKeys = postIdToPhotoKeyMap.values().stream()
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+
+        if (distinctPhotoKeys.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        List<String> distinctPhotoKeys = new ArrayList<>(postIdToPhotoKeyMap.values());
-        distinctPhotoKeys = distinctPhotoKeys.stream().distinct().toList();
+        // 3. 추출된 fileKey 목록으로 Presigned URL을 한 번에 요청합니다.
         Map<String, String> photoKeyToUrlMap = issueFileUrlsToMap(distinctPhotoKeys);
 
+        // 4. 최종적으로 postId를 Key로, Presigned URL을 Value로 갖는 Map을 생성하여 반환합니다.
         return postIdToPhotoKeyMap.entrySet().stream()
+            .filter(entry -> entry.getValue() != null)
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
                 entry -> photoKeyToUrlMap.get(entry.getValue())
@@ -144,6 +150,9 @@ public class PostQueryService {
             return Collections.emptyList();
         }
         List<String> distinctFileKeys = fileKeys.stream().distinct().toList();
+        if (distinctFileKeys.isEmpty()) {
+            return Collections.emptyList();
+        }
         return viewUrlIssueService.issueViewUrls(new ViewUrlRequest(distinctFileKeys)).issuedUrls()
             .stream()
             .map(IssuedUrlInfo::presignedUrl)
@@ -155,6 +164,9 @@ public class PostQueryService {
             return Collections.emptyMap();
         }
         List<String> distinctFileKeys = fileKeys.stream().distinct().toList();
+        if (distinctFileKeys.isEmpty()) {
+            return Collections.emptyMap();
+        }
         return viewUrlIssueService.issueViewUrls(new ViewUrlRequest(distinctFileKeys)).issuedUrls()
             .stream()
             .collect(
@@ -183,4 +195,3 @@ public class PostQueryService {
         }
     }
 }
-
