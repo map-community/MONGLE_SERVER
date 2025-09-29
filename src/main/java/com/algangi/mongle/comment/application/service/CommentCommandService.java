@@ -1,5 +1,6 @@
 package com.algangi.mongle.comment.application.service;
 
+import com.algangi.mongle.stats.application.service.ContentStatsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ public class CommentCommandService {
     private final CommentFinder commentFinder;
     private final CommentDomainService commentDomainService;
     private final CommentRepository commentRepository;
+    private final ContentStatsService contentStatsService;
 
     @Transactional
     public void createParentComment(String postId, String content, String memberId) {
@@ -32,6 +34,7 @@ public class CommentCommandService {
         Comment newComment = commentDomainService.createParentComment(post, author, content);
 
         commentRepository.save(newComment);
+        contentStatsService.incrementPostCommentCount(postId);
     }
 
     @Transactional
@@ -42,6 +45,7 @@ public class CommentCommandService {
         Comment newComment = commentDomainService.createChildComment(parent, author, content);
 
         commentRepository.save(newComment);
+        contentStatsService.incrementPostCommentCount(parent.getPost().getId());
     }
 
     @Transactional
@@ -49,6 +53,7 @@ public class CommentCommandService {
         Comment comment = commentFinder.getCommentOrThrow(commentId);
 
         commentDomainService.deleteComment(comment);
+        contentStatsService.decrementPostCommentCount(comment.getPost().getId());
     }
 
 }
