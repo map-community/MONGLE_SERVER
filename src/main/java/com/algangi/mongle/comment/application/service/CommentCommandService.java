@@ -25,7 +25,7 @@ public class CommentCommandService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public void createParentComment(String postId, String content, Long memberId) {
+    public void createParentComment(String postId, String content, String memberId) {
         Member author = memberFinder.getMemberOrThrow(memberId);
         Post post = postFinder.getPostOrThrow(postId);
 
@@ -35,7 +35,7 @@ public class CommentCommandService {
     }
 
     @Transactional
-    public void createChildComment(Long parentCommentId, String content, Long memberId) {
+    public void createChildComment(String parentCommentId, String content, String memberId) {
         Member author = memberFinder.getMemberOrThrow(memberId);
         Comment parent = commentFinder.getCommentOrThrow(parentCommentId);
 
@@ -45,7 +45,7 @@ public class CommentCommandService {
     }
 
     @Transactional
-    public void deleteComment(Long commentId) {
+    public void deleteComment(String commentId) {
         Comment comment = commentFinder.getCommentOrThrow(commentId);
 
         commentDomainService.deleteComment(comment);

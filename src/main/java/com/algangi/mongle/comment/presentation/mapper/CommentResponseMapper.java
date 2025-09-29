@@ -19,12 +19,12 @@ public final class CommentResponseMapper {
     private static final String MASKED_NICKNAME = "(알 수 없음)";
     private static final String DEFAULT_PROFILE_IMAGE_URL = "default_profile_image_url";
 
-    public CommentInfoResponse toCommentInfoResponse(Comment comment, Long currentMemberId, boolean hasReplies) {
+    public CommentInfoResponse toCommentInfoResponse(Comment comment, String currentMemberId, boolean hasReplies) {
         boolean deleted = comment.isDeleted();
         Member author = comment.getMember();
 
         return new CommentInfoResponse(
-                comment.getId().toString(),
+                comment.getId(),
                 mapContent(comment, deleted),
                 mapAuthor(author, deleted),
                 mapLikeCount(comment, deleted),
@@ -36,12 +36,12 @@ public final class CommentResponseMapper {
         );
     }
 
-    public ReplyInfoResponse toReplyInfoResponse(Comment reply, Long currentMemberId) {
+    public ReplyInfoResponse toReplyInfoResponse(Comment reply, String currentMemberId) {
         boolean deleted = reply.isDeleted();
         Member author = reply.getMember();
 
         return new ReplyInfoResponse(
-                reply.getId().toString(),
+                reply.getId(),
                 mapContent(reply, deleted),
                 mapAuthor(author, deleted),
                 mapLikeCount(reply, deleted),
@@ -62,13 +62,13 @@ public final class CommentResponseMapper {
         }
 
         return new AuthorInfoResponse(
-                author.getMemberId().toString(),
+                author.getMemberId(),
                 author.getNickname(),
                 author.getProfileImage()
         );
     }
 
-    private boolean mapIsAuthor(Member author, Long currentMemberId, boolean deleted) {
+    private boolean mapIsAuthor(Member author, String currentMemberId, boolean deleted) {
         return !deleted
                 && author != null
                 && Objects.equals(author.getMemberId(), currentMemberId);

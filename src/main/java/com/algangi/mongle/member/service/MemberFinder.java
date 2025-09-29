@@ -20,12 +20,12 @@ public class MemberFinder {
 
     private final MemberJpaRepository memberJpaRepository;
 
-    public Member getMemberOrThrow(Long memberId) {
+    public Member getMemberOrThrow(String  memberId) {
         return memberJpaRepository.findById(memberId)
             .orElseThrow(() -> new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
 
-    public List<Member> findMembersByIds(List<Long> memberIds) {
+    public List<Member> findMembersByIds(List<String> memberIds) {
         if (memberIds == null || memberIds.isEmpty()) {
             return List.of();
         }

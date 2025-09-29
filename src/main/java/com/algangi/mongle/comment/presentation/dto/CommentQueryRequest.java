@@ -6,7 +6,7 @@ public record CommentQueryRequest(
         String cursor,
         Integer size,
         CommentSort sort,
-        Long memberId
+        String memberId
 ) {
 
     private static final int DEFAULT_SIZE = 10;

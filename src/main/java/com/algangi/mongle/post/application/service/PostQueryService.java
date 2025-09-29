@@ -51,7 +51,7 @@ public class PostQueryService {
 
         // 3. 잘라낸 'postsOnPage'를 기준으로 후속 작업을 처리하여 불필요한 연산을 방지
         Map<String, Long> commentCounts = getCommentCounts(postsOnPage);
-        Map<Long, Member> authors = getAuthors(postsOnPage);
+        Map<String, Member> authors = getAuthors(postsOnPage);
         Map<String, String> photoUrls = getFirstPhotoUrls(postsOnPage); // postId -> URL 맵
 
         // 4. DTO 조립
@@ -100,8 +100,8 @@ public class PostQueryService {
         return commentQueryRepository.countCommentsByPostIds(postIds);
     }
 
-    private Map<Long, Member> getAuthors(List<Post> posts) {
-        List<Long> authorIds = posts.stream().map(Post::getAuthorId).distinct().toList();
+    private Map<String, Member> getAuthors(List<Post> posts) {
+        List<String> authorIds = posts.stream().map(Post::getAuthorId).distinct().toList();
         if (authorIds.isEmpty()) {
             return Collections.emptyMap();
         }

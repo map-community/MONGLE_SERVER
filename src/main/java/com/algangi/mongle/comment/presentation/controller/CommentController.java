@@ -35,22 +35,22 @@ public class CommentController {
 
     @GetMapping("/posts/{postId}/comments")
     public ResponseEntity<ApiResponse<CursorInfoResponse<CommentInfoResponse>>> getCommentsByPost(
-        @PathVariable(name = "postId") String postId,
-        @ModelAttribute CommentQueryRequest request,
-        @RequestParam Long memberId) {
+            @PathVariable(name = "postId") String postId,
+            @ModelAttribute CommentQueryRequest request
+    ) {
         var condition = commentRequestMapper.toPostCommentSearchCondition(postId, request);
-        var result = commentQueryService.getCommentsByPost(condition, memberId, request.size());
+        var result = commentQueryService.getCommentsByPost(condition, request.memberId(), request.size());
 
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @GetMapping("/comments/{parentCommentId}/replies")
     public ResponseEntity<ApiResponse<CursorInfoResponse<ReplyInfoResponse>>> getRepliesByParent(
-        @PathVariable(name = "parentCommentId") Long parentCommentId,
-        @ModelAttribute CommentQueryRequest request,
-        @RequestParam Long memberId) {
+            @PathVariable(name = "parentCommentId") String parentCommentId,
+            @ModelAttribute CommentQueryRequest request
+    ) {
         var condition = commentRequestMapper.toReplySearchCondition(parentCommentId, request);
-        var result = commentQueryService.getRepliesByParent(condition, memberId, request.size());
+        var result = commentQueryService.getRepliesByParent(condition, request.memberId(), request.size());
 
         return ResponseEntity.ok(ApiResponse.success(result));
     }
@@ -59,23 +59,23 @@ public class CommentController {
     public ResponseEntity<ApiResponse<Void>> createParentComment(
         @PathVariable(name = "postId") String postId,
         @Valid @RequestBody CommentCreateRequest dto,
-        @RequestParam Long memberId) {
+        @RequestParam String memberId)  {
         commentCommandService.createParentComment(postId, dto.content(), memberId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 
     @PostMapping("/comments/{parentCommentId}/replies")
     public ResponseEntity<ApiResponse<Void>> createChildComment(
-        @PathVariable(name = "parentCommentId") Long parentCommentId,
-        @Valid @RequestBody CommentCreateRequest dto,
-        @RequestParam Long memberId) {
+            @PathVariable(name = "parentCommentId") String parentCommentId,
+            @Valid @RequestBody CommentCreateRequest dto,
+            @RequestParam String memberId) {
         commentCommandService.createChildComment(parentCommentId, dto.content(), memberId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(
-        @PathVariable(name = "commentId") Long commentId) {
+            @PathVariable(name = "commentId") String commentId) {
         commentCommandService.deleteComment(commentId);
         return ResponseEntity.ok(ApiResponse.success());
     }

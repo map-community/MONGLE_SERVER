@@ -34,7 +34,7 @@ public class CommentQueryService {
     private static final int MAX_PAGE_SIZE = 50;
 
     public CursorInfoResponse<CommentInfoResponse> getCommentsByPost(
-            CommentSearchCondition condition, Long currentMemberId, int pageSize) {
+            CommentSearchCondition condition, String currentMemberId, int pageSize) {
         // 1. 게시글 존재 확인
         postFinder.getPostOrThrow(condition.postId());
 
@@ -45,7 +45,7 @@ public class CommentQueryService {
         PaginationResult<Comment> pageResult = commentQueryRepository.findCommentsByPost(condition, adjustedSize);
 
         // 4. 각 댓글의 대댓글 존재 여부 Map<댓글ID, Boolean> 형태로 조회
-        Map<Long, Boolean> hasRepliesMap = getHasRepliesMap(pageResult.content());
+        Map<String, Boolean> hasRepliesMap = getHasRepliesMap(pageResult.content());
 
         // 5. 커서 생성
         String nextCursor = createNextCursor(pageResult.content(), pageResult.hasNext(), condition.sort());
@@ -62,7 +62,7 @@ public class CommentQueryService {
     }
 
     public CursorInfoResponse<ReplyInfoResponse> getRepliesByParent(
-            ReplySearchCondition condition, Long currentMemberId, int pageSize) {
+            ReplySearchCondition condition, String currentMemberId, int pageSize) {
         // 1. 부모 댓글 존재 확인
         commentFinder.getCommentOrThrow(condition.parentId());
 
@@ -85,10 +85,10 @@ public class CommentQueryService {
         return CursorInfoResponse.of(responses, nextCursor, pageResult.hasNext());
     }
 
-    private Map<Long, Boolean> getHasRepliesMap(List<Comment> comments) {
+    private Map<String, Boolean> getHasRepliesMap(List<Comment> comments) {
         if (comments.isEmpty()) return Map.of();
 
-        List<Long> parentIds = comments.stream()
+        List<String> parentIds = comments.stream()
                 .map(Comment::getId)
                 .toList();
         return commentQueryRepository.findHasRepliesByParentIds(parentIds);
@@ -108,8 +108,8 @@ public class CommentQueryService {
                 .format(DateTimeUtil.CURSOR_DATE_FORMATTER);
 
         return switch (sort) {
-            case LIKES -> String.format("%d_%s_%d", lastItem.getLikeCount(), formattedDate, lastItem.getId());
-            case LATEST -> String.format("%s_%d", formattedDate, lastItem.getId());
+            case LIKES -> String.format("%d_%s_%s", lastItem.getLikeCount(), formattedDate, lastItem.getId());
+            case LATEST -> String.format("%s_%s", formattedDate, lastItem.getId());
         };
     }
 }

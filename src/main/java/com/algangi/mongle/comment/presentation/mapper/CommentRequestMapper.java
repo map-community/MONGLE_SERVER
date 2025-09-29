@@ -14,7 +14,7 @@ public class CommentRequestMapper {
         return new CommentSearchCondition(postId, request.cursor(), request.sort());
     }
 
-    public ReplySearchCondition toReplySearchCondition(Long parentId, CommentQueryRequest request) {
+    public ReplySearchCondition toReplySearchCondition(String parentId, CommentQueryRequest request) {
         return new ReplySearchCondition(parentId, request.cursor(), request.sort());
     }
 

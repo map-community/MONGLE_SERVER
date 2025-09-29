@@ -75,7 +75,7 @@ public class Post extends TimeBaseEntity {
     private List<PostFile> postFiles = new ArrayList<>();
 
     @Column(nullable = false)
-    private Long authorId;
+    private String authorId;
 
     private Long dynamicCloudId;
 
@@ -91,7 +91,7 @@ public class Post extends TimeBaseEntity {
         String s2TokenId,
         String title,
         String content,
-        Long authorId,
+        String authorId,
         Long staticCloudId
     ) {
         return Post.builder()
@@ -111,7 +111,7 @@ public class Post extends TimeBaseEntity {
         String s2TokenId,
         String title,
         String content,
-        Long authorId,
+        String authorId,
         Long dynamicCloudId
     ) {
         return Post.builder()
@@ -131,7 +131,7 @@ public class Post extends TimeBaseEntity {
         String s2TokenId,
         String title,
         String content,
-        Long authorId
+        String authorId
     ) {
         return Post.builder()
             .id(postId)

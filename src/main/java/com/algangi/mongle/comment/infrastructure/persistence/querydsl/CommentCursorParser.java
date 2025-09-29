@@ -27,7 +27,7 @@ public class CommentCursorParser {
             throw new IllegalArgumentException("잘못된 커서 형식: " + String.join("_", parts));
 
         var created = ParsingUtil.parseDate(parts[0]);
-        var id = ParsingUtil.parseLong(parts[1]);
+        String id = parts[1];
 
         return comment.createdDate.lt(created)
                 .or(
@@ -41,7 +41,7 @@ public class CommentCursorParser {
 
         var like = ParsingUtil.parseLong(parts[0]);
         var created = ParsingUtil.parseDate(parts[1]);
-        var id = ParsingUtil.parseLong(parts[2]);
+        String id = parts[2];
 
         return comment.likeCount.lt(like)
                 .or(
