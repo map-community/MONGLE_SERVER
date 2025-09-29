@@ -11,11 +11,11 @@ spring:
     properties:
       hibernate:
         format_sql: true
-    defer-datasource-initialization: true
     open-in-view: false
   sql:
     init:
       mode: always
+      schema-locations: classpath:sql/schema.sql
   data:
     redis:
       host: ${REDIS_HOST:redis}
