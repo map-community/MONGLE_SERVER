@@ -116,7 +116,7 @@ public class PostQueryDslRepository implements PostQueryRepository {
             if (parts.length != 3) {
                 return null;
             }
-            Double score = Double.parseDouble(parts[0]);
+            Double score = ParsingUtil.parse(parts[0], Double::parseDouble, "잘못된 커서 형식");
             LocalDateTime createdAt = ParsingUtil.parseDate(parts[1]);
             String id = parts[2];
 
