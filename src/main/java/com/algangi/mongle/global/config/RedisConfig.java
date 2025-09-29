@@ -39,4 +39,13 @@ public class RedisConfig {
         redisScript.setResultType(List.class);
         return redisScript;
     }
+
+    @Bean
+    public RedisScript<Long> decrementScript() {
+        ClassPathResource scriptResource = new ClassPathResource("redis/decrement.lua");
+        DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
+        redisScript.setScriptSource(new ResourceScriptSource(scriptResource));
+        redisScript.setResultType(Long.class);
+        return redisScript;
+    }
 }
