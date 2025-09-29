@@ -1,19 +1,17 @@
 package com.algangi.mongle.dynamicCloud.domain.service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-
-import org.springframework.stereotype.Service;
-
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.global.domain.service.CellService;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -30,8 +28,9 @@ public class DynamicCloudFormationService {
 
         // 2. 인접 동적 구름 조회
         Set<String> adjacentS2TokenIds = cellService.getAdjacentCells(s2TokenId);
+        // Set을 List로 변환하여 메서드 호출
         List<DynamicCloud> adjacentClouds = dynamicCloudRepository.findActiveCloudsInCells(
-            adjacentS2TokenIds);
+            new ArrayList<>(adjacentS2TokenIds));
 
         DynamicCloud finalCloud = newDynamicCloud;
         if (!adjacentClouds.isEmpty()) {
@@ -81,3 +80,4 @@ public class DynamicCloudFormationService {
         return oldestCloud;
     }
 }
+

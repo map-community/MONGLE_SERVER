@@ -1,14 +1,13 @@
 package com.algangi.mongle.global.infrastructure;
 
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.algangi.mongle.global.domain.service.CellService;
+import com.google.common.geometry.*;
 import org.springframework.stereotype.Service;
 
-import com.algangi.mongle.global.domain.service.CellService;
-import com.google.common.geometry.S2CellId;
-import com.google.common.geometry.S2LatLng;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class S2CellService implements CellService {
@@ -34,4 +33,23 @@ public class S2CellService implements CellService {
             .map(S2CellId::toToken)
             .collect(Collectors.toSet());
     }
+
+    public List<String> getCellsForRect(double swLat, double swLng, double neLat, double neLng) {
+        S2LatLngRect rect = S2LatLngRect.fromPointPair(
+            S2LatLng.fromDegrees(swLat, swLng),
+            S2LatLng.fromDegrees(neLat, neLng)
+        );
+
+        S2RegionCoverer coverer = new S2RegionCoverer();
+        coverer.setMinLevel(S2_CELL_LEVEL);
+        coverer.setMaxLevel(S2_CELL_LEVEL);
+
+        ArrayList<S2CellId> covering = new ArrayList<>();
+        coverer.getCovering(rect, covering);
+
+        return covering.stream()
+            .map(S2CellId::toToken)
+            .collect(Collectors.toList());
+    }
 }
+
