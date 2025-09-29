@@ -5,21 +5,23 @@ import java.util.Optional;
 public record PostListRequest(
     String placeId,
     String cloudId,
-    PostSort sortBy,
     String cursor,
-    Integer size
+    Integer size,
+    PostSort sortBy
 ) {
 
     private static final int DEFAULT_SIZE = 10;
     private static final int MAX_SIZE = 50;
 
     public PostSort sortBy() {
-        return Optional.ofNullable(sortBy).orElse(PostSort.createdAt);
+        return Optional.ofNullable(sortBy).orElse(PostSort.ranking_score);
     }
 
     public Integer size() {
-        return Optional.ofNullable(size)
-            .map(s -> Math.min(s, MAX_SIZE))
-            .orElse(DEFAULT_SIZE);
+        if (size == null || size <= 0) {
+            return DEFAULT_SIZE;
+        }
+        return Math.min(size, MAX_SIZE);
     }
 }
+
