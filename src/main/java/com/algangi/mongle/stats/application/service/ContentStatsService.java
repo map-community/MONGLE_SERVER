@@ -50,11 +50,15 @@ public class ContentStatsService {
                 getKey(DISLIKES_COUNT_KEY_PREFIX, targetType, targetId)
         );
 
+        if (reactionType == null) {
+            throw new IllegalArgumentException("reactionType must not be null");
+        }
+
         Object[] args = { memberId, reactionType.name() };
 
         List<Object> result = (List<Object>) redisTemplate.execute(reactionScript, keys, args);
 
-        if (result.size() < 2) {
+        if (result == null || result.size() < 2) {
             throw new IllegalStateException("Lua 스크립트 실행 결과가 올바르지 않습니다.");
         }
 
