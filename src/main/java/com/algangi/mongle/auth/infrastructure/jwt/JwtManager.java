@@ -11,7 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.algangi.mongle.auth.application.service.TokenManager;
-import com.algangi.mongle.auth.infrastructure.security.CustomUserDetails;
+import com.algangi.mongle.auth.infrastructure.security.authentication.CustomUserDetails;
 import com.algangi.mongle.auth.presentation.dto.TokenInfo;
 import com.algangi.mongle.member.domain.MemberRole;
 

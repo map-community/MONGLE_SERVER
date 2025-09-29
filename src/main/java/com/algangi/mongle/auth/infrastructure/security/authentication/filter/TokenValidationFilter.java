@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.infrastructure.security.filter;
+package com.algangi.mongle.auth.infrastructure.security.authentication.filter;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

@@ -24,8 +24,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.algangi.mongle.auth.infrastructure.security.filter.TokenExceptionFilter;
-import com.algangi.mongle.auth.infrastructure.security.filter.TokenValidationFilter;
+import com.algangi.mongle.auth.infrastructure.security.authentication.filter.TokenExceptionFilter;
+import com.algangi.mongle.auth.infrastructure.security.authentication.filter.TokenValidationFilter;
 import com.algangi.mongle.auth.infrastructure.security.oauth2.CustomOAuth2UserService;
 import com.algangi.mongle.auth.infrastructure.security.oauth2.OAuth2AuthenticationSuccessHandler;
 

@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.infrastructure.security.filter;
+package com.algangi.mongle.auth.infrastructure.security.authentication.filter;
 
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;

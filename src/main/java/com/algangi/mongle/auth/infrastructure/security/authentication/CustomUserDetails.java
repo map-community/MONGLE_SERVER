@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.infrastructure.security;
+package com.algangi.mongle.auth.infrastructure.security.authentication;
 
 import java.util.Collection;
 import java.util.Collections;
