@@ -17,7 +17,7 @@ spring:
       mode: always
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
+      host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
   cloud:
     aws:
