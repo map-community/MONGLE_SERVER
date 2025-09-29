@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
 
 @Entity
 @Table(name = "social_account", uniqueConstraints = {
@@ -18,6 +19,7 @@ import jakarta.persistence.UniqueConstraint;
         columnNames = {"provider", "providerId"}
     )
 })
+@Getter
 public class SocialAccount {
 
     @Id
