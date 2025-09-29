@@ -56,8 +56,12 @@ public class CommentCommandService {
     public void deleteComment(String commentId) {
         Comment comment = commentFinder.getCommentOrThrow(commentId);
 
+        boolean wasAlreadyDeleted = comment.isDeleted();
         commentDomainService.deleteComment(comment);
-        eventPublisher.publishEvent(new CommentDeletedEvent(comment.getPost().getId()));
+
+        if (!wasAlreadyDeleted) {
+            eventPublisher.publishEvent(new CommentDeletedEvent(comment.getPost().getId()));
+        }
     }
 
 }
