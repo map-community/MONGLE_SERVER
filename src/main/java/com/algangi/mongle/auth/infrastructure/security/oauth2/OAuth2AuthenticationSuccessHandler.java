@@ -6,9 +6,7 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
-import com.algangi.mongle.auth.application.service.TokenManager;
-import com.algangi.mongle.auth.domain.model.RefreshToken;
-import com.algangi.mongle.auth.domain.repository.RefreshTokenRepository;
+import com.algangi.mongle.auth.application.service.AuthTokenManager;
 import com.algangi.mongle.auth.presentation.dto.TokenInfo;
 import com.algangi.mongle.global.dto.ApiResponse;
 import com.algangi.mongle.member.domain.MemberRole;
@@ -24,8 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final TokenManager tokenManager;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final AuthTokenManager authTokenManager;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -36,14 +33,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         Long memberId = oAuth2User.getAttribute("memberId");
         MemberRole role = oAuth2User.getAttribute("role");
 
-        TokenInfo tokenInfo = tokenManager.generateTokens(memberId, role);
-
-        RefreshToken refreshToken = RefreshToken.of(
-            memberId,
-            tokenInfo.refreshToken(),
-            tokenInfo.refreshTokenExpirationMillis()
-        );
-        refreshTokenRepository.save(refreshToken);
+        TokenInfo tokenInfo = authTokenManager.generateTokens(memberId, role);
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

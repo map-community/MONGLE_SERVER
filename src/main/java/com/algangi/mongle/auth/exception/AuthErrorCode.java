@@ -23,7 +23,8 @@ public enum AuthErrorCode implements ErrorCode {
     DUPLICATE_NICKNAME(HttpStatus.BAD_REQUEST, "AUTH-008", "이미 사용중인 닉네임입니다."),
     DUPLICATE_SOCIAL_ACCOUNT(HttpStatus.BAD_REQUEST, "AUTH-009", "이미 연동된 상태입니다."),
 
-    INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "AUTH-010", "유효하지 않은 리프레쉬 토큰입니다.");
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-010", "유효하지 않은 토큰입니다."),
+    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-011", "만료된 토큰입니다.");
 
     private final HttpStatus status;
     private final String code;

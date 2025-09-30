@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.algangi.mongle.auth.application.service.TokenManager;
+import com.algangi.mongle.auth.application.service.AccessTokenManager;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,7 +21,7 @@ public class TokenValidationFilter extends OncePerRequestFilter {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
-    private final TokenManager tokenManager;
+    private final AccessTokenManager accessTokenManager;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -30,8 +30,9 @@ public class TokenValidationFilter extends OncePerRequestFilter {
 
         String token = resolveToken(request);
 
-        if (StringUtils.hasText(token) && tokenManager.validateToken(token)) {
-            Authentication authentication = tokenManager.getAuthentication(token);
+        if (StringUtils.hasText(token)) {
+            accessTokenManager.validateToken(token);
+            Authentication authentication = accessTokenManager.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 

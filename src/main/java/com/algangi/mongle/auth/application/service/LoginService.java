@@ -4,8 +4,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.algangi.mongle.auth.domain.model.RefreshToken;
-import com.algangi.mongle.auth.domain.repository.RefreshTokenRepository;
 import com.algangi.mongle.auth.exception.AuthErrorCode;
 import com.algangi.mongle.auth.presentation.dto.LoginRequest;
 import com.algangi.mongle.auth.presentation.dto.TokenInfo;
@@ -21,8 +19,7 @@ public class LoginService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final TokenManager tokenManager;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final AuthTokenManager authTokenManager;
 
     @Transactional
     public TokenInfo login(LoginRequest request) {
@@ -33,16 +30,7 @@ public class LoginService {
             throw new ApplicationException(AuthErrorCode.UNAUTHORIZED);
         }
 
-        TokenInfo tokenInfo = tokenManager.generateTokens(member.getMemberId(),
+        return authTokenManager.generateTokens(member.getMemberId(),
             member.getMemberRole());
-
-        RefreshToken refreshToken = RefreshToken.of(
-            member.getMemberId(),
-            tokenInfo.refreshToken(),
-            tokenInfo.refreshTokenExpirationMillis()
-        );
-        refreshTokenRepository.save(refreshToken);
-
-        return tokenInfo;
     }
 }

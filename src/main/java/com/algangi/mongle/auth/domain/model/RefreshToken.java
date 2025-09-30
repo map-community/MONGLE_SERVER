@@ -9,11 +9,13 @@ import org.springframework.data.redis.core.index.Indexed;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @RedisHash(value = "refresh_token:user")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
 public class RefreshToken {
 
     @Id
