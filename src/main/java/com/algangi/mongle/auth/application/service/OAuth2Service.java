@@ -1,13 +1,18 @@
 package com.algangi.mongle.auth.application.service;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.algangi.mongle.auth.domain.oauth2.OAuth2Provider;
+import com.algangi.mongle.auth.domain.oauth2.OAuth2UserInfo;
 import com.algangi.mongle.auth.exception.AuthErrorCode;
-import com.algangi.mongle.auth.infrastructure.kakao.KakaoApiClient;
-import com.algangi.mongle.auth.infrastructure.kakao.KakaoUserInfoResponse;
+import com.algangi.mongle.auth.presentation.dto.SocialLoginRequest;
+import com.algangi.mongle.auth.presentation.dto.TokenInfo;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.domain.SocialAccount;
@@ -16,24 +21,51 @@ import com.algangi.mongle.member.exception.MemberErrorCode;
 import com.algangi.mongle.member.repository.MemberRepository;
 import com.algangi.mongle.member.repository.SocialAccountRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class OAuth2Service {
 
-    private final KakaoApiClient kakaoApiClient;
+    private final Map<OAuth2Provider, OAuth2Client> clients;
     private final MemberRepository memberRepository;
     private final SocialAccountRepository socialAccountRepository;
+    private final AuthTokenManager authTokenManager;
+
+    public OAuth2Service(List<OAuth2Client> clientList, MemberRepository memberRepository,
+        SocialAccountRepository socialAccountRepository, AuthTokenManager authTokenManager) {
+        this.clients = clientList.stream()
+            .collect(Collectors.toUnmodifiableMap(OAuth2Client::getProvider, client -> client));
+        this.memberRepository = memberRepository;
+        this.socialAccountRepository = socialAccountRepository;
+        this.authTokenManager = authTokenManager;
+    }
+
+    public TokenInfo socialLogin(String registrationId, SocialLoginRequest dto) {
+        OAuth2Provider provider = OAuth2Provider.from(registrationId);
+        OAuth2Client client = clients.get(provider);
+
+        OAuth2UserInfo userProfile = client.fetchUserInfoWithAuthorizationCode(
+            dto.authorizationCode());
+
+        SocialAccount socialAccount = socialAccountRepository.findBySocialId(
+                SocialId.of(provider, userProfile.providerId()))
+            .orElseThrow(() -> new ApplicationException(AuthErrorCode.NOT_LINKED_ACCOUNT));
+
+        Member member = socialAccount.getMember();
+        return authTokenManager.generateTokens(member.getMemberId(), member.getMemberRole());
+    }
 
     @Transactional
-    public void linkKakaoAccount(Long memberId, String authorizationCode) {
+    public void linkSocialAccount(Long memberId, String registrationId, String authorizationCode) {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-        String accessToken = kakaoApiClient.getAccessToken(authorizationCode);
-        KakaoUserInfoResponse userInfo = kakaoApiClient.getUserInfo(accessToken);
-        SocialId socialId = SocialId.of(OAuth2Provider.KAKAO, userInfo.providerId());
+        OAuth2Provider provider = OAuth2Provider.from(registrationId);
+        OAuth2Client client = clients.get(provider);
+
+        OAuth2UserInfo userInfo = client.fetchUserInfoWithAuthorizationCode(
+            authorizationCode);
+        //현재 providerId를 제외한 email, profile_image, nickname은 사용 안함
+        SocialId socialId = SocialId.of(provider, userInfo.providerId());
 
         socialAccountRepository.findBySocialId(socialId)
             .ifPresent(account -> {

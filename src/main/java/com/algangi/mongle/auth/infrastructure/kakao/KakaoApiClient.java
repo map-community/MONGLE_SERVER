@@ -8,14 +8,20 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
+import com.algangi.mongle.auth.application.service.OAuth2Client;
+import com.algangi.mongle.auth.domain.oauth2.OAuth2Provider;
+import com.algangi.mongle.auth.domain.oauth2.OAuth2UserInfo;
 import com.algangi.mongle.auth.exception.AuthErrorCode;
+import com.algangi.mongle.auth.infrastructure.kakao.dto.KakaoTokenResponse;
+import com.algangi.mongle.auth.infrastructure.kakao.dto.KakaoUserInfoResponse;
 import com.algangi.mongle.global.exception.ApplicationException;
 
 
 @Component
-public class KakaoApiClient {
+public class KakaoApiClient implements OAuth2Client {
 
     private final RestClient restClient;
+    private final KakaoUserInfoMapper kakaoUserInfoMapper;
     @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
     private String clientId;
     @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri}")
@@ -25,7 +31,7 @@ public class KakaoApiClient {
     @Value("${spring.security.oauth2.client.provider.kakao.user-info-uri}")
     private String userInfoUri;
 
-    public KakaoApiClient(RestClient.Builder builder) {
+    public KakaoApiClient(RestClient.Builder builder, KakaoUserInfoMapper kakaoUserInfoMapper) {
         this.restClient = builder
             .defaultStatusHandler(HttpStatusCode::is4xxClientError, (request, response) -> {
                 throw new ApplicationException(AuthErrorCode.KAKAO_CLIENT_ERROR)
@@ -36,9 +42,11 @@ public class KakaoApiClient {
                     .addErrorInfo("statusText", response.getStatusText());
             })
             .build();
+        this.kakaoUserInfoMapper = kakaoUserInfoMapper;
     }
 
-    public String getAccessToken(String authorizationCode) {
+    @Override
+    public String exchangeCodeForAccessToken(String authorizationCode) {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
         body.add("client_id", clientId);
@@ -56,11 +64,19 @@ public class KakaoApiClient {
         return tokenResponse.accessToken();
     }
 
-    public KakaoUserInfoResponse getUserInfo(String accessToken) {
-        return restClient.get()
+    @Override
+    public OAuth2UserInfo fetchUserInfo(String accessToken) {
+        KakaoUserInfoResponse kakaoResponse = restClient.get()
             .uri(userInfoUri)
             .headers(headers -> headers.setBearerAuth(accessToken))
             .retrieve()
             .body(KakaoUserInfoResponse.class);
+
+        return kakaoUserInfoMapper.mapToUserInfo(kakaoResponse);
+    }
+
+    @Override
+    public OAuth2Provider getProvider() {
+        return OAuth2Provider.KAKAO;
     }
 }
