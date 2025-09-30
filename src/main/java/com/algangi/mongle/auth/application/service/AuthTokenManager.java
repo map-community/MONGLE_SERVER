@@ -24,7 +24,7 @@ public class AuthTokenManager {
         this.memberFinder = memberFinder;
     }
 
-    public TokenInfo generateTokens(Long memberId, MemberRole role) {
+    public TokenInfo generateTokens(String memberId, MemberRole role) {
         AccessToken accessToken = accessTokenManager.generate(memberId, role);
         RefreshToken refreshToken = refreshTokenManager.generate(memberId);
 
@@ -34,7 +34,7 @@ public class AuthTokenManager {
     public TokenInfo reissueTokens(String refreshToken) {
         refreshTokenManager.validateToken(refreshToken);
 
-        Long userId = refreshTokenManager.getUserId(refreshToken);
+        String userId = refreshTokenManager.getUserId(refreshToken);
         Member member = memberFinder.getMemberOrThrow(userId);
 
         return generateTokens(member.getMemberId(), member.getMemberRole());

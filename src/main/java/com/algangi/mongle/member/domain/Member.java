@@ -49,6 +49,7 @@ public class Member extends TimeBaseEntity {
     @Column(nullable = false)
     private String password;
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<SocialAccount> socialAccounts = new ArrayList<>();
 
     public static Member createUser(String email, String password, String nickname,

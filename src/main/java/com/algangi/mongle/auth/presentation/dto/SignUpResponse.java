@@ -3,7 +3,7 @@ package com.algangi.mongle.auth.presentation.dto;
 import com.algangi.mongle.member.domain.Member;
 
 public record SignUpResponse(
-    Long memberId,
+    String memberId,
     String email,
     String nickname
 ) {

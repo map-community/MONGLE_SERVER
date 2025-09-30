@@ -12,7 +12,7 @@ public class LogoutService {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
-    public void logout(Long userId) {
+    public void logout(String userId) {
         refreshTokenRepository.deleteById(userId);
     }
 

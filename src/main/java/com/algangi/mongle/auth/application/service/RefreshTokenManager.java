@@ -4,11 +4,11 @@ import com.algangi.mongle.auth.domain.model.RefreshToken;
 
 public interface RefreshTokenManager {
 
-    RefreshToken generate(Long memberId);
+    RefreshToken generate(String memberId);
 
     void validateToken(String token);
 
-    Long getUserId(String token);
+    String getUserId(String token);
 
 
 }

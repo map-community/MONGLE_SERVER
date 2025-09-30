@@ -29,10 +29,10 @@ public class JwtAccessTokenManager implements AccessTokenManager {
     }
 
     @Override
-    public AccessToken generate(Long memberId, MemberRole role) {
+    public AccessToken generate(String memberId, MemberRole role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(CLAIM_KEY_ROLE, role.name());
-        String accessToken = jwtHandler.createToken(memberId.toString(), claims,
+        String accessToken = jwtHandler.createToken(memberId, claims,
             accessTokenExpirationMillis);
         return new AccessToken(accessToken, accessTokenExpirationMillis);
     }
@@ -45,7 +45,7 @@ public class JwtAccessTokenManager implements AccessTokenManager {
     @Override
     public Authentication getAuthentication(String accessToken) {
         Claims claims = jwtHandler.parseClaims(accessToken);
-        Long memberId = Long.parseLong(claims.getSubject());
+        String memberId = claims.getSubject();
         String role = claims.get(CLAIM_KEY_ROLE, String.class);
 
         CustomUserDetails userDetails = new CustomUserDetails(memberId,

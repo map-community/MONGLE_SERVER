@@ -55,7 +55,8 @@ public class OAuth2Service {
     }
 
     @Transactional
-    public void linkSocialAccount(Long memberId, String registrationId, String authorizationCode) {
+    public void linkSocialAccount(String memberId, String registrationId,
+        String authorizationCode) {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND));
 

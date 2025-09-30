@@ -7,7 +7,7 @@ import com.algangi.mongle.member.domain.MemberRole;
 
 public interface AccessTokenManager {
 
-    AccessToken generate(Long memberId, MemberRole role);
+    AccessToken generate(String memberId, MemberRole role);
 
     Authentication getAuthentication(String accessToken);
 

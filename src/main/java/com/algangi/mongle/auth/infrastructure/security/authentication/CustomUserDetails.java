@@ -9,13 +9,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 
 public record CustomUserDetails(
-    Long userId,
+    String userId,
     Collection<? extends GrantedAuthority> authorities
 ) implements UserDetails {
 
-    public static CustomUserDetails of(Long userId,
+    public static CustomUserDetails of(String userId,
         Collection<? extends GrantedAuthority> authorities) {
-        if (userId == null) {
+        if (userId == null || userId.isBlank()) {
             throw new IllegalArgumentException("memberId는 null일 수 없습니다.");
         }
         if (authorities == null) {

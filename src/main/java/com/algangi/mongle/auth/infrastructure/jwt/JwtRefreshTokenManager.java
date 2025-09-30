@@ -28,8 +28,8 @@ public class JwtRefreshTokenManager implements RefreshTokenManager {
     }
 
     @Override
-    public RefreshToken generate(Long memberId) {
-        String token = jwtHandler.createToken(memberId.toString(), Collections.emptyMap(),
+    public RefreshToken generate(String memberId) {
+        String token = jwtHandler.createToken(memberId, Collections.emptyMap(),
             refreshTokenExpirationMillis);
         RefreshToken refreshToken = RefreshToken.of(memberId, token, refreshTokenExpirationMillis);
         return refreshTokenRepository.save(refreshToken);
@@ -44,8 +44,8 @@ public class JwtRefreshTokenManager implements RefreshTokenManager {
     }
 
     @Override
-    public Long getUserId(String token) {
+    public String getUserId(String token) {
         Claims claims = jwtHandler.parseClaims(token);
-        return Long.parseLong(claims.getSubject());
+        return claims.getSubject();
     }
 }

@@ -27,7 +27,7 @@ public class CustomLogoutHandler implements LogoutHandler {
         }
 
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-        Long userId = customUserDetails.userId();
+        String userId = customUserDetails.userId();
 
         logoutService.logout(userId);
     }

@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class RefreshToken {
 
     @Id
-    private Long userId;
+    private String userId;
 
     @Indexed
     private String refreshToken;
@@ -27,7 +27,7 @@ public class RefreshToken {
     @TimeToLive(unit = TimeUnit.MILLISECONDS)
     private Long expirationMillis;
 
-    public static RefreshToken of(Long userId, String refreshToken, Long expirationMillis) {
+    public static RefreshToken of(String userId, String refreshToken, Long expirationMillis) {
         return new RefreshToken(userId, refreshToken, expirationMillis);
     }
 
