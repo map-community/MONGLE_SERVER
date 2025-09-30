@@ -1,14 +1,13 @@
 package com.algangi.mongle.auth.domain.oauth2;
 
-public interface OAuth2UserInfo {
+import java.util.Map;
 
-    String getProvider();
+public record OAuth2UserInfo(
+    String providerId,
+    String email,
+    String nickname,
+    String profileImage,
+    Map<String, Object> attributes
+) {
 
-    String getProviderId();
-
-    String getNickname();
-
-    String getEmail();
-
-    String getProfileImageUrl();
 }
