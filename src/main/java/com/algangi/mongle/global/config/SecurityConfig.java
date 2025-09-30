@@ -26,8 +26,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.algangi.mongle.auth.infrastructure.security.authentication.filter.TokenExceptionFilter;
 import com.algangi.mongle.auth.infrastructure.security.authentication.filter.TokenValidationFilter;
-import com.algangi.mongle.auth.infrastructure.security.oauth2.CustomOAuth2UserService;
-import com.algangi.mongle.auth.infrastructure.security.oauth2.OAuth2AuthenticationSuccessHandler;
 
 import lombok.RequiredArgsConstructor;
 
@@ -43,8 +41,6 @@ public class SecurityConfig {
     private final LogoutHandler logoutHandler;
     private final LogoutSuccessHandler logoutSuccessHandler;
     private final TokenExceptionFilter tokenExceptionFilter;
-    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
-    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -70,12 +66,6 @@ public class SecurityConfig {
                 .logoutUrl("/api/auth/logout")
                 .addLogoutHandler(logoutHandler)
                 .logoutSuccessHandler(logoutSuccessHandler)
-            )
-            .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(userInfo -> userInfo
-                    .userService(customOAuth2UserService)
-                )
-                .successHandler(oAuth2AuthenticationSuccessHandler)
             )
             .build();
     }
