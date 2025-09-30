@@ -10,13 +10,14 @@ import com.algangi.mongle.post.application.helper.PostFinder;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.model.PostFile;
 import com.algangi.mongle.post.domain.repository.PostQueryRepository;
+import com.algangi.mongle.post.event.PostViewedEvent;
 import com.algangi.mongle.post.presentation.dto.PostDetailResponse;
 import com.algangi.mongle.post.presentation.dto.PostListRequest;
 import com.algangi.mongle.post.presentation.dto.PostListResponse;
 import com.algangi.mongle.post.presentation.dto.PostSort;
 import com.algangi.mongle.post.presentation.dto.ViewUrlRequest;
-import com.algangi.mongle.stats.application.service.ContentStatsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +38,7 @@ public class PostQueryService {
     private final CommentQueryRepository commentQueryRepository;
     private final PostQueryRepository postQueryRepository;
     private final ViewUrlIssueService viewUrlIssueService;
-    private final ContentStatsService contentStatsService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public PostListResponse getPostList(PostListRequest request) {
         // 1. DB에서 다음 페이지 존재 여부 확인을 위해 요청 사이즈보다 1개 더 조회
@@ -76,7 +77,7 @@ public class PostQueryService {
         Member author = memberFinder.getMemberOrThrow(post.getAuthorId());
         long commentCount = commentQueryRepository.countByPostId(postId);
 
-        contentStatsService.incrementPostViewCount(postId);
+        eventPublisher.publishEvent(new PostViewedEvent(postId));
 
         List<String> photoKeys = post.getPostFiles().stream()
             .map(PostFile::getFileKey)
