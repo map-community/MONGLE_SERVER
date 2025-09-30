@@ -49,6 +49,14 @@ public class Post extends TimeBaseEntity {
 
     @Column(nullable = false)
     @Builder.Default
+    private long viewCount = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private long commentCount = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
     private long likeCount = 0;
 
     @Column(nullable = false)
