@@ -49,15 +49,15 @@ public class ReactionEventListener {
         // 1. 같은 리액션(취소)
         if (newReactionType == null || oldReactionType == newReactionType) {
             reactionRepository.delete(currentReaction);
-            updateTargetCount(currentReaction.getTargetType(), currentReaction.getTargetId(), oldReactionType, -1);
+            updateTargetCount(currentReaction.getTargetType(), currentReaction.getTargetId(), oldReactionType, -1L);
         }
         // 2. 변경하는 경우
         else {
             currentReaction.changeType(newReactionType);
             // 기존 타입 카운터 -1
-            updateTargetCount(currentReaction.getTargetType(), currentReaction.getTargetId(), oldReactionType, -1);
+            updateTargetCount(currentReaction.getTargetType(), currentReaction.getTargetId(), oldReactionType, -1L);
             // 새 타입 카운터 +1
-            updateTargetCount(currentReaction.getTargetType(), currentReaction.getTargetId(), newReactionType, 1);
+            updateTargetCount(currentReaction.getTargetType(), currentReaction.getTargetId(), newReactionType, 1L);
         }
     }
 
@@ -78,7 +78,7 @@ public class ReactionEventListener {
         updateTargetCount(targetType, targetId, newReactionType, 1);
     }
 
-    private void updateTargetCount(TargetType targetType, String targetId, ReactionType reactionType, int delta) {
+    private void updateTargetCount(TargetType targetType, String targetId, ReactionType reactionType, long delta) {
         if (delta == 0) return;
 
         switch (targetType) {
