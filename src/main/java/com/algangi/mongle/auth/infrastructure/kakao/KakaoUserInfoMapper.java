@@ -14,7 +14,12 @@ public class KakaoUserInfoMapper implements OAuth2UserInfoMapper<KakaoUserInfoRe
     @Override
     public OAuth2UserInfo mapToUserInfo(KakaoUserInfoResponse response) {
         Map<String, Object> kakaoAccount = response.kakaoAccount();
-        Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+        if (kakaoAccount == null) {
+            throw new IllegalStateException("카카오 계정 정보가 비어 있습니다.");
+        }
+        Object profileObj = kakaoAccount.get("profile");
+        Map<String, Object> profile =
+            profileObj instanceof Map<?, ?> casted ? (Map<String, Object>) casted : Map.of();
 
         return new OAuth2UserInfo(
             response.providerId(),
