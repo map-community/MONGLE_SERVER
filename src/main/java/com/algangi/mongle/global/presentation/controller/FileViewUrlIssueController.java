@@ -14,7 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/files/view-urls")
+@RequestMapping("/api/v1/files/view-urls")
 @RequiredArgsConstructor
 public class FileViewUrlIssueController {
 

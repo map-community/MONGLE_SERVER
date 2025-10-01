@@ -14,7 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/post-files/upload-urls")
+@RequestMapping("/api/v1/post-files/upload-urls")
 @RequiredArgsConstructor
 public class PostFileUploadUrlIssueController {
 
