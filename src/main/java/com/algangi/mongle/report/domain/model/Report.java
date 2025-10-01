@@ -42,7 +42,11 @@ public class Report extends CreatedDateBaseEntity {
     private ReportReason reason;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "report_status", nullable = false)
     @Builder.Default
-    private ReportStatus status = ReportStatus.RECEIVED;
+    private ReportStatus reportStatus = ReportStatus.RECEIVED;
+
+    public void updateStatus(ReportStatus newStatus) {
+        this.reportStatus = newStatus;
+    }
 }

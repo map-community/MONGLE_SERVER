@@ -3,6 +3,7 @@ package com.algangi.mongle.report.application.service;
 import com.algangi.mongle.comment.domain.model.Comment;
 import com.algangi.mongle.comment.domain.service.CommentFinder;
 import com.algangi.mongle.global.exception.ApplicationException;
+import com.algangi.mongle.global.exception.ErrorCode;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.domain.MemberStatus;
 import com.algangi.mongle.member.service.MemberFinder;
@@ -14,6 +15,7 @@ import com.algangi.mongle.report.domain.repository.ReportRepository;
 import com.algangi.mongle.report.exception.ReportErrorCode;
 import com.algangi.mongle.report.presentation.dto.ReportCreateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,8 +60,31 @@ public class ReportCommandService {
         applySanctionIfNeeded(targetAuthorId);
     }
 
+    @Transactional
+    public void updateReportStatus(String reportId, ReportStatus newStatus) {
+        Report report = reportRepository.findById(reportId)
+            .orElseThrow(() -> new ApplicationException(new ErrorCode() {
+                @Override
+                public HttpStatus getStatus() {
+                    return HttpStatus.NOT_FOUND;
+                }
+
+                @Override
+                public String getCode() {
+                    return "REPORT-004";
+                }
+
+                @Override
+                public String getMessage() {
+                    return "신고 내역을 찾을 수 없습니다.";
+                }
+            }));
+
+        report.updateStatus(newStatus);
+    }
+
     private void applySanctionIfNeeded(String targetAuthorId) {
-        long reportCount = reportRepository.countByTargetAuthorIdAndStatus(targetAuthorId,
+        long reportCount = reportRepository.countByTargetAuthorIdAndReportStatus(targetAuthorId,
             ReportStatus.RECEIVED);
 
         if (reportCount >= SANCTION_THRESHOLD) {
