@@ -1,5 +1,6 @@
 package com.algangi.mongle.post.application.service;
 
+import com.algangi.mongle.block.application.service.BlockQueryService;
 import com.algangi.mongle.global.application.service.ViewUrlIssueService;
 import com.algangi.mongle.global.util.DateTimeUtil;
 import com.algangi.mongle.member.domain.Member;
@@ -43,9 +44,14 @@ public class PostQueryService {
     private final ApplicationEventPublisher eventPublisher;
     private final ContentStatsService contentStatsService;
     private final StatsQueryService statsQueryService;
+    private final BlockQueryService blockQueryService;
 
     public PostListResponse getPostList(PostListRequest request) {
-        List<Post> fetchedPosts = postQueryRepository.findPostsByCondition(request);
+        List<String> blockedAuthorIds = blockQueryService.getBlockedUserIds(request.memberId());
+
+        List<Post> fetchedPosts = postQueryRepository.findPostsByCondition(request,
+            blockedAuthorIds);
+
         boolean hasNext = fetchedPosts.size() > request.size();
         List<Post> postsOnPage = hasNext ? fetchedPosts.subList(0, request.size()) : fetchedPosts;
 
@@ -55,7 +61,6 @@ public class PostQueryService {
 
         List<String> postIds = postsOnPage.stream().map(Post::getId).toList();
         Map<String, PostStats> statsMap = statsQueryService.getPostStatsMap(postIds);
-
         Map<String, Member> authors = getAuthors(postsOnPage);
         Map<String, String> photoUrls = getFirstPhotoUrls(postsOnPage);
 
@@ -73,7 +78,6 @@ public class PostQueryService {
 
         return new PostListResponse(summaries, nextCursor, hasNext);
     }
-
 
     public PostDetailResponse getPostDetail(String postId) {
         Post post = postFinder.getPostOrThrow(postId);
@@ -105,7 +109,6 @@ public class PostQueryService {
         List<String> photoUrls = issueFileUrls(photoKeys);
         List<String> videoUrls = issueFileUrls(videoKeys);
 
-        // from 메서드에 author 대신 authorDto를 전달
         return PostDetailResponse.from(post, authorDto, stats, photoUrls, videoUrls);
     }
 

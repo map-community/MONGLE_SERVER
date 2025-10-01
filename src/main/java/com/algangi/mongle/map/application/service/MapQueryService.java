@@ -1,5 +1,6 @@
 package com.algangi.mongle.map.application.service;
 
+import com.algangi.mongle.block.application.service.BlockQueryService;
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.global.infrastructure.S2CellService;
@@ -9,7 +10,7 @@ import com.algangi.mongle.map.presentation.dto.MapObjectsResponse;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.service.MemberFinder;
 import com.algangi.mongle.post.domain.model.Post;
-import com.algangi.mongle.post.domain.model.PostStatus; // PostStatus import 추가
+import com.algangi.mongle.post.domain.model.PostStatus;
 import com.algangi.mongle.post.domain.repository.PostQueryRepository;
 import com.algangi.mongle.staticCloud.domain.model.StaticCloud;
 import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
@@ -34,6 +35,7 @@ public class MapQueryService {
     private final DynamicCloudRepository dynamicCloudRepository;
     private final MemberFinder memberFinder;
     private final S2PolygonConverter s2PolygonConverter;
+    private final BlockQueryService blockQueryService;
 
     public MapObjectsResponse getMapObjects(MapObjectsRequest request) {
         List<String> s2cellTokens = s2CellService.getCellsForRect(
@@ -44,7 +46,10 @@ public class MapQueryService {
             return MapObjectsResponse.empty();
         }
 
-        List<Post> grains = postQueryRepository.findGrainsInCells(s2cellTokens);
+        List<String> blockedAuthorIds = blockQueryService.getBlockedUserIds(request.memberId());
+
+        List<Post> grains = postQueryRepository.findGrainsInCells(s2cellTokens, blockedAuthorIds);
+
         List<StaticCloud> staticClouds = staticCloudRepository.findCloudsInCells(s2cellTokens);
         List<DynamicCloud> dynamicClouds = dynamicCloudRepository.findActiveCloudsInCells(
             s2cellTokens);
