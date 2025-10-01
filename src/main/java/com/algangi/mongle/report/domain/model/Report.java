@@ -1,0 +1,48 @@
+package com.algangi.mongle.report.domain.model;
+
+import com.algangi.mongle.global.entity.CreatedDateBaseEntity;
+import com.algangi.mongle.member.domain.Member;
+import io.hypersistence.utils.hibernate.id.Tsid;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "report", uniqueConstraints = {
+    @UniqueConstraint(
+        name = "uk_report_reporter_target",
+        columnNames = {"reporter_id", "targetId", "targetType"}
+    )
+})
+@Getter
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Report extends CreatedDateBaseEntity {
+
+    @Id
+    @Tsid
+    private String id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reporter_id", nullable = false)
+    private Member reporter;
+
+    @Column(nullable = false)
+    private String targetId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ReportedTargetType targetType;
+
+    @Column(nullable = false)
+    private String targetAuthorId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ReportReason reason;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private ReportStatus status = ReportStatus.RECEIVED;
+}
