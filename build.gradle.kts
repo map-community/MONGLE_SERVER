@@ -64,6 +64,7 @@ dependencies {
     implementation("software.amazon.awssdk:cloudfront")
     // redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    testImplementation("it.ozimov:embedded-redis:0.7.3")
     // shedlock
     implementation("net.javacrumbs.shedlock:shedlock-spring:6.10.0")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.10.0")
@@ -73,6 +74,8 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     implementation("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-gson:0.12.6")
+    // h2
+    testImplementation("com.h2database:h2")
 }
 
 tasks.withType<Test> {
