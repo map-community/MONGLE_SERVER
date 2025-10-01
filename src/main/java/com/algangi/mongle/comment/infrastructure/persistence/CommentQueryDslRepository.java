@@ -58,7 +58,6 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
                 .leftJoin(comment.member).fetchJoin()
                 .where(
                         filterFactory.eqParentId(condition.parentId()),
-                        comment.deletedAt.isNull(),
                         filterFactory.cursorCondition(condition.cursor(), condition.sort()),
                         filterFactory.notInBlockedMemberIds(blockedMemberIds)
                 )
