@@ -1,5 +1,7 @@
 package com.algangi.mongle.comment.application.service;
 
+import com.algangi.mongle.block.application.service.BlockQueryService;
+import com.algangi.mongle.comment.application.vo.CommentStats;
 import com.algangi.mongle.comment.domain.model.Comment;
 import com.algangi.mongle.comment.domain.model.CommentSort;
 import com.algangi.mongle.comment.infrastructure.persistence.vo.CommentSearchCondition;
@@ -14,6 +16,7 @@ import com.algangi.mongle.comment.domain.service.CommentFinder;
 import com.algangi.mongle.comment.presentation.mapper.CommentResponseMapper;
 import com.algangi.mongle.global.util.DateTimeUtil;
 import com.algangi.mongle.post.application.helper.PostFinder;
+import com.algangi.mongle.stats.application.service.StatsQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +33,8 @@ public class CommentQueryService {
     private final PostFinder postFinder;
     private final CommentFinder commentFinder;
     private final CommentResponseMapper commentResponseMapper;
+    private final BlockQueryService blockQueryService;
+    private final StatsQueryService statsQueryService;
 
     private static final int MAX_PAGE_SIZE = 50;
 
@@ -41,21 +46,39 @@ public class CommentQueryService {
         // 2. 페이지 사이즈 조정
         int adjustedSize = clampPageSize(pageSize);
 
-        // 3. 댓글 조회
-        PaginationResult<Comment> pageResult = commentQueryRepository.findCommentsByPost(condition, adjustedSize);
+        // 3. 차단 목록 조회
+        List<String> blockedMemberIds = blockQueryService.getBlockedUserIds(currentMemberId);
 
-        // 4. 각 댓글의 대댓글 존재 여부 Map<댓글ID, Boolean> 형태로 조회
+        // 4. 댓글 조회
+        PaginationResult<Comment> pageResult = commentQueryRepository.findCommentsByPost(condition, adjustedSize,blockedMemberIds);
+        List<Comment> comments = pageResult.content();
+
+        if (comments.isEmpty()) {
+            return CursorInfoResponse.empty();
+        }
+
+        // 5. redis에서 리액션 조회
+        List<String> commentIds = comments.stream().map(Comment::getId).toList();
+        Map<String, CommentStats> statsMap = statsQueryService.getCommentStatsMap(commentIds);
+
+        // 6. 각 댓글의 대댓글 존재 여부 Map<댓글ID, Boolean> 형태로 조회
         Map<String, Boolean> hasRepliesMap = getHasRepliesMap(pageResult.content());
 
-        // 5. 커서 생성
+        // 7. 커서 생성
         String nextCursor = createNextCursor(pageResult.content(), pageResult.hasNext(), condition.sort());
 
-        // 6. Dto 변환
-        List<CommentInfoResponse> responses = pageResult.content().stream()
-                .map(comment -> commentResponseMapper.toCommentInfoResponse(
-                        comment,
-                        currentMemberId,
-                        hasRepliesMap.getOrDefault(comment.getId(), false)))
+        // 8. Dto 변환
+        List<CommentInfoResponse> responses = comments.stream()
+                .map(comment -> {
+                    CommentStats stats = statsMap.getOrDefault(comment.getId(), CommentStats.empty());
+                    return commentResponseMapper.toCommentInfoResponse(
+                            comment,
+                            currentMemberId,
+                            hasRepliesMap.getOrDefault(comment.getId(), false),
+                            stats.likes(),
+                            stats.dislikes()
+                    );
+                })
                 .toList();
 
         return CursorInfoResponse.of(responses, nextCursor, pageResult.hasNext());
@@ -69,17 +92,35 @@ public class CommentQueryService {
         // 2. 페이지 사이즈 조정
         int adjustedSize = clampPageSize(pageSize);
 
-        // 3. 대댓글 조회(hasNext 확인을 위해 +1만큼 조회)
-        PaginationResult<Comment> pageResult = commentQueryRepository.findRepliesByParent(condition, adjustedSize);
+        // 3. 차단 목록 조회
+        List<String> blockedMemberIds = blockQueryService.getBlockedUserIds(currentMemberId);
 
-        // 4. 커서 생성
+        // 4. 대댓글 조회(hasNext 확인을 위해 +1만큼 조회)
+        PaginationResult<Comment> pageResult = commentQueryRepository.findRepliesByParent(condition, adjustedSize, blockedMemberIds);
+        List<Comment> replies = pageResult.content();
+
+        if (replies.isEmpty()) {
+            return CursorInfoResponse.empty();
+        }
+
+        // 5. redis에서 리액션 조회
+        List<String> replyIds = replies.stream().map(Comment::getId).toList();
+        Map<String, CommentStats> statsMap = statsQueryService.getCommentStatsMap(replyIds);
+
+        // 6. 커서 생성
         String nextCursor = createNextCursor(pageResult.content(), pageResult.hasNext(), condition.sort());
 
-        // 5. Dto 변환
-        List<ReplyInfoResponse> responses = pageResult.content().stream()
-                .map(reply -> commentResponseMapper.toReplyInfoResponse(
-                        reply,
-                        currentMemberId))
+        // 7. Dto 변환
+        List<ReplyInfoResponse> responses = replies.stream()
+                .map(reply -> {
+                    CommentStats stats = statsMap.getOrDefault(reply.getId(), CommentStats.empty());
+                    return commentResponseMapper.toReplyInfoResponse(
+                            reply,
+                            currentMemberId,
+                            stats.likes(),
+                            stats.dislikes()
+                    );
+                })
                 .toList();
 
         return CursorInfoResponse.of(responses, nextCursor, pageResult.hasNext());

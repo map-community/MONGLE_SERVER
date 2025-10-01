@@ -9,6 +9,8 @@ import com.algangi.mongle.comment.domain.model.QComment;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 
+import java.util.List;
+
 @Component
 public class CommentFilterFactory {
 
@@ -37,13 +39,20 @@ public class CommentFilterFactory {
     public BooleanExpression visibleCommentCondition() {
         QComment reply = new QComment("reply");
         return comment.deletedAt.isNull()
-            .or(comment.deletedAt.isNotNull()
-                .and(JPAExpressions.selectOne()
-                    .from(reply)
-                    .where(reply.parentComment.id.eq(comment.id)
-                        .and(reply.deletedAt.isNull()))
-                    .exists()
-                )
-            );
+                .or(comment.deletedAt.isNotNull()
+                        .and(JPAExpressions.selectOne()
+                                .from(reply)
+                                .where(reply.parentComment.id.eq(comment.id)
+                                        .and(reply.deletedAt.isNull()))
+                                .exists()
+                        )
+                );
+    }
+
+    public BooleanExpression notInBlockedMemberIds(List<String> blockedMemberIds) {
+        if (blockedMemberIds == null || blockedMemberIds.isEmpty()) {
+            return null;
+        }
+        return comment.member.memberId.notIn(blockedMemberIds);
     }
 }
