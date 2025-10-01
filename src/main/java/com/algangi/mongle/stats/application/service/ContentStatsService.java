@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,8 +62,8 @@ public class ContentStatsService {
         validateReactionType(reactionType);
 
         // 2. lua 스크립트에서 쓸 키 & 인자 배열 생성
-        List<String> keys = buildReactionKeys(targetType, targetId, postId); // postId 인자 추가
-        Object[] args = buildReactionArgs(memberId, reactionType, targetType, targetId); // targetType, targetId 인자 추가
+        List<String> keys = buildReactionKeys(targetType, targetId, postId);
+        Object[] args = buildReactionArgs(memberId, reactionType, targetType, targetId);
 
         // 3. lua 스크립트 실행
         List<Object> result = executeReactionScript(keys, args);
@@ -84,10 +85,9 @@ public class ContentStatsService {
         keys.add(getKey(DISLIKES_COUNT_KEY_PREFIX, targetType, targetId));
 
         if (targetType == TargetType.COMMENT) {
-            if (postId == null) {
-                throw new IllegalArgumentException("postId must be provided for COMMENT reactions.");
+            if (!StringUtils.hasText(postId)) {
+                throw new IllegalArgumentException("COMMENT 리액션의 경우 postId를 반드시 제공해야 합니다.");
             }
-
             keys.add(COMMENT_RANKING_KEY_FORMAT + postId);
         }
         return keys;

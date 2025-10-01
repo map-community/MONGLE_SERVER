@@ -16,7 +16,6 @@ public class StatsQueryService {
     private static final String LIKE_KEY_FORMAT = "likes::comment::%s";
     private static final String DISLIKE_KEY_FORMAT = "dislikes::comment::%s";
 
-
     public Map<String, CommentStats> getCommentStatsMap(List<String> commentIds) {
         if (commentIds == null || commentIds.isEmpty()) {
             return Collections.emptyMap();
