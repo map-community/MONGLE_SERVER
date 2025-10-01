@@ -33,10 +33,10 @@ public class JwtHandler {
         Date expiresIn = new Date(now.getTime() + expirationMillis);
 
         return Jwts.builder()
+            .claims(claims)
             .issuer(issuer)
             .issuedAt(now)
             .subject(subject)
-            .claims(claims) // claims를 파라미터로 받음
             .expiration(expiresIn)
             .signWith(key)
             .compact();
