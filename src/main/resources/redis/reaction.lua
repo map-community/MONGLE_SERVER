@@ -68,8 +68,8 @@ if targetType == 'COMMENT' then
 end
 
 -- 최종 좋아요/싫어요 수 조회
-local finalLikes = tonumber(redis.call('GET', likesCountKey) or 0)
-local finalDislikes = tonumber(redis.call('GET', dislikesCountKey) or 0)
+local finalLikes = tonumber(redis.call('GET', likesCountKey)) or 0
+local finalDislikes = tonumber(redis.call('GET', dislikesCountKey)) or 0
 
 -- 최종 카운트를 배열로 반환
 return { finalLikes, finalDislikes }
