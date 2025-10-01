@@ -15,8 +15,8 @@ public record CursorInfoResponse<T>(
         this.hasNext = hasNext;
     }
 
-    public static <T> CursorInfoResponse<T> of(List<T> values, String nextCursor, boolean hasNext) {
-        return new CursorInfoResponse<>(values, nextCursor, hasNext);
+    public static <T> CursorInfoResponse<T> of(List<T> comments, String nextCursor, boolean hasNext) {
+        return new CursorInfoResponse<>(comments, nextCursor, hasNext);
     }
 
     public static <T> CursorInfoResponse<T> empty() {
