@@ -1,0 +1,28 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            redirect-uri: ${KAKAO_REDIRECT_URI:{baseUrl}/login/oauth2/code/{registrationId}}
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            client-name: Kakao
+            scope:
+              - profile_nickname
+              - account_email
+              - profile_image
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+  access-token-expiration-millis: ${ACCESS_TOKEN_EXPIRATION_MILLIS:3600000}
+  refresh-token-expiration-millis: ${REFRESH_TOKEN_EXPIRATION_MILLIS:604800000}
+  issuer: ${ISSUER:http://mongle.com}
