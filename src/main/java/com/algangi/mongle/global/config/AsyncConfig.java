@@ -21,4 +21,27 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
+    @Bean(name = "persistenceTaskExecutor")
+    public Executor persistenceTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        executor.setQueueCapacity(50);
+        executor.setThreadNamePrefix("PersistenceAsync-");
+        executor.initialize();
+        return executor;
+    }
+
+    @Bean(name = "statsUpdateTaskExecutor")
+    public Executor statsUpdateTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("StatsAsync-");
+        executor.initialize();
+        return executor;
+    }
+
 }
