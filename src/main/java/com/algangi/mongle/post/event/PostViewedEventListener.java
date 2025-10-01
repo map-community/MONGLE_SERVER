@@ -1,7 +1,6 @@
 package com.algangi.mongle.post.event;
 
 import com.algangi.mongle.post.domain.repository.PostRepository;
-import com.algangi.mongle.stats.application.service.ContentStatsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
