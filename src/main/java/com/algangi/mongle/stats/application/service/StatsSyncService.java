@@ -48,7 +48,7 @@ public class StatsSyncService {
             if (!StringUtils.hasText(countStr)) continue;
 
             String postId = extractIdFromKey(key);
-            addToBatch(batchArgs, postId, countStr);
+            addToBatch(batchArgs, postId, countStr, key);
         }
     }
 
@@ -57,7 +57,7 @@ public class StatsSyncService {
         return parts[parts.length - 1];
     }
 
-    private void addToBatch(List<Object[]> batchArgs, String postId, String countStr) {
+    private void addToBatch(List<Object[]> batchArgs, String postId, String countStr, String key) {
         try {
             long count = Long.parseLong(countStr);
             batchArgs.add(new Object[]{count, postId});
@@ -67,7 +67,7 @@ public class StatsSyncService {
                 batchArgs.clear();
             }
         } catch (NumberFormatException e) {
-            log.warn("Redis 키 '{}'의 값이 숫자 형식이 아닙니다. 값: {}", postId, countStr);
+            log.warn("Redis 키 '{}'의 값이 숫자 형식이 아닙니다. 값: {}", key, countStr);
         }
     }
 
