@@ -38,7 +38,7 @@ public class CommentCommandService {
         Comment newComment = commentDomainService.createParentComment(post, author, content);
 
         commentRepository.save(newComment);
-        eventPublisher.publishEvent(new CommentCreatedEvent(postId));
+        eventPublisher.publishEvent(new CommentCreatedEvent(postId, newComment.getId()));
     }
 
     @Transactional
@@ -49,7 +49,7 @@ public class CommentCommandService {
         Comment newComment = commentDomainService.createChildComment(parent, author, content);
 
         commentRepository.save(newComment);
-        eventPublisher.publishEvent(new CommentCreatedEvent(parent.getPost().getId()));
+        eventPublisher.publishEvent(new CommentCreatedEvent(parent.getPost().getId(), newComment.getId()));
     }
 
     @Transactional
@@ -60,7 +60,7 @@ public class CommentCommandService {
         commentDomainService.deleteComment(comment);
 
         if (!wasAlreadyDeleted) {
-            eventPublisher.publishEvent(new CommentDeletedEvent(comment.getPost().getId()));
+            eventPublisher.publishEvent(new CommentDeletedEvent(comment.getPost().getId(), comment.getId()));
         }
     }
 

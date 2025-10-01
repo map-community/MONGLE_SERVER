@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
@@ -12,6 +13,7 @@ import com.algangi.mongle.post.domain.model.Post;
 
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface PostRepository extends JpaRepository<Post, String> {
 
@@ -24,5 +26,14 @@ public interface PostRepository extends JpaRepository<Post, String> {
     List<Post> findByS2TokenIdWithLock(@Param(value = "s2TokenId") String s2TokenId);
 
     List<Post> findByDynamicCloudIdIn(List<Long> dynamicCloudIds);
+
+    @Modifying(flushAutomatically = true)
+    @Transactional
+    @Query(
+            "UPDATE Post p " +
+                    "SET p.viewCount = p.viewCount + 1 " +
+                    "WHERE p.id = :postId"
+    )
+    void incrementViewCount(@Param("postId") String postId);
 
 }

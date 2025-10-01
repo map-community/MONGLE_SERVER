@@ -20,7 +20,7 @@ public record CommentQueryRequest(
     }
 
     private String resolveCursor(String cursor) {
-        return (cursor == null) ? "" : cursor;
+        return cursor;
     }
 
     private int resolveSize(Integer size) {

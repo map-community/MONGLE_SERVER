@@ -27,13 +27,14 @@ public class PostQueryDslRepository implements PostQueryRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<Post> findPostsByCondition(PostListRequest request) {
+    public List<Post> findPostsByCondition(PostListRequest request, List<String> blockedAuthorIds) {
         JPAQuery<Post> query = queryFactory
             .selectFrom(post)
             .where(
                 eqPlaceId(request.placeId()),
                 eqCloudId(request.cloudId()),
-                cursorCondition(request.cursor(), request.sortBy())
+                cursorCondition(request.cursor(), request.sortBy()),
+                notInBlockedAuthorIds(blockedAuthorIds)
             )
             .limit(request.size() + 1);
 
@@ -42,13 +43,14 @@ public class PostQueryDslRepository implements PostQueryRepository {
     }
 
     @Override
-    public List<Post> findGrainsInCells(List<String> s2cellTokens) {
+    public List<Post> findGrainsInCells(List<String> s2cellTokens, List<String> blockedAuthorIds) {
         return queryFactory
             .selectFrom(post)
             .where(
                 post.s2TokenId.in(s2cellTokens),
                 post.staticCloudId.isNull(),
-                post.dynamicCloudId.isNull()
+                post.dynamicCloudId.isNull(),
+                notInBlockedAuthorIds(blockedAuthorIds)
             )
             .fetch();
     }
@@ -71,6 +73,13 @@ public class PostQueryDslRepository implements PostQueryRepository {
             .transform(GroupBy.groupBy(post.dynamicCloudId).as(post.count()));
     }
 
+    private BooleanExpression notInBlockedAuthorIds(List<String> blockedAuthorIds) {
+        if (blockedAuthorIds == null || blockedAuthorIds.isEmpty()) {
+            return null;
+        }
+        return post.authorId.notIn(blockedAuthorIds);
+    }
+
     private void applySorting(JPAQuery<Post> query, @Nullable PostSort sortBy) {
         PostSort sort = (sortBy == null) ? PostSort.ranking_score : sortBy;
 
@@ -80,7 +89,6 @@ public class PostQueryDslRepository implements PostQueryRepository {
             case createdAt -> query.orderBy(post.createdDate.desc(), post.id.desc());
         }
     }
-
 
     private BooleanExpression eqPlaceId(String placeId) {
         if (!StringUtils.hasText(placeId)) {
@@ -142,4 +150,3 @@ public class PostQueryDslRepository implements PostQueryRepository {
         }
     }
 }
-

@@ -89,4 +89,7 @@ public class Member extends TimeBaseEntity {
         socialAccount.setMember(this);
     }
 
+    public void ban() {
+        this.status = MemberStatus.BANNED;
+    }
 }

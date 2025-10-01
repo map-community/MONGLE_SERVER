@@ -7,7 +7,8 @@ public record PostListRequest(
     String cloudId,
     String cursor,
     Integer size,
-    PostSort sortBy
+    PostSort sortBy,
+    String memberId
 ) {
 
     private static final int DEFAULT_SIZE = 10;
@@ -24,4 +25,3 @@ public record PostListRequest(
         return Math.min(size, MAX_SIZE);
     }
 }
-

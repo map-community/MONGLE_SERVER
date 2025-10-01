@@ -10,9 +10,9 @@ import java.util.Map;
 
 public interface CommentQueryRepository {
 
-    PaginationResult<Comment> findCommentsByPost(CommentSearchCondition condition, int size);
+    PaginationResult<Comment> findCommentsByPost(CommentSearchCondition condition, int size, List<String> blockedMemberIds);
 
-    PaginationResult<Comment> findRepliesByParent(ReplySearchCondition condition, int size);
+    PaginationResult<Comment> findRepliesByParent(ReplySearchCondition condition, int size, List<String> blockedMemberIds);
 
     Map<String, Boolean> findHasRepliesByParentIds(List<String> parentIds);
 
