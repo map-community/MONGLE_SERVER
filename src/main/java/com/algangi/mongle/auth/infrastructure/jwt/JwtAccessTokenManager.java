@@ -56,8 +56,9 @@ public class JwtAccessTokenManager implements AccessTokenManager {
     }
 
     @Override
-    public Long getUserId(String token) {
+    public String getUserId(String token) {
         Claims claims = jwtHandler.parseClaims(token);
-        return Long.parseLong(claims.getSubject());
+        return claims.getSubject();
     }
+
 }

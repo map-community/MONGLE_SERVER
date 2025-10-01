@@ -13,5 +13,5 @@ public interface AccessTokenManager {
 
     void validateToken(String token);
 
-    Long getUserId(String token);
+    String getUserId(String token);
 }
