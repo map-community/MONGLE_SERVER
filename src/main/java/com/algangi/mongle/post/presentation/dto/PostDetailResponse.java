@@ -2,6 +2,7 @@ package com.algangi.mongle.post.presentation.dto;
 
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.post.domain.model.Post;
+import com.algangi.mongle.stats.application.dto.PostStats;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,7 +16,8 @@ public record PostDetailResponse(
     List<String> photoUrls,
     List<String> videoUrls,
     LocalDateTime createdAt,
-    long viewCount, // TODO: 조회수 기능 구현 필요
+    LocalDateTime updatedAt,
+    long viewCount,
     long likeCount,
     long dislikeCount,
     long commentCount
@@ -32,29 +34,29 @@ public record PostDetailResponse(
                 return new Author(null, "익명의 몽글러", null);
             }
             return new Author(
-                member.getMemberId().toString(),
+                member.getMemberId(),
                 member.getNickname(),
                 member.getProfileImage()
             );
         }
     }
-
-    public static PostDetailResponse from(Post post, Member author, long commentCount,
+    
+    public static PostDetailResponse from(Post post, Author authorDto, PostStats stats,
         List<String> photoUrls, List<String> videoUrls) {
         return new PostDetailResponse(
             post.getId(),
-            Author.from(author),
+            authorDto,
             post.getContent(),
             post.getLocation().getLatitude(),
             post.getLocation().getLongitude(),
             photoUrls,
             videoUrls,
             post.getCreatedDate(),
-            0, // TODO: 조회수 기능 구현 후 반영
+            post.getUpdatedDate(),
+            stats.viewCount(),
             post.getLikeCount(),
             post.getDislikeCount(),
-            commentCount
+            stats.commentCount()
         );
     }
 }
-
