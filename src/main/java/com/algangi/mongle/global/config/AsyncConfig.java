@@ -1,6 +1,7 @@
 package com.algangi.mongle.global.config;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +30,12 @@ public class AsyncConfig {
         executor.setMaxPoolSize(20);
         executor.setQueueCapacity(50);
         executor.setThreadNamePrefix("PersistenceAsync-");
+
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+
+
         executor.initialize();
         return executor;
     }
@@ -40,6 +47,11 @@ public class AsyncConfig {
         executor.setMaxPoolSize(10);
         executor.setQueueCapacity(100);
         executor.setThreadNamePrefix("StatsAsync-");
+
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+
         executor.initialize();
         return executor;
     }
