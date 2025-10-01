@@ -28,6 +28,7 @@ public interface PostRepository extends JpaRepository<Post, String> {
     List<Post> findByDynamicCloudIdIn(List<Long> dynamicCloudIds);
 
     @Modifying(flushAutomatically = true)
+    @Transactional
     @Query(
             "UPDATE Post p " +
                     "SET p.viewCount = p.viewCount + 1 " +

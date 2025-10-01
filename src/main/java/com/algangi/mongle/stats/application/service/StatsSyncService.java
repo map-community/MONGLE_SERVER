@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,21 +84,17 @@ public class StatsSyncService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public void syncReactionCountsToRedis() {
-        log.info("[Sync] DB -> Redis :: 반응(좋아요/싫어요) 수 동기화를 시작합니다.");
+    // Lua 스크립트: 현재 Redis 값보다 클 때만 SET
+    private static final String LUA_SET_IF_GREATER =
+            "local cur = redis.call('GET', KEYS[1]); " +
+                    "if not cur or tonumber(ARGV[1]) > tonumber(cur) then " +
+                    "  redis.call('SET', KEYS[1], ARGV[1]); " +
+                    "end; return nil;";
 
-        // 게시물 좋아요/싫어요 동기화
-        syncCountsFromDbToRedis("post", "LIKE", "likes::post::%s");
-        syncCountsFromDbToRedis("post", "DISLIKE", "dislikes::post::%s");
+    private static final RedisScript<Void> SET_IF_GREATER_SCRIPT = RedisScript.of(LUA_SET_IF_GREATER, Void.class);
 
-        // 댓글 좋아요/싫어요 동기화
-        syncCountsFromDbToRedis("comment", "LIKE", "likes::comment::%s");
-        syncCountsFromDbToRedis("comment", "DISLIKE", "dislikes::comment::%s");
-
-        log.info("[Sync] DB -> Redis :: 반응(좋아요/싫어요) 수 동기화를 완료했습니다.");
-    }
-
+    // -----------------------------
+    // 게시물 조회수 동기화
     @Transactional(readOnly = true)
     public void syncPostViewCountsToRedis() {
         log.info("[Sync] DB -> Redis :: 게시물 조회수 동기화를 시작합니다.");
@@ -107,15 +104,34 @@ public class StatsSyncService {
 
         jdbcTemplate.query(sql, rs -> {
             String postId = rs.getString("id");
-            long viewCount = rs.getLong("view_count");
-            redisTemplate.opsForValue().set(String.format(redisKeyFormat, postId), String.valueOf(viewCount));
+            String key = String.format(redisKeyFormat, postId);
+            String value = String.valueOf(rs.getLong("view_count"));
+
+            redisTemplate.execute(SET_IF_GREATER_SCRIPT, List.of(key), value);
         });
 
         log.info("[Sync] DB -> Redis :: 게시물 조회수 동기화를 완료했습니다.");
     }
 
+    // -----------------------------
+    // 좋아요/싫어요 동기화
+    @Transactional(readOnly = true)
+    public void syncReactionCountsToRedis() {
+        log.info("[Sync] DB -> Redis :: 반응(좋아요/싫어요) 수 동기화를 시작합니다.");
+
+        // 게시물 좋아요/싫어요
+        syncCountsFromDbToRedis("post", "LIKE", "likes::post::%s");
+        syncCountsFromDbToRedis("post", "DISLIKE", "dislikes::post::%s");
+
+        // 댓글 좋아요/싫어요
+        syncCountsFromDbToRedis("comment", "LIKE", "likes::comment::%s");
+        syncCountsFromDbToRedis("comment", "DISLIKE", "dislikes::comment::%s");
+
+        log.info("[Sync] DB -> Redis :: 반응(좋아요/싫어요) 수 동기화를 완료했습니다.");
+    }
+
     private void syncCountsFromDbToRedis(String targetTable, String reactionType, String redisKeyFormat) {
-        String targetType = targetTable.toUpperCase(); // 'POST' 또는 'COMMENT'
+        String targetType = targetTable.toUpperCase();
 
         String sql = """
                 SELECT target_id, COUNT(*) AS count
@@ -129,8 +145,10 @@ public class StatsSyncService {
             ps.setString(2, reactionType);
         }, rs -> {
             String targetId = rs.getString("target_id");
-            long count = rs.getLong("count");
-            redisTemplate.opsForValue().set(String.format(redisKeyFormat, targetId), String.valueOf(count));
+            String key = String.format(redisKeyFormat, targetId);
+            String value = String.valueOf(rs.getLong("count"));
+
+            redisTemplate.execute(SET_IF_GREATER_SCRIPT, List.of(key), value);
         });
     }
 }
