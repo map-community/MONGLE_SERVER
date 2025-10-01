@@ -48,21 +48,28 @@ public class Member extends TimeBaseEntity {
     @Builder.Default
     MemberStatus status = MemberStatus.ACTIVE;
     @Column(nullable = false)
-    private String password;
+    private String encodedPassword;
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<SocialAccount> socialAccounts = new ArrayList<>();
 
-    public static Member createUser(String email, String password, String nickname,
+    public static Member createUser(String email, String encodedPassword, String nickname,
         String profileImage) {
-        validateUserEssentials(email, password, nickname);
+        validateUserEssentials(email, encodedPassword, nickname);
+        validatePasswordEncoding(encodedPassword);
         return Member.builder()
             .email(email)
-            .password(password)
+            .encodedPassword(encodedPassword)
             .nickname(nickname)
             .profileImage(profileImage)
             .memberRole(MemberRole.USER)
             .build();
+    }
+
+    private static void validatePasswordEncoding(String encodedPassword) {
+        if (!encodedPassword.startsWith("{bcrypt}") && !encodedPassword.startsWith("$2")) {
+            throw new IllegalArgumentException("인코딩되지 않은 비밀번호는 저장할 수 없습니다.");
+        }
     }
 
     private static void validateUserEssentials(String email, String password, String nickname) {
