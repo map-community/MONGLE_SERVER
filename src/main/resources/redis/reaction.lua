@@ -6,6 +6,11 @@ local rankingZSetKey = KEYS[4]
 
 local memberId = ARGV[1]
 local newReaction = ARGV[2]
+
+if newReaction ~= 'LIKE' and newReaction ~= 'DISLIKE' then
+  return redis.error_reply('invalid reaction: ' .. tostring(newReaction))
+end
+
 local targetType = ARGV[3]
 local targetId = ARGV[4]
 
@@ -27,7 +32,7 @@ if currentReaction == newReaction then
   end
 
 -- 2. 다른 리액션으로 변경한 경우
-elseif currentReaction then
+elseif currentReaction == 'LIKE' or currentReaction == 'DISLIKE' then
   redis.call('HSET', reactionsKey, memberId, newReaction)
 
   if newReaction == 'LIKE' then
