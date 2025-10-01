@@ -50,8 +50,7 @@ public class KakaoApiClient implements OAuth2Client {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
         body.add("client_id", clientId);
-        body.add("redirect_uri",
-            redirectUri.replace("{baseUrl}", "http://localhost:8080"));
+        body.add("redirect_uri", redirectUri);
         body.add("code", authorizationCode);
 
         KakaoTokenResponse tokenResponse = restClient.post()
