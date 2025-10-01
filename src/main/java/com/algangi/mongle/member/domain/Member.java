@@ -60,4 +60,7 @@ public class Member extends TimeBaseEntity {
             .build();
     }
 
+    public void ban() {
+        this.status = MemberStatus.BANNED;
+    }
 }
