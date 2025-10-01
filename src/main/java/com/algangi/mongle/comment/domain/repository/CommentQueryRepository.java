@@ -16,7 +16,4 @@ public interface CommentQueryRepository {
 
     Map<String, Boolean> findHasRepliesByParentIds(List<String> parentIds);
 
-    long countByPostId(String postId);
-
-    Map<String, Long> countCommentsByPostIds(List<String> postIds);
 }

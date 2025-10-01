@@ -91,28 +91,4 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
                 ));
     }
 
-    @Override
-    public long countByPostId(String postId) {
-        if (postId == null) {
-            return 0L;
-        }
-        Long count = queryFactory
-                .select(comment.count())
-                .from(comment)
-                .where(comment.post.id.eq(postId), comment.deletedAt.isNull())
-                .fetchOne();
-        return count != null ? count : 0L;
-    }
-
-    @Override
-    public Map<String, Long> countCommentsByPostIds(List<String> postIds) {
-        if (postIds == null || postIds.isEmpty()) {
-            return Collections.emptyMap();
-        }
-        return queryFactory
-                .from(comment)
-                .where(comment.post.id.in(postIds), comment.deletedAt.isNull())
-                .groupBy(comment.post.id)
-                .transform(GroupBy.groupBy(comment.post.id).as(comment.count()));
-    }
 }
