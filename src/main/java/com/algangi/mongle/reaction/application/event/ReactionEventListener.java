@@ -1,9 +1,12 @@
 package com.algangi.mongle.reaction.application.event;
 
 import com.algangi.mongle.comment.domain.repository.CommentRepository;
+import com.algangi.mongle.comment.exception.CommentErrorCode;
+import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.service.MemberFinder;
 import com.algangi.mongle.post.domain.repository.PostRepository;
+import com.algangi.mongle.post.exception.PostErrorCode;
 import com.algangi.mongle.reaction.domain.model.Reaction;
 import com.algangi.mongle.reaction.domain.model.ReactionType;
 import com.algangi.mongle.reaction.domain.model.TargetType;
@@ -82,21 +85,28 @@ public class ReactionEventListener {
         if (delta == 0) return;
 
         switch (targetType) {
-            case COMMENT -> commentRepository.findById(targetId).ifPresent(comment -> {
+            case COMMENT -> commentRepository.findById(targetId).ifPresentOrElse(comment -> {
                 if (reactionType == ReactionType.LIKE) {
                     comment.increaseLikeCount(delta);
                 } else if (reactionType == ReactionType.DISLIKE) {
                     comment.increaseDislikeCount(delta);
                 }
+            }, () -> {
+                throw new ApplicationException(CommentErrorCode.COMMENT_NOT_FOUND);
             });
-            case POST -> postRepository.findById(targetId).ifPresent(post -> {
+
+            case POST -> postRepository.findById(targetId).ifPresentOrElse(post -> {
                 if (reactionType == ReactionType.LIKE) {
                     post.increaseLikeCount(delta);
                 } else if (reactionType == ReactionType.DISLIKE) {
                     post.increaseDislikeCount(delta);
                 }
+            }, () -> {
+                throw new ApplicationException(PostErrorCode.POST_NOT_FOUND);
             });
+
             default -> throw new IllegalArgumentException("지원되지 않는 대상 타입입니다: " + targetType);
         }
+
     }
 }
