@@ -34,8 +34,8 @@ import lombok.RequiredArgsConstructor;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
-@Profile({"prod", "default"})
-public class SecurityConfig {
+@Profile({"test"})
+public class TestSecurityConfig {
 
     private final TokenValidationFilter tokenValidationFilter;
     private final AccessDeniedHandler accessDeniedHandler;
@@ -56,9 +56,7 @@ public class SecurityConfig {
             .sessionManagement(
                 session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/reissue", "/api/oauth2/login/",
-                    "/api/oauth2/authorization-url/").permitAll()
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
             )
             .addFilterBefore(tokenValidationFilter, LogoutFilter.class)
             .addFilterBefore(tokenExceptionFilter, TokenValidationFilter.class)

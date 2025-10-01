@@ -26,7 +26,7 @@ public class LoginService {
         Member member = memberRepository.findByEmail(request.email())
             .orElseThrow(() -> new ApplicationException(AuthErrorCode.UNAUTHORIZED));
 
-        if (!passwordEncoder.matches(request.password(), member.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), member.getEncodedPassword())) {
             throw new ApplicationException(AuthErrorCode.UNAUTHORIZED);
         }
 
