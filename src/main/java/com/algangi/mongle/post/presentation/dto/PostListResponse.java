@@ -2,6 +2,8 @@ package com.algangi.mongle.post.presentation.dto;
 
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.post.domain.model.Post;
+import com.algangi.mongle.post.domain.model.PostStatus;
+import com.algangi.mongle.stats.application.dto.PostStats;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -27,31 +29,48 @@ public class PostListResponse {
 
     public record PostSummary(
         String postId,
-        String authorNickname,
+        Author author,
         String content,
         List<String> photoUrls,
         long upvotes,
         long downvotes,
         long commentCount,
-        LocalDateTime createdAt
+        long viewCount,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
     ) {
 
-        public static PostSummary from(Post post, Member author, long commentCount,
-            List<String> photoUrls) {
-            String nickname =
-                (author != null) ? author.getNickname() : "익명의 몽글러"; // author가 null일 경우 대비
+        public record Author(
+            String id,
+            String nickname,
+            String profileImageUrl
+        ) {
+
+        }
+
+        public static PostSummary from(Post post, Member author, List<String> photoUrls,
+            PostStats stats) {
+            // 게시글 상태가 ACTIVE일 때만 프로필 이미지 URL을 사용, 아니면 null
+            String profileImageUrl = (post.getStatus() == PostStatus.ACTIVE && author != null)
+                ? author.getProfileImage()
+                : null;
+
+            Author authorDto = (author != null)
+                ? new Author(author.getMemberId(), author.getNickname(), profileImageUrl)
+                : new Author(null, "익명의 몽글러", null);
 
             return new PostSummary(
                 post.getId(),
-                nickname,
+                authorDto,
                 post.getContent(),
                 photoUrls,
                 post.getLikeCount(),
                 post.getDislikeCount(),
-                commentCount,
-                post.getCreatedDate()
+                stats.commentCount(),
+                stats.viewCount(),
+                post.getCreatedDate(),
+                post.getUpdatedDate()
             );
         }
     }
 }
-

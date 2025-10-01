@@ -8,14 +8,22 @@ public record MapObjectsResponse(
     List<StaticCloudInfo> staticClouds,
     List<DynamicCloudInfo> dynamicClouds
 ) {
-
+    
     public record Grain(
         String postId,
         double latitude,
         double longitude,
-        String profileImageUrl
+        Author author
     ) {
 
+
+        public record Author(
+            String id,
+            String nickname,
+            String profileImageUrl
+        ) {
+
+        }
     }
 
     public record StaticCloudInfo(
@@ -49,4 +57,3 @@ public record MapObjectsResponse(
             Collections.emptyList());
     }
 }
-

@@ -1,6 +1,6 @@
 package com.algangi.mongle.post.application.service;
 
-import com.algangi.mongle.comment.domain.repository.CommentQueryRepository;
+import com.algangi.mongle.block.application.service.BlockQueryService;
 import com.algangi.mongle.global.application.service.ViewUrlIssueService;
 import com.algangi.mongle.global.util.DateTimeUtil;
 import com.algangi.mongle.member.domain.Member;
@@ -9,6 +9,7 @@ import com.algangi.mongle.post.application.dto.IssuedUrlInfo;
 import com.algangi.mongle.post.application.helper.PostFinder;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.model.PostFile;
+import com.algangi.mongle.post.domain.model.PostStatus;
 import com.algangi.mongle.post.domain.repository.PostQueryRepository;
 import com.algangi.mongle.post.event.PostViewedEvent;
 import com.algangi.mongle.post.presentation.dto.PostDetailResponse;
@@ -16,7 +17,9 @@ import com.algangi.mongle.post.presentation.dto.PostListRequest;
 import com.algangi.mongle.post.presentation.dto.PostListResponse;
 import com.algangi.mongle.post.presentation.dto.PostSort;
 import com.algangi.mongle.post.presentation.dto.ViewUrlRequest;
+import com.algangi.mongle.stats.application.dto.PostStats;
 import com.algangi.mongle.stats.application.service.ContentStatsService;
+import com.algangi.mongle.stats.application.service.StatsQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -36,37 +39,39 @@ public class PostQueryService {
 
     private final PostFinder postFinder;
     private final MemberFinder memberFinder;
-    private final CommentQueryRepository commentQueryRepository;
     private final PostQueryRepository postQueryRepository;
     private final ViewUrlIssueService viewUrlIssueService;
     private final ApplicationEventPublisher eventPublisher;
     private final ContentStatsService contentStatsService;
+    private final StatsQueryService statsQueryService;
+    private final BlockQueryService blockQueryService;
 
     public PostListResponse getPostList(PostListRequest request) {
-        // 1. DB에서 다음 페이지 존재 여부 확인을 위해 요청 사이즈보다 1개 더 조회
-        List<Post> fetchedPosts = postQueryRepository.findPostsByCondition(request);
+        List<String> blockedAuthorIds = blockQueryService.getBlockedUserIds(request.memberId());
+
+        List<Post> fetchedPosts = postQueryRepository.findPostsByCondition(request,
+            blockedAuthorIds);
+
         boolean hasNext = fetchedPosts.size() > request.size();
-        // 2. 실제 페이지에 해당하는 데이터만 잘라냄 (가장 중요한 리팩토링 포인트)
         List<Post> postsOnPage = hasNext ? fetchedPosts.subList(0, request.size()) : fetchedPosts;
 
         if (postsOnPage.isEmpty()) {
             return PostListResponse.empty();
         }
 
-        // 3. 잘라낸 'postsOnPage'를 기준으로 후속 작업을 처리하여 불필요한 연산을 방지
-        Map<String, Long> commentCounts = getCommentCounts(postsOnPage);
+        List<String> postIds = postsOnPage.stream().map(Post::getId).toList();
+        Map<String, PostStats> statsMap = statsQueryService.getPostStatsMap(postIds);
         Map<String, Member> authors = getAuthors(postsOnPage);
-        Map<String, String> photoUrls = getFirstPhotoUrls(postsOnPage); // postId -> URL 맵
+        Map<String, String> photoUrls = getFirstPhotoUrls(postsOnPage);
 
-        // 4. DTO 조립
         List<PostListResponse.PostSummary> summaries = postsOnPage.stream().map(post -> {
             Member author = authors.get(post.getAuthorId());
-            long commentCount = commentCounts.getOrDefault(post.getId(), 0L);
             String photoUrl = photoUrls.get(post.getId());
             List<String> photoUrlList =
                 photoUrl != null ? List.of(photoUrl) : Collections.emptyList();
+            PostStats stats = statsMap.getOrDefault(post.getId(), PostStats.empty());
 
-            return PostListResponse.PostSummary.from(post, author, commentCount, photoUrlList);
+            return PostListResponse.PostSummary.from(post, author, photoUrlList, stats);
         }).toList();
 
         String nextCursor = createNextCursor(postsOnPage, hasNext, request.sortBy());
@@ -77,10 +82,20 @@ public class PostQueryService {
     public PostDetailResponse getPostDetail(String postId) {
         Post post = postFinder.getPostOrThrow(postId);
         Member author = memberFinder.getMemberOrThrow(post.getAuthorId());
-        long commentCount = commentQueryRepository.countByPostId(postId);
 
         contentStatsService.incrementPostViewCount(postId);
         eventPublisher.publishEvent(new PostViewedEvent(postId));
+
+        PostStats stats = statsQueryService.getPostStatsMap(List.of(postId))
+            .getOrDefault(postId, PostStats.empty());
+
+        String profileImageUrl =
+            (post.getStatus() == PostStatus.ACTIVE) ? author.getProfileImage() : null;
+        PostDetailResponse.Author authorDto = new PostDetailResponse.Author(
+            author.getMemberId(),
+            author.getNickname(),
+            profileImageUrl
+        );
 
         List<String> photoKeys = post.getPostFiles().stream()
             .map(PostFile::getFileKey)
@@ -94,16 +109,7 @@ public class PostQueryService {
         List<String> photoUrls = issueFileUrls(photoKeys);
         List<String> videoUrls = issueFileUrls(videoKeys);
 
-        return PostDetailResponse.from(post, author, commentCount, photoUrls, videoUrls);
-    }
-
-
-    private Map<String, Long> getCommentCounts(List<Post> posts) {
-        List<String> postIds = posts.stream().map(Post::getId).toList();
-        if (postIds.isEmpty()) {
-            return Collections.emptyMap();
-        }
-        return commentQueryRepository.countCommentsByPostIds(postIds);
+        return PostDetailResponse.from(post, authorDto, stats, photoUrls, videoUrls);
     }
 
     private Map<String, Member> getAuthors(List<Post> posts) {
@@ -116,8 +122,6 @@ public class PostQueryService {
     }
 
     private Map<String, String> getFirstPhotoUrls(List<Post> posts) {
-        // 1. postId를 Key로, 첫 번째 이미지의 fileKey를 Value로 갖는 Map을 생성합니다.
-        // 이미지가 없는 게시글의 경우 Value는 null이 됩니다.
         Map<String, String> postIdToPhotoKeyMap = posts.stream()
             .collect(Collectors.toMap(
                 Post::getId,
@@ -128,7 +132,6 @@ public class PostQueryService {
                     .orElse(null)
             ));
 
-        // 2. 이미지가 있는 게시글의 fileKey 목록만 추출하여 중복을 제거합니다.
         List<String> distinctPhotoKeys = postIdToPhotoKeyMap.values().stream()
             .filter(Objects::nonNull)
             .distinct()
@@ -138,10 +141,8 @@ public class PostQueryService {
             return Collections.emptyMap();
         }
 
-        // 3. 추출된 fileKey 목록으로 Presigned URL을 한 번에 요청합니다.
         Map<String, String> photoKeyToUrlMap = issueFileUrlsToMap(distinctPhotoKeys);
 
-        // 4. 최종적으로 postId를 Key로, Presigned URL을 Value로 갖는 Map을 생성하여 반환합니다.
         return postIdToPhotoKeyMap.entrySet().stream()
             .filter(entry -> entry.getValue() != null)
             .collect(Collectors.toMap(
@@ -149,7 +150,6 @@ public class PostQueryService {
                 entry -> photoKeyToUrlMap.get(entry.getValue())
             ));
     }
-
 
     private List<String> issueFileUrls(List<String> fileKeys) {
         if (fileKeys == null || fileKeys.isEmpty()) {
@@ -186,7 +186,6 @@ public class PostQueryService {
 
         Post lastPost = content.get(content.size() - 1);
         String formattedDate = lastPost.getCreatedDate().format(DateTimeUtil.CURSOR_DATE_FORMATTER);
-
         PostSort finalSort = (sort == null) ? PostSort.ranking_score : sort;
 
         if (finalSort == PostSort.ranking_score) {
