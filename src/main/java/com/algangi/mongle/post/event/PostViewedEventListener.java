@@ -1,8 +1,12 @@
 package com.algangi.mongle.post.event;
 
+import com.algangi.mongle.post.domain.repository.PostRepository;
 import com.algangi.mongle.stats.application.service.ContentStatsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -10,11 +14,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class PostViewedEventListener {
 
-    private final ContentStatsService contentStatsService;
+    private final PostRepository postRepository;
 
+    @Async("persistenceTaskExecutor")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostView(PostViewedEvent event) {
-        contentStatsService.incrementPostViewCount(event.postId());
+        postRepository.incrementViewCount(event.postId());
     }
 
 }

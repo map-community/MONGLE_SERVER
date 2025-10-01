@@ -63,11 +63,11 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
 
     public static Comment createParentComment(String content, Post post, Member member) {
         Comment comment = Comment.builder()
-            .content(content)
-            .post(post)
-            .parentComment(null)
-            .member(member)
-            .build();
+                .content(content)
+                .post(post)
+                .parentComment(null)
+                .member(member)
+                .build();
 
         post.addComment(comment);
 
@@ -80,11 +80,11 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
         }
 
         Comment comment = Comment.builder()
-            .content(content)
-            .parentComment(parentComment)
-            .post(parentComment.getPost())
-            .member(member)
-            .build();
+                .content(content)
+                .parentComment(parentComment)
+                .post(parentComment.getPost())
+                .member(member)
+                .build();
 
         parentComment.getPost().addComment(comment);
 
@@ -102,6 +102,16 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
             throw new ApplicationException(CommentErrorCode.ALREADY_DELETED);
         }
         this.deletedAt = LocalDateTime.now();
+    }
+
+    public void increaseLikeCount(int delta) {
+        this.likeCount += delta;
+        if (this.likeCount < 0) this.likeCount = 0;
+    }
+
+    public void increaseDislikeCount(int delta) {
+        this.dislikeCount += delta;
+        if (this.dislikeCount < 0) this.dislikeCount = 0;
     }
 
     public void setPost(Post post) {

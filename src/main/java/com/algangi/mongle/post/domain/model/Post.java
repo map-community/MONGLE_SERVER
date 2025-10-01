@@ -174,5 +174,14 @@ public class Post extends TimeBaseEntity {
         this.status = PostStatus.ACTIVE;
     }
 
+    public void increaseLikeCount(int delta) {
+        this.likeCount += delta;
+        if (this.likeCount < 0) this.likeCount = 0;
+    }
+
+    public void increaseDislikeCount(int delta) {
+        this.dislikeCount += delta;
+        if (this.dislikeCount < 0) this.dislikeCount = 0;
+    }
 
 }
