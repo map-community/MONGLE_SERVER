@@ -1,7 +1,6 @@
 package com.algangi.mongle.comment.application.service;
 
 import com.algangi.mongle.comment.application.event.CommentCreatedEvent;
-import com.algangi.mongle.comment.application.event.CommentDeletedEvent;
 import com.algangi.mongle.stats.application.service.ContentStatsService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -55,13 +54,8 @@ public class CommentCommandService {
     @Transactional
     public void deleteComment(String commentId) {
         Comment comment = commentFinder.getCommentOrThrow(commentId);
-
-        boolean wasAlreadyDeleted = comment.isDeleted();
         commentDomainService.deleteComment(comment);
 
-        if (!wasAlreadyDeleted) {
-            eventPublisher.publishEvent(new CommentDeletedEvent(comment.getPost().getId(), comment.getId()));
-        }
     }
 
 }

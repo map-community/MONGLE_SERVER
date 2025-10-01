@@ -40,7 +40,6 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
                         filterFactory.eqPostId(condition.postId()),
                         filterFactory.isParentComment(),
                         filterFactory.cursorCondition(condition.cursor(), condition.sort()),
-                        filterFactory.visibleCommentCondition(),
                         filterFactory.notInBlockedMemberIds(blockedMemberIds)
                 )
                 .orderBy(orderFactory.createOrderSpecifiers(condition.sort()))
@@ -58,7 +57,6 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
                 .leftJoin(comment.member).fetchJoin()
                 .where(
                         filterFactory.eqParentId(condition.parentId()),
-                        comment.deletedAt.isNull(),
                         filterFactory.cursorCondition(condition.cursor(), condition.sort()),
                         filterFactory.notInBlockedMemberIds(blockedMemberIds)
                 )
@@ -80,8 +78,7 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
                 .select(reply.parentComment.id)
                 .from(reply)
                 .where(
-                        reply.parentComment.id.in(parentIds),
-                        reply.deletedAt.isNull()
+                        reply.parentComment.id.in(parentIds)
                 )
                 .groupBy(reply.parentComment.id)
                 .fetch();

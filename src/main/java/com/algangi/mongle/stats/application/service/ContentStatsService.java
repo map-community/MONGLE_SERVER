@@ -47,16 +47,6 @@ public class ContentStatsService {
         redisTemplate.opsForZSet().add(key, commentId, 0);
     }
 
-    public void removeCommentFromRanking(String postId, String commentId) {
-        String key = COMMENT_RANKING_KEY_FORMAT + postId;
-        redisTemplate.opsForZSet().remove(key, commentId);
-    }
-
-    public void decrementPostCommentCount(String postId) {
-        String key = getKey(COMMENT_COUNT_KEY_PREFIX, TargetType.POST, postId);
-        redisTemplate.execute(decrementScript, List.of(key));
-    }
-
     public ReactionResponse updateReaction(TargetType targetType, String targetId, String memberId, ReactionType reactionType, String postId) {
         // 1. 리액션 타입 검증
         validateReactionType(reactionType);
