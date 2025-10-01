@@ -1,7 +1,8 @@
 package com.algangi.mongle.comment.application.event;
 
 public record CommentDeletedEvent(
-        String postId
+        String postId,
+        String commentId
 ) {
 
 }

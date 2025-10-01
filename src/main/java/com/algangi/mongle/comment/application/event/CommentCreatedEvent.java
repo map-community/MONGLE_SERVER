@@ -1,7 +1,9 @@
 package com.algangi.mongle.comment.application.event;
 
 public record CommentCreatedEvent(
-        String postId
+        String postId,
+        String commentId
+
 ) {
 
 }

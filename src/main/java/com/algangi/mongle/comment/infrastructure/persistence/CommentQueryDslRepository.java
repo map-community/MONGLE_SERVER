@@ -31,37 +31,40 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
     private final CommentOrderFactory orderFactory;
 
     @Override
-    public PaginationResult<Comment> findCommentsByPost(CommentSearchCondition condition,
-        int size) {
+    public PaginationResult<Comment> findCommentsByPost(
+            CommentSearchCondition condition, int size, List<String> blockedMemberIds) {
         List<Comment> comments = queryFactory
-            .selectFrom(comment)
-            .leftJoin(comment.member).fetchJoin()
-            .where(
-                filterFactory.eqPostId(condition.postId()),
-                filterFactory.isParentComment(),
-                filterFactory.cursorCondition(condition.cursor(), condition.sort()),
-                filterFactory.visibleCommentCondition()
-            )
-            .orderBy(orderFactory.createOrderSpecifiers(condition.sort()))
-            .limit(size + 1)
-            .fetch();
+                .selectFrom(comment)
+                .leftJoin(comment.member).fetchJoin()
+                .where(
+                        filterFactory.eqPostId(condition.postId()),
+                        filterFactory.isParentComment(),
+                        filterFactory.cursorCondition(condition.cursor(), condition.sort()),
+                        filterFactory.visibleCommentCondition(),
+                        filterFactory.notInBlockedMemberIds(blockedMemberIds)
+                )
+                .orderBy(orderFactory.createOrderSpecifiers(condition.sort()))
+                .limit(size + 1)
+                .fetch();
 
         return PaginationResult.of(comments, size);
     }
 
     @Override
-    public PaginationResult<Comment> findRepliesByParent(ReplySearchCondition condition, int size) {
+    public PaginationResult<Comment> findRepliesByParent(
+            ReplySearchCondition condition, int size, List<String> blockedMemberIds) {
         List<Comment> replies = queryFactory
-            .selectFrom(comment)
-            .leftJoin(comment.member).fetchJoin()
-            .where(
-                filterFactory.eqParentId(condition.parentId()),
-                comment.deletedAt.isNull(),
-                filterFactory.cursorCondition(condition.cursor(), condition.sort())
-            )
-            .orderBy(orderFactory.createOrderSpecifiers(condition.sort()))
-            .limit(size + 1)
-            .fetch();
+                .selectFrom(comment)
+                .leftJoin(comment.member).fetchJoin()
+                .where(
+                        filterFactory.eqParentId(condition.parentId()),
+                        comment.deletedAt.isNull(),
+                        filterFactory.cursorCondition(condition.cursor(), condition.sort()),
+                        filterFactory.notInBlockedMemberIds(blockedMemberIds)
+                )
+                .orderBy(orderFactory.createOrderSpecifiers(condition.sort()))
+                .limit(size + 1)
+                .fetch();
 
         return PaginationResult.of(replies, size);
     }
@@ -74,21 +77,21 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
 
         QComment reply = new QComment("reply");
         List<String> parentIdsWithReplies = queryFactory
-            .select(reply.parentComment.id)
-            .from(reply)
-            .where(
-                reply.parentComment.id.in(parentIds),
-                reply.deletedAt.isNull()
-            )
-            .groupBy(reply.parentComment.id)
-            .fetch();
+                .select(reply.parentComment.id)
+                .from(reply)
+                .where(
+                        reply.parentComment.id.in(parentIds),
+                        reply.deletedAt.isNull()
+                )
+                .groupBy(reply.parentComment.id)
+                .fetch();
 
         Set<String> parentIdsWithRepliesSet = new HashSet<>(parentIdsWithReplies);
         return parentIds.stream()
-            .collect(Collectors.toMap(
-                id -> id,
-                parentIdsWithRepliesSet::contains
-            ));
+                .collect(Collectors.toMap(
+                        id -> id,
+                        parentIdsWithRepliesSet::contains
+                ));
     }
 
     @Override
@@ -97,10 +100,10 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
             return 0L;
         }
         Long count = queryFactory
-            .select(comment.count())
-            .from(comment)
-            .where(comment.post.id.eq(postId), comment.deletedAt.isNull())
-            .fetchOne();
+                .select(comment.count())
+                .from(comment)
+                .where(comment.post.id.eq(postId), comment.deletedAt.isNull())
+                .fetchOne();
         return count != null ? count : 0L;
     }
 
@@ -110,9 +113,9 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
             return Collections.emptyMap();
         }
         return queryFactory
-            .from(comment)
-            .where(comment.post.id.in(postIds), comment.deletedAt.isNull())
-            .groupBy(comment.post.id)
-            .transform(GroupBy.groupBy(comment.post.id).as(comment.count()));
+                .from(comment)
+                .where(comment.post.id.in(postIds), comment.deletedAt.isNull())
+                .groupBy(comment.post.id)
+                .transform(GroupBy.groupBy(comment.post.id).as(comment.count()));
     }
 }

@@ -7,13 +7,7 @@ import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.post.domain.model.Post;
 
 import io.hypersistence.utils.hibernate.id.Tsid;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,6 +40,9 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
     @Builder.Default
     private long dislikeCount = 0;
 
+    @Version
+    private Long version;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_comment_id")
     private Comment parentComment;
@@ -63,11 +60,11 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
 
     public static Comment createParentComment(String content, Post post, Member member) {
         Comment comment = Comment.builder()
-            .content(content)
-            .post(post)
-            .parentComment(null)
-            .member(member)
-            .build();
+                .content(content)
+                .post(post)
+                .parentComment(null)
+                .member(member)
+                .build();
 
         post.addComment(comment);
 
@@ -80,11 +77,11 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
         }
 
         Comment comment = Comment.builder()
-            .content(content)
-            .parentComment(parentComment)
-            .post(parentComment.getPost())
-            .member(member)
-            .build();
+                .content(content)
+                .parentComment(parentComment)
+                .post(parentComment.getPost())
+                .member(member)
+                .build();
 
         parentComment.getPost().addComment(comment);
 
@@ -102,6 +99,18 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
             throw new ApplicationException(CommentErrorCode.ALREADY_DELETED);
         }
         this.deletedAt = LocalDateTime.now();
+    }
+
+    public void increaseLikeCount(long delta) {
+        if (delta == 0) return;
+        long newCount = this.likeCount + delta;
+        this.likeCount = Math.max(newCount, 0);
+    }
+
+    public void increaseDislikeCount(long delta) {
+        if (delta == 0) return;
+        long newCount = this.dislikeCount + delta;
+        this.dislikeCount = Math.max(newCount, 0);
     }
 
     public void setPost(Post post) {

@@ -19,7 +19,13 @@ public final class CommentResponseMapper {
     private static final String MASKED_NICKNAME = "(알 수 없음)";
     private static final String DEFAULT_PROFILE_IMAGE_URL = "default_profile_image_url";
 
-    public CommentInfoResponse toCommentInfoResponse(Comment comment, String currentMemberId, boolean hasReplies) {
+    public CommentInfoResponse toCommentInfoResponse(
+            Comment comment,
+            String currentMemberId,
+            boolean hasReplies,
+            long likeCount,
+            long dislikeCount) {
+
         boolean deleted = comment.isDeleted();
         Member author = comment.getMember();
 
@@ -27,8 +33,8 @@ public final class CommentResponseMapper {
                 comment.getId(),
                 mapContent(comment, deleted),
                 mapAuthor(author, deleted),
-                mapLikeCount(comment, deleted),
-                mapDislikeCount(comment, deleted),
+                mapCount(likeCount, deleted),
+                mapCount(dislikeCount, deleted),
                 comment.getCreatedDate(),
                 mapIsAuthor(author, currentMemberId, deleted),
                 deleted,
@@ -36,7 +42,12 @@ public final class CommentResponseMapper {
         );
     }
 
-    public ReplyInfoResponse toReplyInfoResponse(Comment reply, String currentMemberId) {
+    public ReplyInfoResponse toReplyInfoResponse(
+            Comment reply,
+            String currentMemberId,
+            long likeCount,
+            long dislikeCount) {
+
         boolean deleted = reply.isDeleted();
         Member author = reply.getMember();
 
@@ -44,8 +55,8 @@ public final class CommentResponseMapper {
                 reply.getId(),
                 mapContent(reply, deleted),
                 mapAuthor(author, deleted),
-                mapLikeCount(reply, deleted),
-                mapDislikeCount(reply, deleted),
+                mapCount(likeCount, deleted),
+                mapCount(dislikeCount, deleted),
                 reply.getCreatedDate(),
                 mapIsAuthor(author, currentMemberId, deleted),
                 deleted
@@ -74,12 +85,8 @@ public final class CommentResponseMapper {
                 && Objects.equals(author.getMemberId(), currentMemberId);
     }
 
-    private long mapLikeCount(Comment comment, boolean deleted) {
-        return deleted ? 0 : comment.getLikeCount();
-    }
-
-    private long mapDislikeCount(Comment comment, boolean deleted) {
-        return deleted ? 0 : comment.getDislikeCount();
+    private long mapCount(long count, boolean deleted) {
+        return deleted ? 0 : count;
     }
 
 }
