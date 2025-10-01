@@ -4,13 +4,13 @@ import java.util.Collections;
 import java.util.List;
 
 public record CursorInfoResponse<T>(
-        List<T> values,
+        List<T> comments,
         String nextCursor,
         boolean hasNext
 ) {
 
-    public CursorInfoResponse(List<T> values, String nextCursor, boolean hasNext) {
-        this.values = List.copyOf(values);
+    public CursorInfoResponse(List<T> comments, String nextCursor, boolean hasNext) {
+        this.comments = List.copyOf(comments);
         this.nextCursor = nextCursor;
         this.hasNext = hasNext;
     }
