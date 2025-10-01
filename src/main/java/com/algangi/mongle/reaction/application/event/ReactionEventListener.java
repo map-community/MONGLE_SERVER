@@ -84,29 +84,52 @@ public class ReactionEventListener {
     private void updateTargetCount(TargetType targetType, String targetId, ReactionType reactionType, long delta) {
         if (delta == 0) return;
 
-        switch (targetType) {
-            case COMMENT -> commentRepository.findById(targetId).ifPresentOrElse(comment -> {
-                if (reactionType == ReactionType.LIKE) {
-                    comment.increaseLikeCount(delta);
-                } else if (reactionType == ReactionType.DISLIKE) {
-                    comment.increaseDislikeCount(delta);
-                }
-            }, () -> {
-                throw new ApplicationException(CommentErrorCode.COMMENT_NOT_FOUND);
-            });
+        final int MAX_RETRIES = 3;
+        int attempt = 0;
 
-            case POST -> postRepository.findById(targetId).ifPresentOrElse(post -> {
-                if (reactionType == ReactionType.LIKE) {
-                    post.increaseLikeCount(delta);
-                } else if (reactionType == ReactionType.DISLIKE) {
-                    post.increaseDislikeCount(delta);
-                }
-            }, () -> {
-                throw new ApplicationException(PostErrorCode.POST_NOT_FOUND);
-            });
+        while (attempt < MAX_RETRIES) {
+            attempt++;
+            try {
+                boolean success = switch (targetType) {
+                    case COMMENT -> updateCommentCount(targetId, reactionType, delta);
+                    case POST -> updatePostCount(targetId, reactionType, delta);
+                    default -> throw new IllegalArgumentException("지원되지 않는 대상 타입입니다: " + targetType);
+                };
 
-            default -> throw new IllegalArgumentException("지원되지 않는 대상 타입입니다: " + targetType);
+                if (success) return;
+            } catch (org.springframework.dao.OptimisticLockingFailureException e) {
+                if (attempt >= MAX_RETRIES) {
+                    throw new IllegalArgumentException(
+                            "동시성 충돌로 인해 업데이트 실패: " + targetType + " id=" + targetId, e
+                    );
+                }
+                try { Thread.sleep(50L * attempt); } catch (InterruptedException ignored) {}
+            }
         }
-
     }
+
+    private boolean updateCommentCount(String commentId, ReactionType reactionType, long delta) {
+        return commentRepository.findById(commentId).map(comment -> {
+            if (reactionType == ReactionType.LIKE) {
+                comment.increaseLikeCount(delta);
+            } else if (reactionType == ReactionType.DISLIKE) {
+                comment.increaseDislikeCount(delta);
+            }
+            commentRepository.saveAndFlush(comment);
+            return true;
+        }).orElseThrow(() -> new ApplicationException(CommentErrorCode.COMMENT_NOT_FOUND));
+    }
+
+    private boolean updatePostCount(String postId, ReactionType reactionType, long delta) {
+        return postRepository.findById(postId).map(post -> {
+            if (reactionType == ReactionType.LIKE) {
+                post.increaseLikeCount(delta);
+            } else if (reactionType == ReactionType.DISLIKE) {
+                post.increaseDislikeCount(delta);
+            }
+            postRepository.saveAndFlush(post);
+            return true;
+        }).orElseThrow(() -> new ApplicationException(PostErrorCode.POST_NOT_FOUND));
+    }
+
 }

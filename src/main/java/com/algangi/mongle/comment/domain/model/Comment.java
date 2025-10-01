@@ -7,13 +7,7 @@ import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.post.domain.model.Post;
 
 import io.hypersistence.utils.hibernate.id.Tsid;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,6 +39,9 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
     @Column(nullable = false)
     @Builder.Default
     private long dislikeCount = 0;
+
+    @Version
+    private Long version;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_comment_id")
@@ -105,13 +102,15 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
     }
 
     public void increaseLikeCount(long delta) {
-        this.likeCount += delta;
-        if (this.likeCount < 0) this.likeCount = 0;
+        if (delta == 0) return;
+        long newCount = this.likeCount + delta;
+        this.likeCount = Math.max(newCount, 0);
     }
 
     public void increaseDislikeCount(long delta) {
-        this.dislikeCount += delta;
-        if (this.dislikeCount < 0) this.dislikeCount = 0;
+        if (delta == 0) return;
+        long newCount = this.dislikeCount + delta;
+        this.dislikeCount = Math.max(newCount, 0);
     }
 
     public void setPost(Post post) {
