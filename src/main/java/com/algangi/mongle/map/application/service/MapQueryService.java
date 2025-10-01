@@ -9,6 +9,7 @@ import com.algangi.mongle.map.presentation.dto.MapObjectsResponse;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.service.MemberFinder;
 import com.algangi.mongle.post.domain.model.Post;
+import com.algangi.mongle.post.domain.model.PostStatus; // PostStatus import 추가
 import com.algangi.mongle.post.domain.repository.PostQueryRepository;
 import com.algangi.mongle.staticCloud.domain.model.StaticCloud;
 import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
@@ -35,7 +36,6 @@ public class MapQueryService {
     private final S2PolygonConverter s2PolygonConverter;
 
     public MapObjectsResponse getMapObjects(MapObjectsRequest request) {
-        // 1. 요청된 위경도 사각 영역을 커버하는 S2 Cell 목록을 가져옵니다.
         List<String> s2cellTokens = s2CellService.getCellsForRect(
             request.swLat(), request.swLng(), request.neLat(), request.neLng()
         );
@@ -44,27 +44,33 @@ public class MapQueryService {
             return MapObjectsResponse.empty();
         }
 
-        // 2. 각 타입의 객체를 DB에서 조회합니다.
         List<Post> grains = postQueryRepository.findGrainsInCells(s2cellTokens);
         List<StaticCloud> staticClouds = staticCloudRepository.findCloudsInCells(s2cellTokens);
         List<DynamicCloud> dynamicClouds = dynamicCloudRepository.findActiveCloudsInCells(
             s2cellTokens);
 
-        // 3. 조회된 객체들에 필요한 추가 정보를 조회합니다.
         Map<String, Member> authors = getAuthors(grains);
         Map<Long, Long> staticCloudPostCounts = getStaticCloudPostCounts(staticClouds);
         Map<Long, Long> dynamicCloudPostCounts = getDynamicCloudPostCounts(dynamicClouds);
 
-        // 4. 조회된 엔티티를 DTO로 변환합니다.
         List<MapObjectsResponse.Grain> grainDtos = grains.stream()
             .map(post -> {
                 Member author = authors.get(post.getAuthorId());
-                String profileImageUrl = (author != null) ? author.getProfileImage() : null;
+
+                String profileImageUrl = (post.getStatus() == PostStatus.ACTIVE && author != null)
+                    ? author.getProfileImage()
+                    : null;
+
+                MapObjectsResponse.Grain.Author authorDto = (author != null)
+                    ? new MapObjectsResponse.Grain.Author(author.getMemberId(),
+                    author.getNickname(), profileImageUrl)
+                    : new MapObjectsResponse.Grain.Author(null, "익명의 몽글러", null);
+
                 return new MapObjectsResponse.Grain(
                     post.getId(),
                     post.getLocation().getLatitude(),
                     post.getLocation().getLongitude(),
-                    profileImageUrl
+                    authorDto
                 );
             })
             .toList();
@@ -120,4 +126,3 @@ public class MapQueryService {
         return postQueryRepository.countPostsByDynamicCloudIds(cloudIds);
     }
 }
-
