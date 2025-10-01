@@ -64,6 +64,7 @@ dependencies {
     implementation("software.amazon.awssdk:cloudfront")
     // redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    testImplementation("it.ozimov:embedded-redis:0.7.3")
     // shedlock
     implementation("net.javacrumbs.shedlock:shedlock-spring:6.10.0")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.10.0")

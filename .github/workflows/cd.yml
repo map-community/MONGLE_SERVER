@@ -45,8 +45,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/career-fit-app:${{ github.sha }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/career-fit-app:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/mongle-app:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/mongle-app:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
