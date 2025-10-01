@@ -21,8 +21,9 @@ public class BlockCommandService {
             throw new IllegalArgumentException("자기 자신을 차단할 수 없습니다.");
         }
 
-        blockRepository.findByBlocker_MemberIdAndBlocked_MemberId(blockerId, blockedId)
-                .ifPresent(block -> { return; });
+        if (blockRepository.findByBlocker_MemberIdAndBlocked_MemberId(blockerId, blockedId).isPresent()) {
+            return;
+        }
 
         Member blocker = memberFinder.getMemberOrThrow(blockerId);
         Member blocked = memberFinder.getMemberOrThrow(blockedId);
