@@ -15,13 +15,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/sign-up")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class SignUpController {
 
     private final SignUpService signUpService;
 
-    @PostMapping
+    @PostMapping("/sign-up")
     public ResponseEntity<ApiResponse<SignUpResponse>> signupMember(
         @Valid @RequestBody SignUpRequest request) {
         return ResponseEntity.ok(ApiResponse.success(signUpService.signUp(request)));

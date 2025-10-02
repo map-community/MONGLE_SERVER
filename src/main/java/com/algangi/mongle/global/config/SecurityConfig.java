@@ -56,9 +56,9 @@ public class SecurityConfig {
             .sessionManagement(
                 session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/reissue", "/api/oauth2/login/",
-                    "/api/oauth2/authorization-url/").permitAll()
-                .anyRequest().authenticated()
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                .anyRequest().permitAll()
             )
             .addFilterBefore(tokenValidationFilter, LogoutFilter.class)
             .addFilterBefore(tokenExceptionFilter, TokenValidationFilter.class)
