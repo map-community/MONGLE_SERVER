@@ -55,8 +55,10 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private CommentStatus status =CommentStatus.ACTIVE;
 
     public static Comment createParentComment(String content, Post post, Member member) {
         Comment comment = Comment.builder()
@@ -92,13 +94,23 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
         return parentComment != null;
     }
 
-    public boolean isDeleted() { return deletedAt != null; }
+    public boolean isDeleted() {
+        return this.status == CommentStatus.DELETED_BY_USER
+                || this.status == CommentStatus.DELETED_BY_ADMIN;
+    }
 
-    public void softDelete() {
-        if (isDeleted()) {
+    public void softDeleteByUser() {
+        if (this.status != CommentStatus.ACTIVE) {
             throw new ApplicationException(CommentErrorCode.ALREADY_DELETED);
         }
-        this.deletedAt = LocalDateTime.now();
+        this.status = CommentStatus.DELETED_BY_USER;
+    }
+
+    public void softDeleteByAdmin() {
+        if (this.status != CommentStatus.ACTIVE) {
+            throw new ApplicationException(CommentErrorCode.ALREADY_DELETED);
+        }
+        this.status = CommentStatus.DELETED_BY_ADMIN;
     }
 
     public void increaseLikeCount(long delta) {

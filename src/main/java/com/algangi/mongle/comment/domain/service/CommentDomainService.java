@@ -17,7 +17,7 @@ public class CommentDomainService {
     }
 
     public void deleteComment(Comment comment) {
-        comment.softDelete();
+        comment.softDeleteByUser();
     }
 
 }

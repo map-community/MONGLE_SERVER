@@ -19,14 +19,13 @@ public class ContentStatsService {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final RedisScript<List> reactionScript;
-    private final RedisScript<Long> decrementScript;
 
     private static final String VIEW_COUNT_KEY_PREFIX = "views::";
     private static final String COMMENT_COUNT_KEY_PREFIX = "comments::";
     private static final String LIKES_COUNT_KEY_PREFIX = "likes::";
     private static final String DISLIKES_COUNT_KEY_PREFIX = "dislikes::";
     private static final String REACTIONS_KEY_PREFIX = "reactions::";
-    private static final String COMMENT_RANKING_KEY_FORMAT = "comments_by_likes::post::"; // 상수 추가
+    private static final String COMMENT_RANKING_KEY_FORMAT = "comments_by_likes::post::";
 
     private String getKey(String prefix, TargetType targetType, String targetId) {
         return prefix + targetType.getLowerCase() + "::" + targetId;

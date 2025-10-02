@@ -4,6 +4,7 @@ import com.algangi.mongle.comment.domain.model.Comment;
 import com.algangi.mongle.comment.domain.service.CommentFinder;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.global.exception.ErrorCode;
+import com.algangi.mongle.member.application.service.ContentManagementService;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.domain.MemberStatus;
 import com.algangi.mongle.member.service.MemberFinder;
@@ -31,6 +32,7 @@ public class ReportCommandService {
     private final MemberFinder memberFinder;
     private final PostFinder postFinder;
     private final CommentFinder commentFinder;
+    private final ContentManagementService contentManagementService;
 
     @Transactional
     public void createReport(String reporterId, ReportCreateRequest request) {
@@ -81,6 +83,13 @@ public class ReportCommandService {
             }));
 
         report.updateStatus(newStatus);
+    }
+
+    @Transactional
+    public void banUser(String memberId) {
+
+        // ban된 사용자의 댓글 처리
+        contentManagementService.processCommentsOfBannedUser(memberId);
     }
 
     private void applySanctionIfNeeded(String targetAuthorId) {
