@@ -9,15 +9,16 @@ import com.algangi.mongle.reaction.domain.model.TargetType;
 import com.algangi.mongle.reaction.domain.repository.ReactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -75,49 +76,54 @@ public class ContentManagementService {
     }
 
     private void cleanupRedisDataForComments(List<String> commentIds, Map<String, Long> postCommentCountDelta, Map<String, List<String>> commentsByPost) {
-        List<String> keysToDelete = new ArrayList<>();
+        redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            // 1. 댓글 관련 키 일괄 삭제
+            if (!commentIds.isEmpty()) {
+                byte[][] keysToDelete = commentIds.stream()
+                        .flatMap(commentId -> Stream.of(
+                                ("likes::comment::" + commentId).getBytes(),
+                                ("dislikes::comment::" + commentId).getBytes(),
+                                ("reactions::comment::" + commentId).getBytes()
+                        ))
+                        .toArray(byte[][]::new);
+                connection.del(keysToDelete);
+            }
 
-        // 1. redis 키 준비
-        for (String commentId : commentIds) {
-            keysToDelete.add("likes::comment::" + commentId);
-            keysToDelete.add("dislikes::comment::" + commentId);
-            keysToDelete.add("reactions::comment::" + commentId);
-        }
+            // 2. 게시글별 댓글 수 감소
+            postCommentCountDelta.forEach((postId, count) -> {
+                String commentCountKey = "comments::post::" + postId;
+                connection.stringCommands().decrBy(commentCountKey.getBytes(), count);
+            });
 
-        // 2. redis 키 일괄 삭제
-        if (!keysToDelete.isEmpty()) {
-            redisTemplate.delete(keysToDelete);
-        }
+            // 3. 댓글 랭킹 정리(좋아요순)
+            commentsByPost.forEach((postId, ids) -> {
+                if (!ids.isEmpty()) {
+                    String rankingKey = "comments_by_likes::post::" + postId;
+                    byte[][] membersToDelete = ids.stream().map(String::getBytes).toArray(byte[][]::new);
+                    connection.zSetCommands().zRem(rankingKey.getBytes(), membersToDelete);
+                }
+            });
 
-        // 3. 게시글별 댓글 수 감소
-        postCommentCountDelta.forEach((postId, count) -> {
-            String commentCountKey = "comments::post::" + postId;
-            redisTemplate.opsForValue().decrement(commentCountKey, count);
-        });
-
-        // 4. 댓글 랭킹(좋아요순) 정리
-        commentsByPost.forEach((postId, ids) -> {
-            String rankingKey = "comments_by_likes::post::" + postId;
-            redisTemplate.opsForZSet().remove(rankingKey, (Object[]) ids.toArray(String[]::new));
+            return null;
         });
     }
 
-    // 게시물과 관련된 redis 키 싹 다 삭제
     private void cleanupRedisDataForPosts(List<String> postIds) {
-        List<String> keysToDelete = new ArrayList<>();
-
-        for (String postId : postIds) {
-            keysToDelete.add("views::post::" + postId);
-            keysToDelete.add("comments::post::" + postId);
-            keysToDelete.add("likes::post::" + postId);
-            keysToDelete.add("dislikes::post::" + postId);
-            keysToDelete.add("reactions::post::" + postId);
-            keysToDelete.add("comments_by_likes::post::" + postId);
-        }
-
-        if (!keysToDelete.isEmpty()) {
-            redisTemplate.delete(keysToDelete);
-        }
+        redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            if (!postIds.isEmpty()) {
+                byte[][] keysToDelete = postIds.stream()
+                        .flatMap(postId -> Stream.of(
+                                ("views::post::" + postId).getBytes(),
+                                ("comments::post::" + postId).getBytes(),
+                                ("likes::post::" + postId).getBytes(),
+                                ("dislikes::post::" + postId).getBytes(),
+                                ("reactions::post::" + postId).getBytes(),
+                                ("comments_by_likes::post::" + postId).getBytes()
+                        ))
+                        .toArray(byte[][]::new);
+                connection.keyCommands().del(keysToDelete);
+            }
+            return null;
+        });
     }
-
 }
