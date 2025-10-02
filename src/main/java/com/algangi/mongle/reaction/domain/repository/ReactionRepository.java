@@ -16,7 +16,7 @@ public interface ReactionRepository extends JpaRepository<Reaction, String> {
             String memberId, String targetId, TargetType targetType
     );
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("DELETE FROM Reaction r " +
             "WHERE r.targetType = :targetType AND r.targetId IN :targetIds")
     void deleteAllByTargetTypeAndTargetIdIn(@Param("targetType") TargetType targetType, @Param("targetIds") List<String> targetIds);
