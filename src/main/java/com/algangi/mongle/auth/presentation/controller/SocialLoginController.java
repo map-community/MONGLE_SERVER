@@ -17,7 +17,7 @@ import com.algangi.mongle.global.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class SocialLoginController {
 
