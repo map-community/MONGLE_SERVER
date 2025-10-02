@@ -68,6 +68,7 @@ jobs:
           script: |
             cd /home/ubuntu/mongle
             echo "${{ secrets.ENV_FILE }}" > .env
+            mkdir -p ./config/keys
             echo "${{ secrets.CLOUDFRONT_PRIVATE_KEY }}" > ./config/keys/private_key.pem
             export DOCKER_IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/mongle-app"
             export IMAGE_TAG="${{ github.sha }}"
