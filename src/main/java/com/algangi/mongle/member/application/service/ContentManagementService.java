@@ -76,31 +76,35 @@ public class ContentManagementService {
     }
 
     private void cleanupRedisDataForComments(List<String> commentIds, Map<String, Long> postCommentCountDelta, Map<String, List<String>> commentsByPost) {
+        var serializer = redisTemplate.getStringSerializer();
+
         redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
             // 1. 댓글 관련 키 일괄 삭제
             if (!commentIds.isEmpty()) {
                 byte[][] keysToDelete = commentIds.stream()
                         .flatMap(commentId -> Stream.of(
-                                ("likes::comment::" + commentId).getBytes(),
-                                ("dislikes::comment::" + commentId).getBytes(),
-                                ("reactions::comment::" + commentId).getBytes()
+                                serializer.serialize("likes::comment::" + commentId),
+                                serializer.serialize("dislikes::comment::" + commentId),
+                                serializer.serialize("reactions::comment::" + commentId)
                         ))
                         .toArray(byte[][]::new);
-                connection.del(keysToDelete);
+                connection.keyCommands().del(keysToDelete);
             }
 
             // 2. 게시글별 댓글 수 감소
             postCommentCountDelta.forEach((postId, count) -> {
-                String commentCountKey = "comments::post::" + postId;
-                connection.stringCommands().decrBy(commentCountKey.getBytes(), count);
+                byte[] commentCountKey = serializer.serialize("comments::post::" + postId);
+                connection.stringCommands().decrBy(commentCountKey, count);
             });
 
-            // 3. 댓글 랭킹 정리(좋아요순)
+            // 3. 댓글 랭킹 정리
             commentsByPost.forEach((postId, ids) -> {
                 if (!ids.isEmpty()) {
-                    String rankingKey = "comments_by_likes::post::" + postId;
-                    byte[][] membersToDelete = ids.stream().map(String::getBytes).toArray(byte[][]::new);
-                    connection.zSetCommands().zRem(rankingKey.getBytes(), membersToDelete);
+                    byte[] rankingKey = serializer.serialize("comments_by_likes::post::" + postId);
+                    byte[][] membersToDelete = ids.stream()
+                            .map(serializer::serialize)
+                            .toArray(byte[][]::new);
+                    connection.zSetCommands().zRem(rankingKey, membersToDelete);
                 }
             });
 
@@ -109,16 +113,18 @@ public class ContentManagementService {
     }
 
     private void cleanupRedisDataForPosts(List<String> postIds) {
+        var serializer = redisTemplate.getStringSerializer();
+
         redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
             if (!postIds.isEmpty()) {
                 byte[][] keysToDelete = postIds.stream()
                         .flatMap(postId -> Stream.of(
-                                ("views::post::" + postId).getBytes(),
-                                ("comments::post::" + postId).getBytes(),
-                                ("likes::post::" + postId).getBytes(),
-                                ("dislikes::post::" + postId).getBytes(),
-                                ("reactions::post::" + postId).getBytes(),
-                                ("comments_by_likes::post::" + postId).getBytes()
+                                serializer.serialize("views::post::" + postId),
+                                serializer.serialize("comments::post::" + postId),
+                                serializer.serialize("likes::post::" + postId),
+                                serializer.serialize("dislikes::post::" + postId),
+                                serializer.serialize("reactions::post::" + postId),
+                                serializer.serialize("comments_by_likes::post::" + postId)
                         ))
                         .toArray(byte[][]::new);
                 connection.keyCommands().del(keysToDelete);
