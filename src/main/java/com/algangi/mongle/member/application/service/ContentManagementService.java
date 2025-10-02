@@ -1,11 +1,9 @@
 package com.algangi.mongle.member.application.service;
 
 import com.algangi.mongle.comment.domain.model.Comment;
-import com.algangi.mongle.comment.domain.model.CommentStatus;
 import com.algangi.mongle.comment.domain.repository.CommentRepository;
 import com.algangi.mongle.post.domain.model.PostStatus;
 import com.algangi.mongle.post.domain.repository.PostRepository;
-import com.algangi.mongle.reaction.domain.model.TargetType;
 import com.algangi.mongle.reaction.domain.repository.ReactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +11,6 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -28,10 +25,10 @@ public class ContentManagementService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final ReactionRepository reactionRepository;
+    private final ContentManagementDbService dbService;
     private final RedisTemplate<String, String> redisTemplate;
 
     @Async("bannedUserContentTaskExecutor")
-    @Transactional
     public void processCommentsOfBannedUser(String bannedMemberId) {
         log.info("Starting async comment processing for banned user: {}", bannedMemberId);
 
@@ -60,9 +57,7 @@ public class ContentManagementService {
                 ));
 
         // 5. DB 업데이트
-        commentRepository.updateStatusForIds(commentIds, CommentStatus.DELETED_BY_ADMIN);
-        postCommentCountDelta.forEach(postRepository::decrementCommentCount);
-        reactionRepository.deleteAllByTargetTypeAndTargetIdIn(TargetType.COMMENT, commentIds);
+        dbService.updateBannedUserCommentsInDb(commentIds, postCommentCountDelta);
 
         // 6. Redis 업데이트
         cleanupRedisDataForComments(commentIds, postCommentCountDelta, commentsByPost);
