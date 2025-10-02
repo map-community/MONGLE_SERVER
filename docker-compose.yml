@@ -46,6 +46,8 @@ services:
     ports:
       - "6379:6379"
     command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
     networks:
       - mongle-net
     healthcheck:
@@ -60,3 +62,4 @@ networks:
 
 volumes:
   db-data:
+  redis-data:

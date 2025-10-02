@@ -26,7 +26,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<Void>> linkSocialAccount(
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable(name = "registrationId") String registrationId,
-        @RequestParam("code") String authorizationCode
+        @RequestParam(name = "code") String authorizationCode
     ) {
         oAuth2Service.linkSocialAccount(userDetails.userId(), registrationId, authorizationCode);
         return ResponseEntity.ok(ApiResponse.success(null));
