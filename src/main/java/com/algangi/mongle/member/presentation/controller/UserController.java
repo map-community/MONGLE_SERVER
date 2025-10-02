@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 
 @RestController
-@RequestMapping("/api/user/me")
+@RequestMapping("/api/v1/user/me")
 @RequiredArgsConstructor
 public class UserController {
 
