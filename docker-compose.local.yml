@@ -14,6 +14,8 @@ services:
     networks:
       - mongle-net
     restart: on-failure
+    volumes:
+      - ./config/keys/private_key.pem:/app/keys/private_key.pem
 
   db:
     image: mysql:8.0
@@ -40,7 +42,7 @@ services:
 
   redis:
     image: redis:7.2-alpine
-    container_name: my-redis
+    container_name: mongle-redis
     ports:
       - "6379:6379"
     command: redis-server --appendonly yes
