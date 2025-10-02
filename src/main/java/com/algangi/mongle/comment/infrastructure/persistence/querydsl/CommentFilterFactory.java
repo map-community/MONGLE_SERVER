@@ -5,9 +5,7 @@ import static com.algangi.mongle.comment.domain.model.QComment.comment;
 import org.springframework.stereotype.Component;
 
 import com.algangi.mongle.comment.domain.model.CommentSort;
-import com.algangi.mongle.comment.domain.model.QComment;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.JPAExpressions;
 
 import java.util.List;
 
@@ -34,19 +32,6 @@ public class CommentFilterFactory {
 
     public BooleanExpression cursorCondition(String cursor, CommentSort sort) {
         return CommentCursorParser.parse(cursor, sort);
-    }
-
-    public BooleanExpression visibleCommentCondition() {
-        QComment reply = new QComment("reply");
-        return comment.deletedAt.isNull()
-                .or(comment.deletedAt.isNotNull()
-                        .and(JPAExpressions.selectOne()
-                                .from(reply)
-                                .where(reply.parentComment.id.eq(comment.id)
-                                        .and(reply.deletedAt.isNull()))
-                                .exists()
-                        )
-                );
     }
 
     public BooleanExpression notInBlockedMemberIds(List<String> blockedMemberIds) {
