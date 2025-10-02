@@ -4,13 +4,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.algangi.mongle.auth.application.service.OAuth2Service;
 import com.algangi.mongle.auth.presentation.dto.AuthorizationUrlResponse;
-import com.algangi.mongle.auth.presentation.dto.SocialLoginRequest;
 import com.algangi.mongle.auth.presentation.dto.TokenInfo;
 import com.algangi.mongle.global.dto.ApiResponse;
 
@@ -33,9 +32,9 @@ public class SocialLoginController {
     @PostMapping("social/{registrationId}/login")
     public ResponseEntity<ApiResponse<TokenInfo>> socialLogin(
         @PathVariable(name = "registrationId") String registrationId,
-        @RequestBody SocialLoginRequest request
+        @RequestParam(name = "code") String authorizationCode
     ) {
-        TokenInfo tokenInfo = oauth2Service.socialLogin(registrationId, request);
+        TokenInfo tokenInfo = oauth2Service.socialLogin(registrationId, authorizationCode);
         return ResponseEntity.ok(ApiResponse.success(tokenInfo));
     }
 }

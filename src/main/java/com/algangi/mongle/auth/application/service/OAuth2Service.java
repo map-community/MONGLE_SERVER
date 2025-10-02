@@ -11,7 +11,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.algangi.mongle.auth.domain.oauth2.OAuth2Provider;
 import com.algangi.mongle.auth.domain.oauth2.OAuth2UserInfo;
 import com.algangi.mongle.auth.exception.AuthErrorCode;
-import com.algangi.mongle.auth.presentation.dto.SocialLoginRequest;
 import com.algangi.mongle.auth.presentation.dto.TokenInfo;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.Member;
@@ -39,12 +38,12 @@ public class OAuth2Service {
         this.authTokenManager = authTokenManager;
     }
 
-    public TokenInfo socialLogin(String registrationId, SocialLoginRequest dto) {
+    public TokenInfo socialLogin(String registrationId, String authorizationCode) {
         OAuth2Provider provider = OAuth2Provider.from(registrationId);
         OAuth2Client client = clients.get(provider);
 
         OAuth2UserInfo userProfile = client.fetchUserInfoWithAuthorizationCode(
-            dto.authorizationCode());
+            authorizationCode);
 
         SocialAccount socialAccount = socialAccountRepository.findBySocialId(
                 SocialId.of(provider, userProfile.providerId()))
