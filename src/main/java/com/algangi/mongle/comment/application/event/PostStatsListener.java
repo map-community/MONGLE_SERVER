@@ -20,10 +20,4 @@ public class PostStatsListener {
         contentStatsService.addCommentToRanking(event.postId(), event.commentId());
     }
 
-    @Async("statsUpdateTaskExecutor")
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleCommentDeletion(CommentDeletedEvent event) {
-        contentStatsService.decrementPostCommentCount(event.postId());
-        contentStatsService.removeCommentFromRanking(event.postId(), event.commentId());
-    }
 }

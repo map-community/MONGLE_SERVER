@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/map")
+@RequestMapping("/api/v1/map")
 @RequiredArgsConstructor
 public class MapController {
 
