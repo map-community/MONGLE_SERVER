@@ -36,4 +36,10 @@ public interface PostRepository extends JpaRepository<Post, String> {
     )
     void incrementViewCount(@Param("postId") String postId);
 
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Post p " +
+            "SET p.commentCount = p.commentCount - :count " +
+            "WHERE p.id = :postId AND p.commentCount >= :count")
+    void decrementCommentCount(@Param("postId") String postId, @Param("count") long count);
+
 }
