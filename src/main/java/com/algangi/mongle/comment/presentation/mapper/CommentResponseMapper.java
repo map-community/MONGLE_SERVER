@@ -3,7 +3,6 @@ package com.algangi.mongle.comment.presentation.mapper;
 import com.algangi.mongle.comment.domain.model.Comment;
 import com.algangi.mongle.comment.presentation.dto.AuthorInfoResponse;
 import com.algangi.mongle.comment.presentation.dto.CommentInfoResponse;
-import com.algangi.mongle.comment.presentation.dto.ReplyInfoResponse;
 import com.algangi.mongle.member.domain.Member;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -42,25 +41,12 @@ public final class CommentResponseMapper {
         );
     }
 
-    public ReplyInfoResponse toReplyInfoResponse(
+    public CommentInfoResponse toCommentInfoResponse(
             Comment reply,
             String currentMemberId,
             long likeCount,
             long dislikeCount) {
-
-        boolean deleted = reply.isDeleted();
-        Member author = reply.getMember();
-
-        return new ReplyInfoResponse(
-                reply.getId(),
-                mapContent(reply, deleted),
-                mapAuthor(author, deleted),
-                mapCount(likeCount, deleted),
-                mapCount(dislikeCount, deleted),
-                reply.getCreatedDate(),
-                mapIsAuthor(author, currentMemberId, deleted),
-                deleted
-        );
+        return toCommentInfoResponse(reply, currentMemberId, false, likeCount, dislikeCount);
     }
 
     private String mapContent(Comment comment, boolean deleted) {
