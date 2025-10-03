@@ -10,7 +10,6 @@ import com.algangi.mongle.comment.infrastructure.persistence.vo.ReplySearchCondi
 import com.algangi.mongle.comment.domain.model.CursorConvertible;
 import com.algangi.mongle.comment.presentation.dto.CommentInfoResponse;
 import com.algangi.mongle.comment.presentation.cursor.CursorInfoResponse;
-import com.algangi.mongle.comment.presentation.dto.ReplyInfoResponse;
 import com.algangi.mongle.comment.domain.repository.CommentQueryRepository;
 import com.algangi.mongle.comment.domain.service.CommentFinder;
 import com.algangi.mongle.comment.presentation.mapper.CommentResponseMapper;

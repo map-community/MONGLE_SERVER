@@ -17,7 +17,6 @@ import com.algangi.mongle.comment.presentation.cursor.CursorInfoResponse;
 import com.algangi.mongle.comment.presentation.dto.CommentCreateRequest;
 import com.algangi.mongle.comment.presentation.dto.CommentInfoResponse;
 import com.algangi.mongle.comment.presentation.dto.CommentQueryRequest;
-import com.algangi.mongle.comment.presentation.dto.ReplyInfoResponse;
 import com.algangi.mongle.comment.presentation.mapper.CommentRequestMapper;
 import com.algangi.mongle.global.dto.ApiResponse;
 
