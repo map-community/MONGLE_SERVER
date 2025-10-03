@@ -84,7 +84,7 @@ public class CommentQueryService {
         return CursorInfoResponse.of(responses, nextCursor, pageResult.hasNext());
     }
 
-    public CursorInfoResponse<ReplyInfoResponse> getRepliesByParent(
+    public CursorInfoResponse<CommentInfoResponse> getRepliesByParent(
             ReplySearchCondition condition, String currentMemberId, int pageSize) {
         // 1. 부모 댓글 존재 확인
         commentFinder.getCommentOrThrow(condition.parentId());
@@ -111,10 +111,10 @@ public class CommentQueryService {
         String nextCursor = createNextCursor(pageResult.content(), pageResult.hasNext(), condition.sort());
 
         // 7. Dto 변환
-        List<ReplyInfoResponse> responses = replies.stream()
+        List<CommentInfoResponse> responses = replies.stream()
                 .map(reply -> {
                     CommentStats stats = statsMap.getOrDefault(reply.getId(), CommentStats.empty());
-                    return commentResponseMapper.toReplyInfoResponse(
+                    return commentResponseMapper.toCommentInfoResponse(
                             reply,
                             currentMemberId,
                             stats.likes(),

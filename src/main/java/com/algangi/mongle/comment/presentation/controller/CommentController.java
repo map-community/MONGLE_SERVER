@@ -45,7 +45,7 @@ public class CommentController {
     }
 
     @GetMapping("/comments/{parentCommentId}/replies")
-    public ResponseEntity<ApiResponse<CursorInfoResponse<ReplyInfoResponse>>> getRepliesByParent(
+    public ResponseEntity<ApiResponse<CursorInfoResponse<CommentInfoResponse>>> getRepliesByParent(
             @PathVariable(name = "parentCommentId") String parentCommentId,
             @ModelAttribute CommentQueryRequest request
     ) {
