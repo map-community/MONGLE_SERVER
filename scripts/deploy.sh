@@ -16,7 +16,12 @@ echo ">>> New Docker Image Pull"
 docker pull $DOCKER_IMAGE_NAME:$IMAGE_TAG
 
 echo ">>> Deploying to $TARGET_CONTAINER on port $TARGET_PORT"
-CONTAINER_NAME=$TARGET_CONTAINER PORT_MAPPING="$TARGET_PORT:8080" docker compose --env-file .env up -d --no-deps app
+{
+  echo ""
+  echo "CONTAINER_NAME=${TARGET_CONTAINER}"
+  echo "PORT_MAPPING=${TARGET_PORT}:8080"
+} >> .env
+docker compose --env-file .env up -d --no-deps app
 
 echo ">>> Health check for new container..."
 for i in {1..10}; do
