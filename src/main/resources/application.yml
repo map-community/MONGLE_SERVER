@@ -45,3 +45,15 @@ mongle:
   batch:
     manual-s2seed:
       enabled: true
+
+management:
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: health
+      path-mapping:
+        health: health
+
+server:
+  forward-headers-strategy: native
