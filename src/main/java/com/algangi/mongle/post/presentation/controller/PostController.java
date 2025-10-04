@@ -59,7 +59,7 @@ public class PostController {
     @DeleteMapping("/posts/{postId}")
     public ResponseEntity<ApiResponse<Void>> deletePost(
         @PathVariable String postId,
-        @RequestParam String memberId // TODO: 인증 기능 도입 시 수정 필요
+        @RequestParam String memberId // TODO: 토큰으로 인증하도록 변경
     ) {
         postCommandService.deletePost(postId, memberId);
         return ResponseEntity.ok(ApiResponse.success());
