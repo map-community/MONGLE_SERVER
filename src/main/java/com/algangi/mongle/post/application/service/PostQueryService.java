@@ -3,6 +3,7 @@ package com.algangi.mongle.post.application.service;
 import com.algangi.mongle.block.application.service.BlockQueryService;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.global.application.service.ViewUrlIssueService;
+import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.global.util.DateTimeUtil;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.service.MemberFinder;
@@ -14,8 +15,11 @@ import com.algangi.mongle.post.domain.model.PostStatus;
 import com.algangi.mongle.post.domain.repository.PostQueryRepository;
 import com.algangi.mongle.post.event.PostViewedEvent;
 import com.algangi.mongle.post.exception.PostErrorCode;
-import com.algangi.mongle.post.presentation.dto.*;
-import com.algangi.mongle.global.exception.ApplicationException;
+import com.algangi.mongle.post.presentation.dto.PostDetailResponse;
+import com.algangi.mongle.post.presentation.dto.PostListRequest;
+import com.algangi.mongle.post.presentation.dto.PostListResponse;
+import com.algangi.mongle.post.presentation.dto.PostSort;
+import com.algangi.mongle.post.presentation.dto.ViewUrlRequest;
 import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
 import com.algangi.mongle.stats.application.dto.PostStats;
 import com.algangi.mongle.stats.application.service.ContentStatsService;
@@ -26,7 +30,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -82,6 +90,12 @@ public class PostQueryService {
 
     public PostDetailResponse getPostDetail(String postId) {
         Post post = postFinder.getPostOrThrow(postId);
+
+        if (post.getStatus() == PostStatus.DELETED_BY_USER
+            || post.getStatus() == PostStatus.DELETED_BY_ADMIN) {
+            return PostDetailResponse.deleted();
+        }
+
         Member author = memberFinder.getMemberOrThrow(post.getAuthorId());
 
         contentStatsService.incrementPostViewCount(postId);
