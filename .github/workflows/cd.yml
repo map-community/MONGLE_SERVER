@@ -83,3 +83,6 @@ jobs:
             export IMAGE_TAG="${{ github.sha }}"
             
             ./deploy.sh
+            
+            echo ">>> Cleaning up old docker images"
+            docker image prune -f

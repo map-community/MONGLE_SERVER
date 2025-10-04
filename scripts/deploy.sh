@@ -22,8 +22,8 @@ docker compose --env-file .env up -d --no-deps app
 
 echo ">>> Health check for new container..."
 for i in {1..10}; do
-  HEALTH_STATUS=$(curl -s http://127.0.0.1:$TARGET_PORT/health)
-  if [ "$HEALTH_STATUS" == "ok" ]; then
+  HEALTH_CHECK_RESPONSE=$(curl -s http://127.0.0.1:$TARGET_PORT/health)
+  if echo "$HEALTH_CHECK_RESPONSE" | grep -q '"status":"UP"'; then
     echo ">>> Health check successful!"
 
     echo ">>> Switching Nginx proxy to port $TARGET_PORT"
