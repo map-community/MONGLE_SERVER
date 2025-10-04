@@ -28,29 +28,24 @@ public class ManualS2SeedRunner implements CommandLineRunner {
     private final JdbcTemplate jdbcTemplate;
 
     private static final int BATCH_SIZE = 500;
-    
     private static final String STATIC_DEFS_CSV = "s2/static_cloud_defs.csv";
-    private static final String CAMPUS_ALL_TOKENS_TXT = "s2/campus_all_tokens.txt";
 
     @Override
     @Transactional
     public void run(String... args) {
-        log.info("ManualS2Seed START");
+        log.info("ManualS2Seed START for Static Clouds");
         Map<String, CloudDef> staticDefs = loadStaticDefsFromCsv(STATIC_DEFS_CSV);
-        Set<String> staticUnion = upsertStaticByName(staticDefs);
-        Set<String> campusAll = loadCampusTokens(CAMPUS_ALL_TOKENS_TXT);
-        upsertDynamicComplement(campusAll, staticUnion);
-        log.info("ManualS2Seed DONE");
+        upsertStaticByName(staticDefs);
+        log.info("ManualS2Seed DONE for Static Clouds");
     }
 
-    private Set<String> upsertStaticByName(Map<String, CloudDef> staticDefs) {
+    private void upsertStaticByName(Map<String, CloudDef> staticDefs) {
         final String sql = """
             INSERT INTO static_cloud_s2_cell (s2_token_id, cloud_id)
             VALUES (?, ?)
             ON DUPLICATE KEY UPDATE cloud_id = VALUES(cloud_id)
             """;
 
-        Set<String> union = new HashSet<>();
         int totalAffected = 0;
 
         for (Map.Entry<String, CloudDef> e : staticDefs.entrySet()) {
@@ -61,7 +56,6 @@ public class ManualS2SeedRunner implements CommandLineRunner {
                 .orElseGet(() -> createStaticCloudSafely(name, def.lat, def.lng));
 
             List<String> tokens = def.tokens;
-            union.addAll(tokens);
 
             for (List<String> batch : partition(tokens, BATCH_SIZE)) {
                 List<Object[]> params = batch.stream()
@@ -75,34 +69,7 @@ public class ManualS2SeedRunner implements CommandLineRunner {
                 tokens.size());
         }
 
-        log.info("ManualS2Seed STATIC unionCount={}, affectedRows~={}", union.size(),
-            totalAffected);
-        return union;
-    }
-
-    private void upsertDynamicComplement(Set<String> campusAll, Set<String> staticUnion) {
-        final String sql = """
-            INSERT INTO dynamic_cloud_s2_cell (s2_token_id, cloud_id)
-            VALUES (?, NULL)
-            ON DUPLICATE KEY UPDATE cloud_id = VALUES(cloud_id)
-            """;
-
-        List<String> complement = campusAll.stream()
-            .filter(t -> !staticUnion.contains(t))
-            .toList();
-
-        int totalAffected = 0;
-
-        for (List<String> batch : partition(complement, BATCH_SIZE)) {
-            List<Object[]> params = batch.stream()
-                .map(t -> new Object[]{t})
-                .collect(Collectors.toList());
-            int[] res = jdbcTemplate.batchUpdate(sql, params);
-            totalAffected += Arrays.stream(res).sum();
-        }
-
-        log.info("ManualS2Seed DYNAMIC complementCount={}, affectedRows~={} (cloud_id=NULL)",
-            complement.size(), totalAffected);
+        log.info("ManualS2Seed STATIC affectedRows~={}", totalAffected);
     }
 
     private StaticCloud createStaticCloudSafely(String name, Double lat, Double lng) {
@@ -146,23 +113,6 @@ public class ManualS2SeedRunner implements CommandLineRunner {
             throw new IllegalStateException("Failed to load " + path, e);
         }
         return map;
-    }
-
-    private static Set<String> loadCampusTokens(String path) {
-        Set<String> set = new LinkedHashSet<>();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(
-            new ClassPathResource(path).getInputStream(), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String token = line.trim();
-                if (!token.isEmpty()) {
-                    set.add(token);
-                }
-            }
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to load " + path, e);
-        }
-        return set;
     }
 
     private static class CloudDef {
