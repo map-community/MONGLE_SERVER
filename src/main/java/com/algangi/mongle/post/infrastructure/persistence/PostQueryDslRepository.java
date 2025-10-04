@@ -2,6 +2,7 @@ package com.algangi.mongle.post.infrastructure.persistence;
 
 import com.algangi.mongle.global.util.ParsingUtil;
 import com.algangi.mongle.post.domain.model.Post;
+import com.algangi.mongle.post.domain.model.PostStatus;
 import com.algangi.mongle.post.domain.repository.PostQueryRepository;
 import com.algangi.mongle.post.presentation.dto.PostListRequest;
 import com.algangi.mongle.post.presentation.dto.PostSort;
@@ -31,6 +32,7 @@ public class PostQueryDslRepository implements PostQueryRepository {
         JPAQuery<Post> query = queryFactory
             .selectFrom(post)
             .where(
+                post.status.eq(PostStatus.ACTIVE),
                 eqPlaceId(request.placeId()),
                 eqCloudId(request.cloudId()),
                 cursorCondition(request.cursor(), request.sortBy()),
@@ -47,6 +49,7 @@ public class PostQueryDslRepository implements PostQueryRepository {
         return queryFactory
             .selectFrom(post)
             .where(
+                post.status.eq(PostStatus.ACTIVE),
                 post.s2TokenId.in(s2cellTokens),
                 post.staticCloudId.isNull(),
                 post.dynamicCloudId.isNull(),
