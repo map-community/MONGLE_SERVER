@@ -42,3 +42,6 @@ mongle:
       private-key-file-path: ${CLOUDFRONT_PRIVATE_KEY_FILE_PATH}
       key-pair-id: ${CLOUDFRONT_KEY_PAIR_ID}
       presigned-url-expiration-minutes: ${GET_PRESIGNED_URL_EXPIRATION_MIN}
+  batch:
+    manual-s2seed:
+      enabled: true
