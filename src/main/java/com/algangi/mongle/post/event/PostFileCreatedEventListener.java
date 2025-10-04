@@ -1,7 +1,13 @@
 package com.algangi.mongle.post.event;
 
-import java.util.List;
-
+import com.algangi.mongle.global.exception.ApplicationException;
+import com.algangi.mongle.global.exception.AwsErrorCode;
+import com.algangi.mongle.post.application.helper.PostFinder;
+import com.algangi.mongle.post.domain.model.Post;
+import com.algangi.mongle.post.domain.model.PostFile;
+import com.algangi.mongle.post.domain.service.PostFileMover;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -9,15 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.algangi.mongle.global.exception.ApplicationException;
-import com.algangi.mongle.global.exception.AwsErrorCode;
-import com.algangi.mongle.post.application.helper.PostFinder;
-import com.algangi.mongle.post.domain.model.Post;
-import com.algangi.mongle.post.domain.model.PostFile;
-import com.algangi.mongle.post.domain.service.PostFileMover;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -31,21 +29,22 @@ public class PostFileCreatedEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleFileCommit(PostFileCreatedEvent event) {
-        if (event.temporaryFileKeys().isEmpty()) {
-            return;
-        }
-
-        log.info("게시물 파일 커밋작업 시작: PostId={}", event.postId());
+        log.info("게시물 파일 커밋/활성화 작업 시작: PostId={}", event.postId());
         try {
             Post post = postFinder.getPostOrThrow(event.postId());
-            List<String> permanentKeys = postFileMover.moveBulkTempToPermanent(event.postId(),
-                event.temporaryFileKeys());
 
-            List<PostFile> postFiles = permanentKeys.stream()
-                .map(PostFile::create)
-                .toList();
+            // 파일이 있는 경우에만 파일 이동 로직 수행
+            if (!event.temporaryFileKeys().isEmpty()) {
+                List<String> permanentKeys = postFileMover.moveBulkTempToPermanent(event.postId(),
+                    event.temporaryFileKeys());
 
-            post.addPostFiles(postFiles);
+                List<PostFile> postFiles = permanentKeys.stream()
+                    .map(PostFile::create)
+                    .toList();
+                post.addPostFiles(postFiles);
+            }
+
+            // 파일 유무와 상관없이 항상 ACTIVE 상태로 변경
             post.markAsActive();
 
         } catch (ApplicationException e) {
