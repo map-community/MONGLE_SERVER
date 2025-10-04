@@ -5,6 +5,7 @@ import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.stats.application.dto.PostStats;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 public record PostDetailResponse(
@@ -40,7 +41,7 @@ public record PostDetailResponse(
             );
         }
     }
-    
+
     public static PostDetailResponse from(Post post, Author authorDto, PostStats stats,
         List<String> photoUrls, List<String> videoUrls) {
         return new PostDetailResponse(
@@ -57,6 +58,24 @@ public record PostDetailResponse(
             post.getLikeCount(),
             post.getDislikeCount(),
             stats.commentCount()
+        );
+    }
+
+    public static PostDetailResponse deleted() {
+        return new PostDetailResponse(
+            null,
+            new Author(null, "알 수 없음", null),
+            "삭제된 게시물입니다.",
+            0.0,
+            0.0,
+            Collections.emptyList(),
+            Collections.emptyList(),
+            null,
+            null,
+            0,
+            0,
+            0,
+            0
         );
     }
 }

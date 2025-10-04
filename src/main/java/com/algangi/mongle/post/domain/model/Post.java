@@ -174,14 +174,27 @@ public class Post extends TimeBaseEntity {
         this.status = PostStatus.ACTIVE;
     }
 
+    public void softDeleteByUser() {
+        if (this.status == PostStatus.DELETED_BY_USER
+            || this.status == PostStatus.DELETED_BY_ADMIN) {
+            return;
+        }
+        this.status = PostStatus.DELETED_BY_USER;
+    }
+
+
     public void increaseLikeCount(long delta) {
         this.likeCount += delta;
-        if (this.likeCount < 0) this.likeCount = 0;
+        if (this.likeCount < 0) {
+            this.likeCount = 0;
+        }
     }
 
     public void increaseDislikeCount(long delta) {
         this.dislikeCount += delta;
-        if (this.dislikeCount < 0) this.dislikeCount = 0;
+        if (this.dislikeCount < 0) {
+            this.dislikeCount = 0;
+        }
     }
 
 }
