@@ -61,8 +61,9 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.yml"
+          source: "docker-compose.yml,scripts/deploy.sh"
           target: "/home/ubuntu/mongle"
+          strip_components: 1
 
       - name: Run Docker Compose on EC2
         uses: appleboy/ssh-action@master
@@ -75,9 +76,10 @@ jobs:
             echo "${{ secrets.ENV_FILE }}" > .env
             mkdir -p ./config/keys
             echo "${{ secrets.CLOUDFRONT_PRIVATE_KEY }}" > ./config/keys/private_key.pem
+            
+            chmod +x ./deploy.sh
+            
             export DOCKER_IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/mongle-app"
             export IMAGE_TAG="${{ github.sha }}"
-            docker pull $DOCKER_IMAGE_NAME:$IMAGE_TAG
-            docker compose --env-file .env pull
-            docker compose --env-file .env down
-            docker compose --env-file .env up -d
+            
+            ./deploy.sh
