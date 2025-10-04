@@ -25,10 +25,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -62,13 +59,12 @@ public class PostQueryService {
         List<String> postIds = postsOnPage.stream().map(Post::getId).toList();
         Map<String, PostStats> statsMap = statsQueryService.getPostStatsMap(postIds);
         Map<String, Member> authors = getAuthors(postsOnPage);
-        Map<String, String> photoUrls = getFirstPhotoUrls(postsOnPage);
+        Map<String, List<String>> photoUrlsMap = getPhotoUrlsForPosts(postsOnPage);
 
         List<PostListResponse.PostSummary> summaries = postsOnPage.stream().map(post -> {
             Member author = authors.get(post.getAuthorId());
-            String photoUrl = photoUrls.get(post.getId());
-            List<String> photoUrlList =
-                photoUrl != null ? List.of(photoUrl) : Collections.emptyList();
+            List<String> photoUrlList = photoUrlsMap.getOrDefault(post.getId(),
+                Collections.emptyList());
             PostStats stats = statsMap.getOrDefault(post.getId(), PostStats.empty());
 
             return PostListResponse.PostSummary.from(post, author, photoUrlList, stats);
@@ -121,34 +117,37 @@ public class PostQueryService {
             .collect(Collectors.toMap(Member::getMemberId, Function.identity()));
     }
 
-    private Map<String, String> getFirstPhotoUrls(List<Post> posts) {
-        Map<String, String> postIdToPhotoKeyMap = posts.stream()
+    private Map<String, List<String>> getPhotoUrlsForPosts(List<Post> posts) {
+        Map<String, List<String>> postIdToPhotoKeysMap = posts.stream()
             .collect(Collectors.toMap(
                 Post::getId,
                 p -> p.getPostFiles().stream()
                     .map(PostFile::getFileKey)
                     .filter(key -> key.startsWith("posts/images/"))
-                    .findFirst()
-                    .orElse(null)
+                    .toList()
             ));
 
-        List<String> distinctPhotoKeys = postIdToPhotoKeyMap.values().stream()
-            .filter(Objects::nonNull)
+        List<String> allDistinctPhotoKeys = postIdToPhotoKeysMap.values().stream()
+            .flatMap(List::stream)
             .distinct()
             .toList();
 
-        if (distinctPhotoKeys.isEmpty()) {
+        if (allDistinctPhotoKeys.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        Map<String, String> photoKeyToUrlMap = issueFileUrlsToMap(distinctPhotoKeys);
+        Map<String, String> photoKeyToUrlMap = issueFileUrlsToMap(allDistinctPhotoKeys);
 
-        return postIdToPhotoKeyMap.entrySet().stream()
-            .filter(entry -> entry.getValue() != null)
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> photoKeyToUrlMap.get(entry.getValue())
-            ));
+        Map<String, List<String>> postIdToPhotoUrlsMap = new HashMap<>();
+        postIdToPhotoKeysMap.forEach((postId, keys) -> {
+            List<String> urls = keys.stream()
+                .map(photoKeyToUrlMap::get)
+                .filter(Objects::nonNull)
+                .toList();
+            postIdToPhotoUrlsMap.put(postId, urls);
+        });
+
+        return postIdToPhotoUrlsMap;
     }
 
     private List<String> issueFileUrls(List<String> fileKeys) {
