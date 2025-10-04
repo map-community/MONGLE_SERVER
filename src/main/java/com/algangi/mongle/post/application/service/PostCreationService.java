@@ -11,6 +11,7 @@ import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.dynamicCloud.domain.service.DynamicCloudFormationService;
 import com.algangi.mongle.global.domain.service.CellService;
+import com.algangi.mongle.member.service.MemberFinder;
 import com.algangi.mongle.post.application.dto.PostCreationCommand;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
@@ -38,9 +39,11 @@ public class PostCreationService {
     private final PostIdService postIdService;
     private final ApplicationEventPublisher eventPublisher;
     private final CellService cellService;
+    private final MemberFinder memberFinder;
 
     @Transactional
-    public PostResponse createPost(PostCreateRequest request) {
+    public PostResponse createPost(PostCreateRequest request, String authorId) {
+        memberFinder.getMemberOrThrow(authorId);
         String postId = postIdService.createId();
         String s2TokenId = cellService.generateS2TokenIdFrom(request.latitude(),
             request.longitude());
@@ -50,7 +53,7 @@ public class PostCreationService {
             Location.create(request.latitude(), request.longitude()),
             s2TokenId,
             request.content(),
-            request.authorId());
+            authorId);
 
         Post createdPost;
         Optional<StaticCloud> staticCloud = staticCloudRepository.findByS2TokenId(s2TokenId);

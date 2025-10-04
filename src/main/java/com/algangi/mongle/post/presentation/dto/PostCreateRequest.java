@@ -16,8 +16,6 @@ public record PostCreateRequest(
     @NotBlank(message = "게시글 내용은 필수값입니다.")
     @Size(max = 2000)
     String content,
-    @NotNull(message = "작성자 ID는 필수값입니다.")
-    String authorId,//인증 도입 시 제거 예정
     List<String> fileKeyList
 ) {
 
