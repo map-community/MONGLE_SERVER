@@ -1,6 +1,7 @@
 package com.algangi.mongle.post.application.service;
 
 import com.algangi.mongle.block.application.service.BlockQueryService;
+import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.global.application.service.ViewUrlIssueService;
 import com.algangi.mongle.global.util.DateTimeUtil;
 import com.algangi.mongle.member.domain.Member;
@@ -12,11 +13,10 @@ import com.algangi.mongle.post.domain.model.PostFile;
 import com.algangi.mongle.post.domain.model.PostStatus;
 import com.algangi.mongle.post.domain.repository.PostQueryRepository;
 import com.algangi.mongle.post.event.PostViewedEvent;
-import com.algangi.mongle.post.presentation.dto.PostDetailResponse;
-import com.algangi.mongle.post.presentation.dto.PostListRequest;
-import com.algangi.mongle.post.presentation.dto.PostListResponse;
-import com.algangi.mongle.post.presentation.dto.PostSort;
-import com.algangi.mongle.post.presentation.dto.ViewUrlRequest;
+import com.algangi.mongle.post.exception.PostErrorCode;
+import com.algangi.mongle.post.presentation.dto.*;
+import com.algangi.mongle.global.exception.ApplicationException;
+import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
 import com.algangi.mongle.stats.application.dto.PostStats;
 import com.algangi.mongle.stats.application.service.ContentStatsService;
 import com.algangi.mongle.stats.application.service.StatsQueryService;
@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.function.Function;
@@ -42,8 +43,12 @@ public class PostQueryService {
     private final ContentStatsService contentStatsService;
     private final StatsQueryService statsQueryService;
     private final BlockQueryService blockQueryService;
+    private final DynamicCloudRepository dynamicCloudRepository;
+    private final StaticCloudRepository staticCloudRepository;
 
     public PostListResponse getPostList(PostListRequest request) {
+        validateCloudExists(request);
+
         List<String> blockedAuthorIds = blockQueryService.getBlockedUserIds(request.memberId());
 
         List<Post> fetchedPosts = postQueryRepository.findPostsByCondition(request,
@@ -106,6 +111,25 @@ public class PostQueryService {
         List<String> videoUrls = issueFileUrls(videoKeys);
 
         return PostDetailResponse.from(post, authorDto, stats, photoUrls, videoUrls);
+    }
+
+    private void validateCloudExists(PostListRequest request) {
+        try {
+            if (StringUtils.hasText(request.cloudId())) {
+                long cloudId = Long.parseLong(request.cloudId());
+                if (!dynamicCloudRepository.existsById(cloudId)) {
+                    throw new ApplicationException(PostErrorCode.CLOUD_NOT_FOUND);
+                }
+            }
+            if (StringUtils.hasText(request.placeId())) {
+                long placeId = Long.parseLong(request.placeId());
+                if (!staticCloudRepository.existsById(placeId)) {
+                    throw new ApplicationException(PostErrorCode.CLOUD_NOT_FOUND);
+                }
+            }
+        } catch (NumberFormatException e) {
+            throw new ApplicationException(PostErrorCode.CLOUD_NOT_FOUND, e);
+        }
     }
 
     private Map<String, Member> getAuthors(List<Post> posts) {
