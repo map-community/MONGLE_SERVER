@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.algangi.mongle.comment.domain.model.Comment;
+import com.algangi.mongle.global.annotation.ULID;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -35,6 +36,7 @@ import lombok.NoArgsConstructor;
 public class Post extends TimeBaseEntity {
 
     @Id
+    @ULID
     private String id;
 
     @Embedded
