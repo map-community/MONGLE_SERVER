@@ -56,7 +56,7 @@ public record CustomUserDetails(
 
     @Override
     public String getUsername() {
-        return String.valueOf(userId);
+        return userId;
     }
 
 }
