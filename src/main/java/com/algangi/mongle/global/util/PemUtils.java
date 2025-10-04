@@ -1,4 +1,4 @@
-package com.algangi.mongle.global.utils;
+package com.algangi.mongle.global.util;
 
 import java.util.Base64;
 
