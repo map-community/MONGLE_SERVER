@@ -1,7 +1,6 @@
 package com.algangi.mongle.staticCloud.repository;
 
 import com.algangi.mongle.staticCloud.domain.model.StaticCloud;
-import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,6 +16,7 @@ public interface StaticCloudRepository extends JpaRepository<StaticCloud, Long> 
     Optional<StaticCloud> findByS2TokenId(@Param("s2TokenId") String s2TokenId);
 
     // 주어진 S2 Cell 목록과 겹치는 정적 구름들을 조회
-    @Query("select distinct sc from StaticCloud sc join sc.s2TokenIds s2TokenId where s2TokenId in :s2cellTokens")
+    @Query("SELECT DISTINCT sc FROM StaticCloud sc JOIN FETCH sc.s2TokenIds WHERE sc.id IN " +
+        "(SELECT s.id FROM StaticCloud s JOIN s.s2TokenIds s2_token WHERE s2_token IN :s2cellTokens)")
     List<StaticCloud> findCloudsInCells(@Param("s2cellTokens") List<String> s2cellTokens);
 }

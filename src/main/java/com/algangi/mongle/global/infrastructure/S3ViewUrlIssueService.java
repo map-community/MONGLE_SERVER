@@ -71,7 +71,7 @@ public class S3ViewUrlIssueService implements ViewUrlIssueService {
                 .build();
 
             String issuedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(signerRequest)
-                .toString();
+                .url();
             LocalDateTime expiresAt = LocalDateTime.now()
                 .plusMinutes(cloudFrontProperties.expirationMinutes());
             return new IssuedUrlInfo(fileKey, issuedUrl, expiresAt);
