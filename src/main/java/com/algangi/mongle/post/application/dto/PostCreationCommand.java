@@ -6,14 +6,13 @@ public record PostCreationCommand(
     String id,
     Location location,
     String s2TokenId,
-    String title,
     String content,
     String authorId
 ) {
 
     public static PostCreationCommand of(String id, Location location, String s2TokenId,
-        String title, String content, String authorId) {
-        return new PostCreationCommand(id, location, s2TokenId, title, content, authorId);
+        String content, String authorId) {
+        return new PostCreationCommand(id, location, s2TokenId, content, authorId);
     }
 
 }

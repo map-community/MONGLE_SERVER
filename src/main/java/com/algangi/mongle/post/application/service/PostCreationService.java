@@ -49,7 +49,6 @@ public class PostCreationService {
             postId,
             Location.create(request.latitude(), request.longitude()),
             s2TokenId,
-            request.title(),
             request.content(),
             request.authorId());
 
@@ -106,7 +105,6 @@ public class PostCreationService {
             command.id(),
             command.location(),
             command.s2TokenId(),
-            command.title(),
             command.content(),
             command.authorId(),
             staticCloud.getId()
@@ -118,7 +116,6 @@ public class PostCreationService {
             command.id(),
             command.location(),
             command.s2TokenId(),
-            command.title(),
             command.content(),
             command.authorId(),
             dynamicCloud.getId()
@@ -130,7 +127,6 @@ public class PostCreationService {
             command.id(),
             command.location(),
             command.s2TokenId(),
-            command.title(),
             command.content(),
             command.authorId()
         );

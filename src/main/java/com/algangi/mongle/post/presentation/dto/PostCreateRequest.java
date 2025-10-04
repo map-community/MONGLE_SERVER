@@ -13,9 +13,6 @@ public record PostCreateRequest(
     Double latitude,
     @NotNull(message = "경도는 필수값입니다.")
     Double longitude,
-    @NotBlank(message = "게시글 제목은 필수값입니다.")
-    @Size(max = 100)
-    String title,
     @NotBlank(message = "게시글 내용은 필수값입니다.")
     @Size(max = 2000)
     String content,
@@ -23,7 +20,7 @@ public record PostCreateRequest(
     String authorId,//인증 도입 시 제거 예정
     List<String> fileKeyList
 ) {
-    
+
     public PostCreateRequest {
         fileKeyList = Optional.ofNullable(fileKeyList).orElse(Collections.emptyList());
     }
