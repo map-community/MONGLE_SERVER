@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.algangi.mongle.comment.domain.model.Comment;
+import com.algangi.mongle.global.annotation.ULID;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -35,6 +36,7 @@ import lombok.NoArgsConstructor;
 public class Post extends TimeBaseEntity {
 
     @Id
+    @ULID
     private String id;
 
     @Embedded
@@ -43,8 +45,7 @@ public class Post extends TimeBaseEntity {
     @Column(nullable = false)
     private String s2TokenId;
 
-    private String title;
-
+    @Column(nullable = false)
     private String content;
 
     @Column(nullable = false)
@@ -97,7 +98,6 @@ public class Post extends TimeBaseEntity {
         String postId,
         Location location,
         String s2TokenId,
-        String title,
         String content,
         String authorId,
         Long staticCloudId
@@ -106,7 +106,6 @@ public class Post extends TimeBaseEntity {
             .id(postId)
             .location(location)
             .s2TokenId(s2TokenId)
-            .title(title)
             .content(content)
             .authorId(authorId)
             .staticCloudId(staticCloudId)
@@ -117,7 +116,6 @@ public class Post extends TimeBaseEntity {
         String postId,
         Location location,
         String s2TokenId,
-        String title,
         String content,
         String authorId,
         Long dynamicCloudId
@@ -126,7 +124,6 @@ public class Post extends TimeBaseEntity {
             .id(postId)
             .location(location)
             .s2TokenId(s2TokenId)
-            .title(title)
             .content(content)
             .authorId(authorId)
             .dynamicCloudId(dynamicCloudId)
@@ -137,7 +134,6 @@ public class Post extends TimeBaseEntity {
         String postId,
         Location location,
         String s2TokenId,
-        String title,
         String content,
         String authorId
     ) {
@@ -145,7 +141,6 @@ public class Post extends TimeBaseEntity {
             .id(postId)
             .location(location)
             .s2TokenId(s2TokenId)
-            .title(title)
             .content(content)
             .authorId(authorId)
             .build();

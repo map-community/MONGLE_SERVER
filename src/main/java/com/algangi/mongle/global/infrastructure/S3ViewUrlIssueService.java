@@ -8,7 +8,7 @@ import com.algangi.mongle.global.application.service.ViewUrlIssueService;
 import com.algangi.mongle.global.config.CloudFrontProperties;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.global.exception.AwsErrorCode;
-import com.algangi.mongle.global.utils.PemUtils;
+import com.algangi.mongle.global.util.PemUtils;
 import com.algangi.mongle.post.application.dto.IssuedUrlInfo;
 import com.algangi.mongle.post.presentation.dto.ViewUrlRequest;
 import com.algangi.mongle.post.presentation.dto.ViewUrlResponse;
