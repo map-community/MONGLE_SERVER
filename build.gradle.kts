@@ -76,6 +76,8 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-gson:0.12.6")
     // h2
     testImplementation("com.h2database:h2")
+    // spring actuator
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 }
 
 tasks.withType<Test> {
