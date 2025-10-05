@@ -1,16 +1,13 @@
 package com.algangi.mongle.post.application.service;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.dynamicCloud.domain.service.DynamicCloudFormationService;
 import com.algangi.mongle.global.domain.service.CellService;
+import com.algangi.mongle.global.exception.ApplicationException;
+import com.algangi.mongle.member.domain.Member;
+import com.algangi.mongle.member.domain.MemberStatus;
+import com.algangi.mongle.member.exception.MemberErrorCode;
 import com.algangi.mongle.member.service.MemberFinder;
 import com.algangi.mongle.post.application.dto.PostCreationCommand;
 import com.algangi.mongle.post.domain.model.Location;
@@ -23,8 +20,13 @@ import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
 import com.algangi.mongle.post.presentation.dto.PostResponse;
 import com.algangi.mongle.staticCloud.domain.model.StaticCloud;
 import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +45,11 @@ public class PostCreationService {
 
     @Transactional
     public PostResponse createPost(PostCreateRequest request, String authorId) {
-        memberFinder.getMemberOrThrow(authorId);
+        Member author = memberFinder.getMemberOrThrow(authorId);
+        if (author.getStatus() == MemberStatus.BANNED) {
+            throw new ApplicationException(MemberErrorCode.MEMBER_IS_BANNED);
+        }
+
         String postId = postIdService.createId();
         String s2TokenId = cellService.generateS2TokenIdFrom(request.latitude(),
             request.longitude());
@@ -134,5 +140,4 @@ public class PostCreationService {
             command.authorId()
         );
     }
-
 }

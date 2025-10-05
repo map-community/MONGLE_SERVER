@@ -1,17 +1,15 @@
 package com.algangi.mongle.member.service;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.exception.MemberErrorCode;
 import com.algangi.mongle.member.repository.MemberRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +21,13 @@ public class MemberFinder {
     public Member getMemberOrThrow(String memberId) {
         validateMemberId(memberId);
         return memberRepository.findById(memberId)
+            .orElseThrow(() -> new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Member getMemberWithLockOrThrow(String memberId) {
+        validateMemberId(memberId);
+        return memberRepository.findByIdWithLock(memberId)
             .orElseThrow(() -> new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
 
@@ -38,6 +43,4 @@ public class MemberFinder {
             throw new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND);
         }
     }
-
 }
-

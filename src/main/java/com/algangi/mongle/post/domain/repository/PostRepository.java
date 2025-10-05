@@ -1,19 +1,18 @@
 package com.algangi.mongle.post.domain.repository;
 
-import java.util.List;
-
+import com.algangi.mongle.post.domain.model.Post;
+import com.algangi.mongle.post.domain.model.PostStatus;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
-
-import com.algangi.mongle.post.domain.model.Post;
-
-import jakarta.persistence.LockModeType;
-import jakarta.persistence.QueryHint;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, String> {
 
@@ -27,19 +26,24 @@ public interface PostRepository extends JpaRepository<Post, String> {
 
     List<Post> findByDynamicCloudIdIn(List<Long> dynamicCloudIds);
 
+    List<Post> findAllByAuthorIdAndStatusIn(String authorId, List<PostStatus> statuses);
+
     @Modifying(flushAutomatically = true)
     @Transactional
     @Query(
-            "UPDATE Post p " +
-                    "SET p.viewCount = p.viewCount + 1 " +
-                    "WHERE p.id = :postId"
+        "UPDATE Post p " +
+            "SET p.viewCount = p.viewCount + 1 " +
+            "WHERE p.id = :postId"
     )
     void incrementViewCount(@Param("postId") String postId);
 
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Post p " +
-            "SET p.commentCount = p.commentCount - :count " +
-            "WHERE p.id = :postId AND p.commentCount >= :count")
+        "SET p.commentCount = p.commentCount - :count " +
+        "WHERE p.id = :postId AND p.commentCount >= :count")
     void decrementCommentCount(@Param("postId") String postId, @Param("count") long count);
 
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Post p SET p.status = :status WHERE p.id IN :ids")
+    void updateStatusForIds(@Param("ids") List<String> ids, @Param("status") PostStatus status);
 }

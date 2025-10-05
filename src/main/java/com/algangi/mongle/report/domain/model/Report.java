@@ -10,7 +10,7 @@ import lombok.*;
 @Table(name = "report", uniqueConstraints = {
     @UniqueConstraint(
         name = "uk_report_reporter_target",
-        columnNames = {"reporter_id", "targetId", "targetType"}
+        columnNames = {"reporter_id", "target_id", "target_type"}
     )
 })
 @Getter
@@ -27,11 +27,11 @@ public class Report extends CreatedDateBaseEntity {
     @JoinColumn(name = "reporter_id", nullable = false)
     private Member reporter;
 
-    @Column(nullable = false)
+    @Column(name = "target_id", nullable = false)
     private String targetId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "target_type", nullable = false)
     private ReportedTargetType targetType;
 
     @Column(nullable = false)
