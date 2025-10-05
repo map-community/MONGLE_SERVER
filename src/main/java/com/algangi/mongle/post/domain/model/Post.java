@@ -1,14 +1,27 @@
 package com.algangi.mongle.post.domain.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.algangi.mongle.comment.domain.model.Comment;
 import com.algangi.mongle.global.annotation.ULID;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
-import jakarta.persistence.*;
-import lombok.*;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "post")
@@ -59,10 +72,7 @@ public class Post extends TimeBaseEntity {
     @Builder.Default
     private PostStatus status = PostStatus.UPLOADING;
 
-    @ElementCollection
-    @CollectionTable(name = "post_file",
-        joinColumns = @JoinColumn(name = "post_id"))
-    @OrderColumn(name = "list_idx")
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<PostFile> postFiles = new ArrayList<>();
 
@@ -135,12 +145,17 @@ public class Post extends TimeBaseEntity {
     }
 
     public void addPostFiles(List<PostFile> postFiles) {
-        this.postFiles.addAll(postFiles);
+        postFiles.forEach(this::addPostFile);
     }
 
     public void changePostFiles(List<PostFile> postFiles) {
         this.postFiles.clear();
-        this.postFiles.addAll(postFiles);
+        addPostFiles(postFiles);
+    }
+
+    public void addPostFile(PostFile postFile) {
+        this.postFiles.add(postFile);
+        postFile.setPost(this);
     }
 
     public void addComment(Comment comment) {
