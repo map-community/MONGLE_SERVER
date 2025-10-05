@@ -23,30 +23,24 @@ public final class CommentResponseMapper {
             String currentMemberId,
             boolean hasReplies,
             long likeCount,
-            long dislikeCount) {
+            long dislikeCount,
+            String myReaction) {
 
-        boolean deleted = comment.isDeleted();
+        boolean isDeleted = comment.isDeleted();
         Member author = comment.getMember();
 
-        return new CommentInfoResponse(
-                comment.getId(),
-                mapContent(comment, deleted),
-                mapAuthor(author, deleted),
-                mapCount(likeCount, deleted),
-                mapCount(dislikeCount, deleted),
-                comment.getCreatedDate(),
-                mapIsAuthor(author, currentMemberId, deleted),
-                deleted,
-                hasReplies
-        );
-    }
-
-    public CommentInfoResponse toCommentInfoResponse(
-            Comment reply,
-            String currentMemberId,
-            long likeCount,
-            long dislikeCount) {
-        return toCommentInfoResponse(reply, currentMemberId, false, likeCount, dislikeCount);
+        return CommentInfoResponse.builder()
+                .commentId(comment.getId())
+                .content(mapContent(comment, isDeleted))
+                .author(mapAuthor(author, isDeleted))
+                .likeCount(mapCount(likeCount, isDeleted))
+                .dislikeCount(mapCount(dislikeCount, isDeleted))
+                .createdAt(comment.getCreatedDate())
+                .isAuthor(mapIsAuthor(author, currentMemberId, isDeleted))
+                .isDeleted(isDeleted)
+                .hasReplies(hasReplies)
+                .myReaction(mapMyReaction(myReaction, isDeleted))
+                .build();
     }
 
     private String mapContent(Comment comment, boolean deleted) {
@@ -73,6 +67,10 @@ public final class CommentResponseMapper {
 
     private long mapCount(long count, boolean deleted) {
         return deleted ? 0 : count;
+    }
+
+    private String mapMyReaction(String myReaction, boolean isDeleted) {
+        return isDeleted ? null : myReaction;
     }
 
 }
