@@ -57,10 +57,10 @@ public class AdminAccountInitializer implements CommandLineRunner {
                     passwordEncoder.encode(adminInitialPassword)
             );
             memberRepository.saveAndFlush(adminMember);
+            log.info("'{}' 관리자 계정 생성 완료 (ID: {})", admin.nickname(), admin.id());
+        } else {
             log.info("'{}' 관리자 계정이 이미 존재합니다. (ID: {} 또는 Email: {})",
                                      admin.nickname(), admin.id(), admin.email());
-        } else {
-            log.info("'{}' 관리자 계정이 이미 존재합니다.", admin.email());
         }
     }
 }
