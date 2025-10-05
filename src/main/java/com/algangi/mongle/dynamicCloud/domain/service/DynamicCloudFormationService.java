@@ -1,17 +1,20 @@
 package com.algangi.mongle.dynamicCloud.domain.service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+import org.springframework.stereotype.Service;
+
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.global.domain.service.CellService;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -61,17 +64,25 @@ public class DynamicCloudFormationService {
             .orElse(newCloud);
 
         List<DynamicCloud> cloudsToBeMerged = allRelatedClouds.stream()
-            .filter(cloud -> !cloud.getId().equals(oldestCloud.getId()))
+            .filter(cloud -> cloud != oldestCloud)
             .toList();
 
         if (cloudsToBeMerged.isEmpty()) {
             return oldestCloud;
         }
 
-        List<Long> cloudIdsToBeMerged = cloudsToBeMerged.stream().map(DynamicCloud::getId).toList();
-        List<Post> postsToReassign = postRepository.findByDynamicCloudIdIn(cloudIdsToBeMerged);
+        List<Long> persistedCloudIdsToReassign = cloudsToBeMerged.stream()
+            .map(DynamicCloud::getId)
+            .filter(Objects::nonNull) // newCloud의 null ID는 여기서 거름
+            .toList();
+
+        List<Post> postsToReassign = new ArrayList<>();
+        if (!persistedCloudIdsToReassign.isEmpty()) {
+            postsToReassign = postRepository.findByDynamicCloudIdIn(persistedCloudIdsToReassign);
+        }
 
         postsToReassign.forEach(post -> post.assignToDynamicCloud(oldestCloud.getId()));
+
         cloudsToBeMerged.forEach(oldestCloud::mergeWith);
 
         postRepository.saveAll(postsToReassign);

@@ -1,5 +1,6 @@
 package com.algangi.mongle.dynamicCloud.domain.model;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import com.algangi.mongle.global.entity.CreatedDateBaseEntity;
@@ -14,7 +15,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinColumns;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -49,11 +49,13 @@ public class DynamicCloud extends CreatedDateBaseEntity {
 
     public static DynamicCloud create(Set<String> s2TokenIds) {
         validateS2TokenIds(s2TokenIds);
-        return DynamicCloud.builder().build();
+        return DynamicCloud.builder()
+            .s2TokenIds(new HashSet<>(s2TokenIds))
+            .build();
     }
 
     private static void validateS2TokenIds(Set<String> s2TokenIds) {
-        if(s2TokenIds == null || s2TokenIds.isEmpty()) {
+        if (s2TokenIds == null || s2TokenIds.isEmpty()) {
             throw new IllegalArgumentException("동적 구름 생성 시 S2 Cell 토큰 값이 존재해야합니다.");
         }
     }
