@@ -1,17 +1,17 @@
 package com.algangi.mongle.member.service;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.exception.MemberErrorCode;
 import com.algangi.mongle.member.repository.MemberRepository;
-
+import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +21,13 @@ public class MemberFinder {
     private final MemberRepository memberRepository;
 
     public Member getMemberOrThrow(String memberId) {
+        validateMemberId(memberId);
+        return memberRepository.findById(memberId)
+            .orElseThrow(() -> new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    public Member getMemberWithLockOrThrow(String memberId) {
         validateMemberId(memberId);
         return memberRepository.findById(memberId)
             .orElseThrow(() -> new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND));
@@ -38,6 +45,4 @@ public class MemberFinder {
             throw new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND);
         }
     }
-
 }
-

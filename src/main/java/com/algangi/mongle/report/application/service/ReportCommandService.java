@@ -87,7 +87,6 @@ public class ReportCommandService {
 
     @Transactional
     public void banUser(String memberId) {
-
         // ban된 사용자의 댓글 처리
         contentManagementService.processCommentsOfBannedUser(memberId);
     }
@@ -97,7 +96,7 @@ public class ReportCommandService {
             ReportStatus.RECEIVED);
 
         if (reportCount >= SANCTION_THRESHOLD) {
-            Member targetAuthor = memberFinder.getMemberOrThrow(targetAuthorId);
+            Member targetAuthor = memberFinder.getMemberWithLockOrThrow(targetAuthorId);
             if (targetAuthor.getStatus() == MemberStatus.ACTIVE) {
                 targetAuthor.ban();
             }
