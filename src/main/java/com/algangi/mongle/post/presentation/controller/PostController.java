@@ -54,8 +54,10 @@ public class PostController {
     // 게시글 상세 조회
     @GetMapping("/posts/{postId}")
     public ResponseEntity<ApiResponse<PostDetailResponse>> getPostDetail(
-        @PathVariable String postId) {
-        PostDetailResponse response = postQueryService.getPostDetail(postId);
+            @PathVariable String postId,
+            @AuthenticationPrincipal CustomUserDetails user) {
+        String memberId = (user != null) ? user.userId() : null;
+        PostDetailResponse response = postQueryService.getPostDetail(postId, memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -20,6 +20,9 @@ import com.algangi.mongle.post.presentation.dto.PostListRequest;
 import com.algangi.mongle.post.presentation.dto.PostListResponse;
 import com.algangi.mongle.post.presentation.dto.PostSort;
 import com.algangi.mongle.post.presentation.dto.ViewUrlRequest;
+import com.algangi.mongle.reaction.application.service.ReactionQueryService;
+import com.algangi.mongle.reaction.domain.model.ReactionType;
+import com.algangi.mongle.reaction.domain.model.TargetType;
 import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
 import com.algangi.mongle.stats.application.dto.PostStats;
 import com.algangi.mongle.stats.application.service.ContentStatsService;
@@ -53,6 +56,7 @@ public class PostQueryService {
     private final BlockQueryService blockQueryService;
     private final DynamicCloudRepository dynamicCloudRepository;
     private final StaticCloudRepository staticCloudRepository;
+    private final ReactionQueryService reactionQueryService;
 
     public PostListResponse getPostList(PostListRequest request) {
         validateCloudExists(request);
@@ -74,13 +78,21 @@ public class PostQueryService {
         Map<String, Member> authors = getAuthors(postsOnPage);
         Map<String, List<String>> photoUrlsMap = getPhotoUrlsForPosts(postsOnPage);
 
+        Map<String, ReactionType> myReactionsMap = reactionQueryService.getMyReactions(
+                TargetType.POST,
+                postIds,
+                request.memberId()
+        );
+
         List<PostListResponse.PostSummary> summaries = postsOnPage.stream().map(post -> {
             Member author = authors.get(post.getAuthorId());
             List<String> photoUrlList = photoUrlsMap.getOrDefault(post.getId(),
                 Collections.emptyList());
             PostStats stats = statsMap.getOrDefault(post.getId(), PostStats.empty());
+            ReactionType myReaction = myReactionsMap.get(post.getId());
+            String myReactionStr = (myReaction != null) ? myReaction.name() : null;
 
-            return PostListResponse.PostSummary.from(post, author, photoUrlList, stats);
+            return PostListResponse.PostSummary.from(post, author, photoUrlList, stats, myReactionStr);
         }).toList();
 
         String nextCursor = createNextCursor(postsOnPage, hasNext, request.sortBy());
@@ -88,7 +100,7 @@ public class PostQueryService {
         return new PostListResponse(summaries, nextCursor, hasNext);
     }
 
-    public PostDetailResponse getPostDetail(String postId) {
+    public PostDetailResponse getPostDetail(String postId, String currentMemberId) {
         Post post = postFinder.getPostOrThrow(postId);
 
         if (post.getStatus() == PostStatus.DELETED_BY_USER
@@ -103,6 +115,14 @@ public class PostQueryService {
 
         PostStats stats = statsQueryService.getPostStatsMap(List.of(postId))
             .getOrDefault(postId, PostStats.empty());
+
+        Map<String, ReactionType> myReactionsMap = reactionQueryService.getMyReactions(
+                TargetType.POST,
+                List.of(postId),
+                currentMemberId
+        );
+        ReactionType myReaction = myReactionsMap.get(postId);
+        String myReactionStr = (myReaction != null) ? myReaction.name() : null;
 
         String profileImageUrl =
             (post.getStatus() == PostStatus.ACTIVE) ? author.getProfileImage() : null;
@@ -124,7 +144,7 @@ public class PostQueryService {
         List<String> photoUrls = issueFileUrls(photoKeys);
         List<String> videoUrls = issueFileUrls(videoKeys);
 
-        return PostDetailResponse.from(post, authorDto, stats, photoUrls, videoUrls);
+        return PostDetailResponse.from(post, authorDto, stats, photoUrls, videoUrls, myReactionStr);
     }
 
     private void validateCloudExists(PostListRequest request) {
