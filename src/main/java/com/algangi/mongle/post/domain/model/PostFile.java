@@ -1,24 +1,36 @@
 package com.algangi.mongle.post.domain.model;
 
-import java.util.Objects;
+import com.algangi.mongle.global.annotation.ULID;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Embeddable
+@Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Getter
 public class PostFile {
 
+    @Id
+    @ULID
+    private String id;
+
     @Column(nullable = false)
-    String fileKey;
+    private String fileKey;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
+    private Post post;
 
     public static PostFile create(String fileKey) {
         validatePostFile(fileKey);
@@ -33,16 +45,8 @@ public class PostFile {
         }
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof PostFile postFile)) {
-            return false;
-        }
-        return Objects.equals(fileKey, postFile.fileKey);
+    protected void setPost(Post post) {
+        this.post = post;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(fileKey);
-    }
 }
