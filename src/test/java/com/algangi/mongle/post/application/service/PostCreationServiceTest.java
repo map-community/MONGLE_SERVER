@@ -144,7 +144,7 @@ class PostCreationServiceTest {
             when(staticCloudRepository.findByS2TokenId(S2_TOKEN_ID)).thenReturn(Optional.empty());
             when(dynamicCloudRepository.findActiveByS2TokenId(S2_TOKEN_ID)).thenReturn(
                 Optional.empty());
-            Post existingPost = Post.createStandalone("existing-post", Location.create(35.0, 128.0),
+            Post existingPost = Post.createStandalone(Location.create(35.0, 128.0),
                 S2_TOKEN_ID, "content", "author");
             when(postRepository.findByS2TokenIdWithLock(S2_TOKEN_ID)).thenReturn(
                 List.of(existingPost));
@@ -173,9 +173,9 @@ class PostCreationServiceTest {
             when(dynamicCloudRepository.findActiveByS2TokenId(S2_TOKEN_ID)).thenReturn(
                 Optional.empty());
 
-            Post post1 = Post.createStandalone("p1", Location.create(35.0, 128.0), S2_TOKEN_ID,
+            Post post1 = Post.createStandalone(Location.create(35.0, 128.0), S2_TOKEN_ID,
                 "c1", "a1");
-            Post post2 = Post.createStandalone("p2", Location.create(35.0, 128.0), S2_TOKEN_ID,
+            Post post2 = Post.createStandalone(Location.create(35.0, 128.0), S2_TOKEN_ID,
                 "c2", "a2");
             List<Post> existingPosts = List.of(post1, post2);
 

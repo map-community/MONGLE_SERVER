@@ -1,5 +1,12 @@
 package com.algangi.mongle.post.application.service;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.dynamicCloud.domain.service.DynamicCloudFormationService;
@@ -14,22 +21,18 @@ import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
 import com.algangi.mongle.post.domain.service.PostFileCommitValidationService;
-import com.algangi.mongle.post.domain.service.PostIdService;
 import com.algangi.mongle.post.event.PostFileCreatedEvent;
 import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
 import com.algangi.mongle.post.presentation.dto.PostResponse;
 import com.algangi.mongle.staticCloud.domain.model.StaticCloud;
 import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostCreationService {
 
     private static final int DYNAMIC_CLOUD_CREATION_THRESHOLD = 2;
@@ -38,7 +41,6 @@ public class PostCreationService {
     private final PostRepository postRepository;
     private final DynamicCloudFormationService dynamicCloudFormationService;
     private final PostFileCommitValidationService postFileCommitValidationService;
-    private final PostIdService postIdService;
     private final ApplicationEventPublisher eventPublisher;
     private final CellService cellService;
     private final MemberFinder memberFinder;
@@ -50,12 +52,10 @@ public class PostCreationService {
             throw new ApplicationException(MemberErrorCode.MEMBER_IS_BANNED);
         }
 
-        String postId = postIdService.createId();
         String s2TokenId = cellService.generateS2TokenIdFrom(request.latitude(),
             request.longitude());
 
         PostCreationCommand command = PostCreationCommand.of(
-            postId,
             Location.create(request.latitude(), request.longitude()),
             s2TokenId,
             request.content(),
@@ -111,7 +111,6 @@ public class PostCreationService {
     //게시물 생성 헬퍼 메서드
     private Post createPostInStaticCloud(PostCreationCommand command, StaticCloud staticCloud) {
         return Post.createInStaticCloud(
-            command.id(),
             command.location(),
             command.s2TokenId(),
             command.content(),
@@ -122,7 +121,6 @@ public class PostCreationService {
 
     private Post createPostInDynamicCloud(PostCreationCommand command, DynamicCloud dynamicCloud) {
         return Post.createInDynamicCloud(
-            command.id(),
             command.location(),
             command.s2TokenId(),
             command.content(),
@@ -133,7 +131,6 @@ public class PostCreationService {
 
     private Post createStandalonePost(PostCreationCommand command) {
         return Post.createStandalone(
-            command.id(),
             command.location(),
             command.s2TokenId(),
             command.content(),

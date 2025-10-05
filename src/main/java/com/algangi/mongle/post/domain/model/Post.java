@@ -88,7 +88,6 @@ public class Post extends TimeBaseEntity {
     private List<Comment> comments = new ArrayList<>();
 
     public static Post createInStaticCloud(
-        String postId,
         Location location,
         String s2TokenId,
         String content,
@@ -96,7 +95,6 @@ public class Post extends TimeBaseEntity {
         Long staticCloudId
     ) {
         return Post.builder()
-            .id(postId)
             .location(location)
             .s2TokenId(s2TokenId)
             .content(content)
@@ -106,7 +104,6 @@ public class Post extends TimeBaseEntity {
     }
 
     public static Post createInDynamicCloud(
-        String postId,
         Location location,
         String s2TokenId,
         String content,
@@ -114,7 +111,6 @@ public class Post extends TimeBaseEntity {
         Long dynamicCloudId
     ) {
         return Post.builder()
-            .id(postId)
             .location(location)
             .s2TokenId(s2TokenId)
             .content(content)
@@ -124,14 +120,12 @@ public class Post extends TimeBaseEntity {
     }
 
     public static Post createStandalone(
-        String postId,
         Location location,
         String s2TokenId,
         String content,
         String authorId
     ) {
         return Post.builder()
-            .id(postId)
             .location(location)
             .s2TokenId(s2TokenId)
             .content(content)

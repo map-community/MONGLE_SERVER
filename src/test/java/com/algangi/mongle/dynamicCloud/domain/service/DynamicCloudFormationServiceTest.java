@@ -28,6 +28,7 @@ import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloudStatus;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.global.domain.service.CellService;
+import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
 
@@ -73,7 +74,9 @@ class DynamicCloudFormationServiceTest {
             when(dynamicCloudRepository.findActiveCloudsInCells(new ArrayList<>(adjacentCells)))
                 .thenReturn(Collections.emptyList());
 
-            Post newPost = Post.createStandalone("newPostId", null, S2_TOKEN_ID, "content",
+            // [수정] Post 생성 시 postId 파라미터를 제거하고 Location 객체를 생성하여 전달
+            Post newPost = Post.createStandalone(Location.create(35.0, 128.0), S2_TOKEN_ID,
+                "content",
                 "author");
             List<Post> existingPostsInCell = new ArrayList<>(List.of(newPost));
 
@@ -97,7 +100,6 @@ class DynamicCloudFormationServiceTest {
         @DisplayName("인접 구름이 존재할 경우 가장 오래된 구름으로 병합")
         void createDynamicCloud_WhenAdjacentCloudsExist_MergesToOldest() {
             // given
-            // @Spy: 실제 객체를 사용하되, 일부 메서드는 Mocking. 여기서는 실제 mergeWith 로직을 테스트하기 위해 사용
             DynamicCloud oldestCloud = DynamicCloud.create(Set.of("cell_B"));
             ReflectionTestUtils.setField(oldestCloud, "id", 1L);
             ReflectionTestUtils.setField(oldestCloud, "createdDate",
@@ -114,12 +116,16 @@ class DynamicCloudFormationServiceTest {
                 .thenReturn(List.of(oldestCloud, youngerCloud));
 
             // 병합될 구름(youngerCloud)에 속한 게시물들
-            Post postToReassign = Post.createInDynamicCloud("p1", null, "cell_C", "c1", "a1", 2L);
+            // [수정] Post 생성 시 postId 파라미터를 제거하고 Location 객체를 생성하여 전달
+            Post postToReassign = Post.createInDynamicCloud(Location.create(35.1, 128.1), "cell_C",
+                "c1", "a1", 2L);
             when(postRepository.findByDynamicCloudIdIn(List.of(2L))).thenReturn(
                 List.of(postToReassign));
 
             // 새로 생성되는 셀(cell_A)에 속한 게시물
-            Post newPost = Post.createStandalone("p2", null, S2_TOKEN_ID, "c2", "a2");
+            // [수정] Post 생성 시 postId 파라미터를 제거하고 Location 객체를 생성하여 전달
+            Post newPost = Post.createStandalone(Location.create(35.0, 128.0), S2_TOKEN_ID, "c2",
+                "a2");
             List<Post> existingPostsInCell = List.of(newPost);
 
             // when

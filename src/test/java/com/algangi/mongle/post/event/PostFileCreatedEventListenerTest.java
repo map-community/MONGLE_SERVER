@@ -42,7 +42,7 @@ class PostFileCreatedEventListenerTest {
     @Mock
     private PostFinder postFinder;
     @Spy
-    private Post post = Post.createStandalone("test-post-id", null, "s2-token", "content",
+    private Post post = Post.createStandalone(null, "s2-token", "content",
         "author");
 
     @BeforeEach

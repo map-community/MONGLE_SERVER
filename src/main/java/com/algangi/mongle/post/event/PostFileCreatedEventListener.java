@@ -1,13 +1,7 @@
 package com.algangi.mongle.post.event;
 
-import com.algangi.mongle.global.exception.ApplicationException;
-import com.algangi.mongle.global.exception.AwsErrorCode;
-import com.algangi.mongle.post.application.helper.PostFinder;
-import com.algangi.mongle.post.domain.model.Post;
-import com.algangi.mongle.post.domain.model.PostFile;
-import com.algangi.mongle.post.domain.service.PostFileMover;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -15,7 +9,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import java.util.List;
+import com.algangi.mongle.global.exception.ApplicationException;
+import com.algangi.mongle.global.exception.AwsErrorCode;
+import com.algangi.mongle.post.application.helper.PostFinder;
+import com.algangi.mongle.post.domain.model.Post;
+import com.algangi.mongle.post.domain.model.PostFile;
+import com.algangi.mongle.post.domain.service.PostFileMover;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
