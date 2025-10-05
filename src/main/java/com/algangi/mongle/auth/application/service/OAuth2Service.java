@@ -38,6 +38,7 @@ public class OAuth2Service {
         this.authTokenManager = authTokenManager;
     }
 
+    @Transactional
     public TokenInfo socialLogin(String registrationId, String authorizationCode) {
         OAuth2Provider provider = OAuth2Provider.from(registrationId);
         OAuth2Client client = clients.get(provider);
