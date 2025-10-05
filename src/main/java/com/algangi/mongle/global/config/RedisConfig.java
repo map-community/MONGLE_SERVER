@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -64,5 +65,11 @@ public class RedisConfig {
         redisScript.setScriptSource(new ResourceScriptSource(scriptResource));
         redisScript.setResultType(Long.class);
         return redisScript;
+    }
+
+    @Bean
+    public RedisScript<List> getReactionsScript() {
+        Resource scriptSource = new ClassPathResource("redis/get_reactions.lua");
+        return RedisScript.of(scriptSource, List.class);
     }
 }
