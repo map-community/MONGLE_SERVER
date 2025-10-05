@@ -24,6 +24,7 @@ public class MemberFinder {
             .orElseThrow(() -> new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
     public Member getMemberWithLockOrThrow(String memberId) {
         validateMemberId(memberId);
         return memberRepository.findByIdWithLock(memberId)
