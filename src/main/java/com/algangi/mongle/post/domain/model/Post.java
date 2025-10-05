@@ -1,31 +1,14 @@
 package com.algangi.mongle.post.domain.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.algangi.mongle.comment.domain.model.Comment;
 import com.algangi.mongle.global.annotation.ULID;
 import com.algangi.mongle.global.entity.TimeBaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderColumn;
-import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "post")
@@ -177,6 +160,14 @@ public class Post extends TimeBaseEntity {
         this.status = PostStatus.DELETED_BY_USER;
     }
 
+    public void softDeleteByAdmin() {
+        if (this.status == PostStatus.DELETED_BY_USER
+            || this.status == PostStatus.DELETED_BY_ADMIN) {
+            return;
+        }
+        this.status = PostStatus.DELETED_BY_ADMIN;
+    }
+
 
     public void increaseLikeCount(long delta) {
         this.likeCount += delta;
@@ -191,5 +182,4 @@ public class Post extends TimeBaseEntity {
             this.dislikeCount = 0;
         }
     }
-
 }

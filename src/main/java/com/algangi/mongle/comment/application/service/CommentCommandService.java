@@ -1,6 +1,9 @@
 package com.algangi.mongle.comment.application.service;
 
 import com.algangi.mongle.comment.application.event.CommentCreatedEvent;
+import com.algangi.mongle.global.exception.ApplicationException;
+import com.algangi.mongle.member.domain.MemberStatus;
+import com.algangi.mongle.member.exception.MemberErrorCode;
 import com.algangi.mongle.stats.application.service.ContentStatsService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,9 @@ public class CommentCommandService {
     @Transactional
     public void createParentComment(String postId, String content, String memberId) {
         Member author = memberFinder.getMemberOrThrow(memberId);
+        if (author.getStatus() == MemberStatus.BANNED) {
+            throw new ApplicationException(MemberErrorCode.MEMBER_IS_BANNED);
+        }
         Post post = postFinder.getPostOrThrow(postId);
 
         Comment newComment = commentDomainService.createParentComment(post, author, content);
@@ -43,19 +49,21 @@ public class CommentCommandService {
     @Transactional
     public void createChildComment(String parentCommentId, String content, String memberId) {
         Member author = memberFinder.getMemberOrThrow(memberId);
+        if (author.getStatus() == MemberStatus.BANNED) {
+            throw new ApplicationException(MemberErrorCode.MEMBER_IS_BANNED);
+        }
         Comment parent = commentFinder.getCommentOrThrow(parentCommentId);
 
         Comment newComment = commentDomainService.createChildComment(parent, author, content);
 
         commentRepository.save(newComment);
-        eventPublisher.publishEvent(new CommentCreatedEvent(parent.getPost().getId(), newComment.getId()));
+        eventPublisher.publishEvent(
+            new CommentCreatedEvent(parent.getPost().getId(), newComment.getId()));
     }
 
     @Transactional
     public void deleteComment(String commentId) {
         Comment comment = commentFinder.getCommentOrThrow(commentId);
         commentDomainService.deleteComment(comment);
-
     }
-
 }

@@ -87,7 +87,8 @@ public class ReportCommandService {
 
     @Transactional
     public void banUser(String memberId) {
-        // ban된 사용자의 댓글 처리
+        // Banned 유저의 게시글 및 댓글 처리
+        contentManagementService.processPostsOfBannedUser(memberId);
         contentManagementService.processCommentsOfBannedUser(memberId);
     }
 
@@ -99,6 +100,7 @@ public class ReportCommandService {
             Member targetAuthor = memberFinder.getMemberWithLockOrThrow(targetAuthorId);
             if (targetAuthor.getStatus() == MemberStatus.ACTIVE) {
                 targetAuthor.ban();
+                banUser(targetAuthorId);
             }
         }
     }
