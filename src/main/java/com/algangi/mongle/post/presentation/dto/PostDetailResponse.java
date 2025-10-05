@@ -9,25 +9,26 @@ import java.util.Collections;
 import java.util.List;
 
 public record PostDetailResponse(
-    String postId,
-    Author author,
-    String content,
-    double latitude,
-    double longitude,
-    List<String> photoUrls,
-    List<String> videoUrls,
-    LocalDateTime createdAt,
-    LocalDateTime updatedAt,
-    long viewCount,
-    long likeCount,
-    long dislikeCount,
-    long commentCount
+        String postId,
+        Author author,
+        String content,
+        double latitude,
+        double longitude,
+        List<String> photoUrls,
+        List<String> videoUrls,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        long viewCount,
+        long likeCount,
+        long dislikeCount,
+        String myReaction,
+        long commentCount
 ) {
 
     public record Author(
-        String id,
-        String nickname,
-        String profileImageUrl
+            String id,
+            String nickname,
+            String profileImageUrl
     ) {
 
         public static Author from(Member member) {
@@ -35,47 +36,49 @@ public record PostDetailResponse(
                 return new Author(null, "익명의 몽글러", null);
             }
             return new Author(
-                member.getMemberId(),
-                member.getNickname(),
-                member.getProfileImage()
+                    member.getMemberId(),
+                    member.getNickname(),
+                    member.getProfileImage()
             );
         }
     }
 
     public static PostDetailResponse from(Post post, Author authorDto, PostStats stats,
-        List<String> photoUrls, List<String> videoUrls) {
+                                          List<String> photoUrls, List<String> videoUrls, String myReaction) {
         return new PostDetailResponse(
-            post.getId(),
-            authorDto,
-            post.getContent(),
-            post.getLocation().getLatitude(),
-            post.getLocation().getLongitude(),
-            photoUrls,
-            videoUrls,
-            post.getCreatedDate(),
-            post.getUpdatedDate(),
-            stats.viewCount(),
-            post.getLikeCount(),
-            post.getDislikeCount(),
-            stats.commentCount()
+                post.getId(),
+                authorDto,
+                post.getContent(),
+                post.getLocation().getLatitude(),
+                post.getLocation().getLongitude(),
+                photoUrls,
+                videoUrls,
+                post.getCreatedDate(),
+                post.getUpdatedDate(),
+                stats.viewCount(),
+                post.getLikeCount(),
+                post.getDislikeCount(),
+                myReaction,
+                stats.commentCount()
         );
     }
 
     public static PostDetailResponse deleted() {
         return new PostDetailResponse(
-            null,
-            new Author(null, "알 수 없음", null),
-            "삭제된 게시물입니다.",
-            0.0,
-            0.0,
-            Collections.emptyList(),
-            Collections.emptyList(),
-            null,
-            null,
-            0,
-            0,
-            0,
-            0
+                null,
+                new Author(null, "알 수 없음", null),
+                "삭제된 게시물입니다.",
+                0.0,
+                0.0,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                null,
+                null,
+                0,
+                0,
+                0,
+                null,
+                0
         );
     }
 }

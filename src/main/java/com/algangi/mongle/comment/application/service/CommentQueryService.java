@@ -15,6 +15,9 @@ import com.algangi.mongle.comment.domain.service.CommentFinder;
 import com.algangi.mongle.comment.presentation.mapper.CommentResponseMapper;
 import com.algangi.mongle.global.util.DateTimeUtil;
 import com.algangi.mongle.post.application.helper.PostFinder;
+import com.algangi.mongle.reaction.application.service.ReactionQueryService;
+import com.algangi.mongle.reaction.domain.model.ReactionType;
+import com.algangi.mongle.reaction.domain.model.TargetType;
 import com.algangi.mongle.stats.application.service.StatsQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,6 +37,7 @@ public class CommentQueryService {
     private final CommentResponseMapper commentResponseMapper;
     private final BlockQueryService blockQueryService;
     private final StatsQueryService statsQueryService;
+    private final ReactionQueryService reactionQueryService;
 
     private static final int MAX_PAGE_SIZE = 50;
 
@@ -60,22 +64,32 @@ public class CommentQueryService {
         List<String> commentIds = comments.stream().map(Comment::getId).toList();
         Map<String, CommentStats> statsMap = statsQueryService.getCommentStatsMap(commentIds);
 
-        // 6. 각 댓글의 대댓글 존재 여부 Map<댓글ID, Boolean> 형태로 조회
+        // 6. 현재 사용자 리액션 조회
+        Map<String, ReactionType> myReactionsMap = reactionQueryService.getMyReactions(
+                TargetType.COMMENT,
+                commentIds,
+                currentMemberId
+        );
+
+        // 7. 각 댓글의 대댓글 존재 여부 Map<댓글ID, Boolean> 형태로 조회
         Map<String, Boolean> hasRepliesMap = getHasRepliesMap(pageResult.content());
 
-        // 7. 커서 생성
+        // 8. 커서 생성
         String nextCursor = createNextCursor(pageResult.content(), pageResult.hasNext(), condition.sort());
 
-        // 8. Dto 변환
+        // 9. Dto 변환
         List<CommentInfoResponse> responses = comments.stream()
                 .map(comment -> {
                     CommentStats stats = statsMap.getOrDefault(comment.getId(), CommentStats.empty());
+                    boolean hasReplies = hasRepliesMap.getOrDefault(comment.getId(), false);
+                    ReactionType myReaction = myReactionsMap.get(comment.getId());
                     return commentResponseMapper.toCommentInfoResponse(
                             comment,
                             currentMemberId,
-                            hasRepliesMap.getOrDefault(comment.getId(), false),
+                            hasReplies,
                             stats.likes(),
-                            stats.dislikes()
+                            stats.dislikes(),
+                            (myReaction != null) ? myReaction.name() : null
                     );
                 })
                 .toList();
@@ -106,18 +120,28 @@ public class CommentQueryService {
         List<String> replyIds = replies.stream().map(Comment::getId).toList();
         Map<String, CommentStats> statsMap = statsQueryService.getCommentStatsMap(replyIds);
 
-        // 6. 커서 생성
+        // 6. 현재 사용자 리액션 조회
+        Map<String, ReactionType> myReactionsMap = reactionQueryService.getMyReactions(
+                TargetType.COMMENT,
+                replyIds,
+                currentMemberId
+        );
+
+        // 7. 커서 생성
         String nextCursor = createNextCursor(pageResult.content(), pageResult.hasNext(), condition.sort());
 
-        // 7. Dto 변환
+        // 8. Dto 변환
         List<CommentInfoResponse> responses = replies.stream()
                 .map(reply -> {
                     CommentStats stats = statsMap.getOrDefault(reply.getId(), CommentStats.empty());
+                    ReactionType myReaction = myReactionsMap.get(reply.getId());
                     return commentResponseMapper.toCommentInfoResponse(
                             reply,
                             currentMemberId,
+                            false,
                             stats.likes(),
-                            stats.dislikes()
+                            stats.dislikes(),
+                            (myReaction != null) ? myReaction.name() : null
                     );
                 })
                 .toList();

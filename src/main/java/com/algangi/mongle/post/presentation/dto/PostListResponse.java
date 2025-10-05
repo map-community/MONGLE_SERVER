@@ -28,48 +28,50 @@ public class PostListResponse {
     }
 
     public record PostSummary(
-        String postId,
-        Author author,
-        String content,
-        List<String> photoUrls,
-        long upvotes,
-        long downvotes,
-        long commentCount,
-        long viewCount,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+            String postId,
+            Author author,
+            String content,
+            List<String> photoUrls,
+            long upvotes,
+            long downvotes,
+            String myReaction,
+            long commentCount,
+            long viewCount,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
     ) {
 
         public record Author(
-            String id,
-            String nickname,
-            String profileImageUrl
+                String id,
+                String nickname,
+                String profileImageUrl
         ) {
 
         }
 
         public static PostSummary from(Post post, Member author, List<String> photoUrls,
-            PostStats stats) {
+                                       PostStats stats, String myReaction) {
             // 게시글 상태가 ACTIVE일 때만 프로필 이미지 URL을 사용, 아니면 null
             String profileImageUrl = (post.getStatus() == PostStatus.ACTIVE && author != null)
-                ? author.getProfileImage()
-                : null;
+                    ? author.getProfileImage()
+                    : null;
 
             Author authorDto = (author != null)
-                ? new Author(author.getMemberId(), author.getNickname(), profileImageUrl)
-                : new Author(null, "익명의 몽글러", null);
+                    ? new Author(author.getMemberId(), author.getNickname(), profileImageUrl)
+                    : new Author(null, "익명의 몽글러", null);
 
             return new PostSummary(
-                post.getId(),
-                authorDto,
-                post.getContent(),
-                photoUrls,
-                post.getLikeCount(),
-                post.getDislikeCount(),
-                stats.commentCount(),
-                stats.viewCount(),
-                post.getCreatedDate(),
-                post.getUpdatedDate()
+                    post.getId(),
+                    authorDto,
+                    post.getContent(),
+                    photoUrls,
+                    post.getLikeCount(),
+                    post.getDislikeCount(),
+                    myReaction,
+                    stats.commentCount(),
+                    stats.viewCount(),
+                    post.getCreatedDate(),
+                    post.getUpdatedDate()
             );
         }
     }
