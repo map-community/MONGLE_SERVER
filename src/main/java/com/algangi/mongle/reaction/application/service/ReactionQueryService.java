@@ -44,6 +44,9 @@ public class ReactionQueryService {
 
         Map<String, ReactionType> reactionMap = new HashMap<>();
         IntStream.range(0, targetIds.size()).forEach(i -> {
+            if (i >= results.size()) {
+                return;
+            }
             String targetId = targetIds.get(i);
             String reactionStr = results.get(i);
 
