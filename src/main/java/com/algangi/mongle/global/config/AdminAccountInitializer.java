@@ -47,7 +47,8 @@ public class AdminAccountInitializer implements CommandLineRunner {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected void createAdminIfNotExists(AdminSeed admin) {
-        if (!memberRepository.existsByEmail(admin.email())) {
+        if (!memberRepository.existsByEmail(admin.email()) &&
+                        !memberRepository.existsById(admin.id())) {
             Member adminMember = Member.createAdmin(
                     admin.id(),
                     admin.email(),
@@ -56,7 +57,8 @@ public class AdminAccountInitializer implements CommandLineRunner {
                     passwordEncoder.encode(adminInitialPassword)
             );
             memberRepository.saveAndFlush(adminMember);
-            log.info("'{}' 관리자 계정 생성 완료 (ID: {})", admin.nickname(), admin.id());
+            log.info("'{}' 관리자 계정이 이미 존재합니다. (ID: {} 또는 Email: {})",
+                                     admin.nickname(), admin.id(), admin.email());
         } else {
             log.info("'{}' 관리자 계정이 이미 존재합니다.", admin.email());
         }

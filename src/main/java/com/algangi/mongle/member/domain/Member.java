@@ -68,6 +68,8 @@ public class Member extends TimeBaseEntity {
 
     public static Member createAdmin(String memberId, String email, String nickname, String profileImage,
                                      String encodedPassword) {
+        validateUserEssentials(email, encodedPassword, nickname);
+        validatePasswordEncoding(encodedPassword);
         return Member.builder()
                 .memberId(memberId)
                 .email(email)
