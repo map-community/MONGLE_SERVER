@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.algangi.mongle.global.entity.TimeBaseEntity;
 
-import io.hypersistence.utils.hibernate.id.Tsid;
+import com.github.f4b6a3.ulid.UlidCreator;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,7 +33,6 @@ import lombok.NoArgsConstructor;
 public class Member extends TimeBaseEntity {
 
     @Id
-    @Tsid
     String memberId;
     @Column(nullable = false, updatable = false)
     String email;
@@ -58,12 +57,25 @@ public class Member extends TimeBaseEntity {
         validateUserEssentials(email, encodedPassword, nickname);
         validatePasswordEncoding(encodedPassword);
         return Member.builder()
+            .memberId(UlidCreator.getUlid().toString())
             .email(email)
             .encodedPassword(encodedPassword)
             .nickname(nickname)
             .profileImage(profileImage)
             .memberRole(MemberRole.USER)
             .build();
+    }
+
+    public static Member createAdmin(String memberId, String email, String nickname, String profileImage,
+                                     String encodedPassword) {
+        return Member.builder()
+                .memberId(memberId)
+                .email(email)
+                .nickname(nickname)
+                .profileImage(profileImage)
+                .memberRole(MemberRole.ADMIN)
+                .encodedPassword(encodedPassword)
+                .build();
     }
 
     private static void validatePasswordEncoding(String encodedPassword) {
