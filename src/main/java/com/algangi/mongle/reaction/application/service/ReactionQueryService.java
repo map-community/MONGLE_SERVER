@@ -3,6 +3,7 @@ package com.algangi.mongle.reaction.application.service;
 import com.algangi.mongle.reaction.domain.model.ReactionType;
 import com.algangi.mongle.reaction.domain.model.TargetType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ReactionQueryService {
 
@@ -51,7 +53,11 @@ public class ReactionQueryService {
             String reactionStr = results.get(i);
 
             if (reactionStr != null) {
-                reactionMap.put(targetId, ReactionType.valueOf(reactionStr));
+                try {
+                    reactionMap.put(targetId, ReactionType.valueOf(reactionStr));
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid reaction type in Redis: {}", reactionStr);
+                }
             }
         });
 
