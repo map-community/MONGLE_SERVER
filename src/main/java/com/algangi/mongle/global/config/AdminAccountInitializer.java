@@ -4,6 +4,7 @@ import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -36,6 +37,7 @@ public class AdminAccountInitializer implements CommandLineRunner {
             new AdminSeed("admin_05", "test@test5.com", "관리자5")
     );
 
+    @SchedulerLock(name = "adminAccountInit", lockAtMostFor = "PT5M")
     @Override
     public void run(String... args) {
         log.info("관리자 계정 초기화를 시작합니다...");
