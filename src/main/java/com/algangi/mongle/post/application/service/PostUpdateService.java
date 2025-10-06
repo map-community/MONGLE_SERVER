@@ -43,10 +43,7 @@ public class PostUpdateService {
             .filter(key -> !previousFileKeys.contains(key)).toList();
         postFileCommitValidationService.validateTemporaryFiles(keysToAdd);
 
-        List<PostFile> finalPostFiles = finalFileKeys.stream()
-            .map(PostFile::create)
-            .toList();
-        post.updatePost(request.content(), finalPostFiles);
+        post.updateContent(request.content());
 
         PostFileUpdatedEvent event = new PostFileUpdatedEvent(postId, previousFileKeys,
             finalFileKeys);
