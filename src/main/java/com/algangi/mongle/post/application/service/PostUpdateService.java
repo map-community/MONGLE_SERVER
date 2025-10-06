@@ -34,22 +34,22 @@ public class PostUpdateService {
         }
         post.markAsUploading();
 
+        List<String> previousFileKeys = post.getPostFiles().stream()
+            .map(PostFile::getFileKey)
+            .toList();
         List<String> finalFileKeys = request.fileKeyList();
+
+        List<String> keysToAdd = finalFileKeys.stream()
+            .filter(key -> !previousFileKeys.contains(key)).toList();
+        postFileCommitValidationService.validateTemporaryFiles(keysToAdd);
+
         List<PostFile> finalPostFiles = finalFileKeys.stream()
             .map(PostFile::create)
             .toList();
-
-        List<String> currentFileKeys = post.getPostFiles().stream()
-            .map(PostFile::getFileKey)
-            .toList();
-        List<String> keysToAdd = finalFileKeys.stream()
-            .filter(key -> !currentFileKeys.contains(key)).toList();
-
-        postFileCommitValidationService.validateTemporaryFiles(keysToAdd);
-
         post.updatePost(request.content(), finalPostFiles);
 
-        PostFileUpdatedEvent event = new PostFileUpdatedEvent(postId, finalFileKeys);
+        PostFileUpdatedEvent event = new PostFileUpdatedEvent(postId, previousFileKeys,
+            finalFileKeys);
         postEventPublisher.publish(event);
 
         return PostUpdateResponse.of(postId, request.content(), finalFileKeys);
