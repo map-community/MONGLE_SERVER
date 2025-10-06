@@ -63,7 +63,7 @@ dependencies {
     // AWS CloudFront 연동을 위한 SDK
     implementation("software.amazon.awssdk:cloudfront")
     // AWS SQS
-    implementation("io.awspring.cloud:spring-cloud-aws-starter-sqs:3.1.1")
+    implementation("io.awspring.cloud:spring-cloud-aws-starter-sqs:3.4.0")
     // redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     testImplementation("it.ozimov:embedded-redis:0.7.3")
