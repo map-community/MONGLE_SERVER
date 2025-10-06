@@ -49,6 +49,6 @@ public class PostUpdateService {
             finalFileKeys);
         postEventPublisher.publish(event);
 
-        return PostUpdateResponse.of(postId, request.content(), finalFileKeys);
+        return PostUpdateResponse.of(postId, request.content());
     }
 }
