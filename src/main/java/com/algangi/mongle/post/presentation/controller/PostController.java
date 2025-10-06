@@ -46,8 +46,10 @@ public class PostController {
     // 게시글 목록 조회 (정적/동적 구름 내부)
     @GetMapping("/posts")
     public ResponseEntity<ApiResponse<PostListResponse>> getPostList(
-        @Valid @ModelAttribute PostListRequest request) {
-        PostListResponse response = postQueryService.getPostList(request);
+        @Valid @ModelAttribute PostListRequest request,
+        @AuthenticationPrincipal CustomUserDetails user) {
+        String memberId = (user != null) ? user.userId() : null;
+        PostListResponse response = postQueryService.getPostList(request, memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
