@@ -31,6 +31,8 @@ spring:
         secret-key: ${AWS_SECRET_KEY}
       region:
         static: ap-northeast-2
+      sqs:
+        endpoint: ${SQS_ENDPOINT}
 
 mongle:
   aws:
@@ -42,6 +44,8 @@ mongle:
       private-key-file-path: ${CLOUDFRONT_PRIVATE_KEY_FILE_PATH}
       key-pair-id: ${CLOUDFRONT_KEY_PAIR_ID}
       presigned-url-expiration-minutes: ${GET_PRESIGNED_URL_EXPIRATION_MIN}
+    sqs:
+      post-file-update-queue-name: "mongle-post-file-update-queue"
   batch:
     manual-s2seed:
       enabled: true
