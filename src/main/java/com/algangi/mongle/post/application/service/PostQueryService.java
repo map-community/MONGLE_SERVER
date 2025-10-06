@@ -58,7 +58,7 @@ public class PostQueryService {
     private final StaticCloudRepository staticCloudRepository;
     private final ReactionQueryService reactionQueryService;
 
-    public PostListResponse getPostList(PostListRequest request) {
+    public PostListResponse getPostList(PostListRequest request, String currentMemberId) {
         validateCloudExists(request);
 
         List<String> blockedAuthorIds = blockQueryService.getBlockedUserIds(request.memberId());
@@ -81,7 +81,7 @@ public class PostQueryService {
         Map<String, ReactionType> myReactionsMap = reactionQueryService.getMyReactions(
                 TargetType.POST,
                 postIds,
-                request.memberId()
+                currentMemberId
         );
 
         List<PostListResponse.PostSummary> summaries = postsOnPage.stream().map(post -> {
