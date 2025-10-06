@@ -4,7 +4,7 @@ import com.algangi.mongle.post.domain.model.Post;
 
 import java.time.LocalDateTime;
 
-public record PostResponse(
+public record PostCreateResponse(
     String id,
     String content,
     String authorId,
@@ -14,8 +14,8 @@ public record PostResponse(
     LocalDateTime createdAt
 ) {
 
-    public static PostResponse from(Post post) {
-        return new PostResponse(
+    public static PostCreateResponse from(Post post) {
+        return new PostCreateResponse(
             post.getId(),
             post.getContent(),
             post.getAuthorId(),

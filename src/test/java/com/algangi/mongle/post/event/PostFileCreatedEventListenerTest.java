@@ -29,7 +29,7 @@ import com.algangi.mongle.global.exception.AwsErrorCode;
 import com.algangi.mongle.post.application.helper.PostFinder;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.model.PostFile;
-import com.algangi.mongle.post.domain.service.PostFileMover;
+import com.algangi.mongle.post.domain.service.PostFileHandler;
 
 @ExtendWith(MockitoExtension.class)
 class PostFileCreatedEventListenerTest {
@@ -38,7 +38,7 @@ class PostFileCreatedEventListenerTest {
     @InjectMocks
     private PostFileCreatedEventListener postFileCreatedEventListener;
     @Mock
-    private PostFileMover postFileMover;
+    private PostFileHandler postFileHandler;
     @Mock
     private PostFinder postFinder;
     @Spy
@@ -62,7 +62,7 @@ class PostFileCreatedEventListenerTest {
             List<String> permanentKeys = List.of("permanent/key1.jpg", "permanent/key2.png");
             PostFileCreatedEvent event = new PostFileCreatedEvent(POST_ID, tempKeys);
 
-            when(postFileMover.moveBulkTempToPermanent(POST_ID, tempKeys)).thenReturn(
+            when(postFileHandler.moveBulkTempToPermanent(POST_ID, tempKeys)).thenReturn(
                 permanentKeys);
 
             // when
@@ -72,7 +72,7 @@ class PostFileCreatedEventListenerTest {
             ArgumentCaptor<List<PostFile>> postFilesCaptor = ArgumentCaptor.forClass(List.class);
 
             assertAll(
-                () -> verify(postFileMover, times(1)).moveBulkTempToPermanent(POST_ID, tempKeys),
+                () -> verify(postFileHandler, times(1)).moveBulkTempToPermanent(POST_ID, tempKeys),
                 () -> verify(post, times(1)).addPostFiles(postFilesCaptor.capture()),
                 () -> verify(post, times(1)).markAsActive()
             );
@@ -90,7 +90,7 @@ class PostFileCreatedEventListenerTest {
 
             // then
             assertAll(
-                () -> verify(postFileMover, never()).moveBulkTempToPermanent(any(), any()),
+                () -> verify(postFileHandler, never()).moveBulkTempToPermanent(any(), any()),
                 () -> verify(post, never()).addPostFiles(any()),
                 () -> verify(post, times(1)).markAsActive()
             );
@@ -108,7 +108,7 @@ class PostFileCreatedEventListenerTest {
             List<String> tempKeys = List.of("temp/key1.jpg");
             PostFileCreatedEvent event = new PostFileCreatedEvent(POST_ID, tempKeys);
 
-            when(postFileMover.moveBulkTempToPermanent(POST_ID, tempKeys))
+            when(postFileHandler.moveBulkTempToPermanent(POST_ID, tempKeys))
                 .thenThrow(new ApplicationException(AwsErrorCode.S3_FILE_COPY_FAILED));
 
             // when & then
@@ -127,7 +127,7 @@ class PostFileCreatedEventListenerTest {
             List<String> tempKeys = List.of("temp/key1.jpg");
             PostFileCreatedEvent event = new PostFileCreatedEvent(POST_ID, tempKeys);
 
-            when(postFileMover.moveBulkTempToPermanent(POST_ID, tempKeys))
+            when(postFileHandler.moveBulkTempToPermanent(POST_ID, tempKeys))
                 .thenThrow(new ApplicationException(AwsErrorCode.S3_FILE_DELETE_FAILED));
 
             // when & then
@@ -155,7 +155,7 @@ class PostFileCreatedEventListenerTest {
                 postFileCreatedEventListener.handleFileCommit(event);
             });
 
-            verify(postFileMover, never()).moveBulkTempToPermanent(any(), any());
+            verify(postFileHandler, never()).moveBulkTempToPermanent(any(), any());
             verify(post, never()).markAsActive();
         }
     }

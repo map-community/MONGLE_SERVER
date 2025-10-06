@@ -23,7 +23,7 @@ import com.algangi.mongle.post.domain.repository.PostRepository;
 import com.algangi.mongle.post.domain.service.PostFileCommitValidationService;
 import com.algangi.mongle.post.event.PostFileCreatedEvent;
 import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
-import com.algangi.mongle.post.presentation.dto.PostResponse;
+import com.algangi.mongle.post.presentation.dto.PostCreateResponse;
 import com.algangi.mongle.staticCloud.domain.model.StaticCloud;
 import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
 
@@ -46,7 +46,7 @@ public class PostCreationService {
     private final MemberFinder memberFinder;
 
     @Transactional
-    public PostResponse createPost(PostCreateRequest request, String authorId) {
+    public PostCreateResponse createPost(PostCreateRequest request, String authorId) {
         Member author = memberFinder.getMemberOrThrow(authorId);
         if (author.getStatus() == MemberStatus.BANNED) {
             throw new ApplicationException(MemberErrorCode.MEMBER_IS_BANNED);
@@ -83,7 +83,7 @@ public class PostCreationService {
 
         eventPublisher.publishEvent(
             new PostFileCreatedEvent(savedPost.getId(), request.fileKeyList()));
-        return PostResponse.from(savedPost);
+        return PostCreateResponse.from(savedPost);
     }
 
     private Post handleNewPost(PostCreationCommand command, String s2TokenId) {

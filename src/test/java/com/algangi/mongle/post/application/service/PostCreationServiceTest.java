@@ -42,7 +42,7 @@ import com.algangi.mongle.post.domain.service.PostFileCommitValidationService;
 import com.algangi.mongle.post.domain.service.PostIdService;
 import com.algangi.mongle.post.event.PostFileCreatedEvent;
 import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
-import com.algangi.mongle.post.presentation.dto.PostResponse;
+import com.algangi.mongle.post.presentation.dto.PostCreateResponse;
 import com.algangi.mongle.staticCloud.domain.model.StaticCloud;
 import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
 
@@ -106,7 +106,7 @@ class PostCreationServiceTest {
                 Optional.of(mockStaticCloud));
 
             // when
-            PostResponse response = postCreationService.createPost(request, AUTHOR_ID);
+            PostCreateResponse response = postCreationService.createPost(request, AUTHOR_ID);
 
             // then
             assertAll(
@@ -127,7 +127,7 @@ class PostCreationServiceTest {
                 Optional.of(mockDynamicCloud));
 
             // when
-            PostResponse response = postCreationService.createPost(request, AUTHOR_ID);
+            PostCreateResponse response = postCreationService.createPost(request, AUTHOR_ID);
 
             // then
             assertAll(
@@ -150,7 +150,7 @@ class PostCreationServiceTest {
                 List.of(existingPost));
 
             // when
-            PostResponse response = postCreationService.createPost(request, AUTHOR_ID);
+            PostCreateResponse response = postCreationService.createPost(request, AUTHOR_ID);
 
             // then
             assertAll(
@@ -185,7 +185,7 @@ class PostCreationServiceTest {
                 .thenReturn(newDynamicCloud);
 
             // when
-            PostResponse response = postCreationService.createPost(request, AUTHOR_ID);
+            PostCreateResponse response = postCreationService.createPost(request, AUTHOR_ID);
 
             // then
             assertAll(
@@ -210,7 +210,7 @@ class PostCreationServiceTest {
                 Collections.emptyList());
 
             // when
-            PostResponse response = postCreationService.createPost(request, AUTHOR_ID);
+            PostCreateResponse response = postCreationService.createPost(request, AUTHOR_ID);
 
             // then
             assertAll(

@@ -138,13 +138,23 @@ public class Post extends TimeBaseEntity {
         this.staticCloudId = null;
     }
 
-    public void addPostFiles(List<PostFile> postFiles) {
-        postFiles.forEach(this::addPostFile);
+    public void updateContent(String content) {
+        if (content == null) {
+            throw new IllegalArgumentException("게시물 내용은 null일 수 없습니다.");
+        }
+        this.content = content;
     }
 
-    public void changePostFiles(List<PostFile> postFiles) {
+    public void updatePostFiles(List<PostFile> postFiles) {
+        if (postFiles == null) {
+            throw new IllegalArgumentException("게시물 파일은 null일 수 없습니다.");
+        }
         this.postFiles.clear();
         addPostFiles(postFiles);
+    }
+    
+    public void addPostFiles(List<PostFile> postFiles) {
+        postFiles.forEach(this::addPostFile);
     }
 
     public void addPostFile(PostFile postFile) {
@@ -159,6 +169,10 @@ public class Post extends TimeBaseEntity {
 
     public void markAsActive() {
         this.status = PostStatus.ACTIVE;
+    }
+
+    public void markAsUploading() {
+        this.status = PostStatus.UPLOADING;
     }
 
     public void softDeleteByUser() {
