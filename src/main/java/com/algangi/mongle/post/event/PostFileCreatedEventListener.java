@@ -14,7 +14,7 @@ import com.algangi.mongle.global.exception.AwsErrorCode;
 import com.algangi.mongle.post.application.helper.PostFinder;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.model.PostFile;
-import com.algangi.mongle.post.domain.service.PostFileMover;
+import com.algangi.mongle.post.domain.service.PostFileHandler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class PostFileCreatedEventListener {
 
-    private final PostFileMover postFileMover;
+    private final PostFileHandler postFileHandler;
     private final PostFinder postFinder;
 
     @Async("fileTaskExecutor")
@@ -37,7 +37,7 @@ public class PostFileCreatedEventListener {
 
             // 파일이 있는 경우에만 파일 이동 로직 수행
             if (!event.temporaryFileKeys().isEmpty()) {
-                List<String> permanentKeys = postFileMover.moveBulkTempToPermanent(event.postId(),
+                List<String> permanentKeys = postFileHandler.moveBulkTempToPermanent(event.postId(),
                     event.temporaryFileKeys());
 
                 List<PostFile> postFiles = permanentKeys.stream()
