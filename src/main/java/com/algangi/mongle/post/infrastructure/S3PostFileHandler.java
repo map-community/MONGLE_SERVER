@@ -7,18 +7,21 @@ import org.springframework.stereotype.Component;
 
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.global.exception.AwsErrorCode;
+import com.algangi.mongle.post.domain.service.PostFileHandler;
 import com.algangi.mongle.post.domain.service.PostFileKeyGenerator;
-import com.algangi.mongle.post.domain.service.PostFileMover;
 
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Component
 @RequiredArgsConstructor
-public class S3PostFileMover implements PostFileMover {
+public class S3PostFileHandler implements PostFileHandler {
 
     private final S3Client s3Client;
     private final PostFileKeyGenerator postFileKeyGenerator;
@@ -61,6 +64,32 @@ public class S3PostFileMover implements PostFileMover {
         }
 
         return permanentKey;
+    }
+
+    @Override
+    public void deletePermanentFiles(List<String> fileKeys) {
+        if (fileKeys == null || fileKeys.isEmpty()) {
+            return;
+        }
+
+        try {
+            List<ObjectIdentifier> identifiers = fileKeys.stream()
+                .map(key -> ObjectIdentifier.builder().key(key).build())
+                .toList();
+
+            DeleteObjectsRequest deleteRequest = DeleteObjectsRequest.builder()
+                .bucket(bucket)
+                .delete(Delete.builder().objects(identifiers).build())
+                .build();
+
+            s3Client.deleteObjects(deleteRequest);
+
+        } catch (S3Exception e) {
+            throw new ApplicationException(AwsErrorCode.S3_FILE_DELETE_FAILED, e)
+                .addErrorInfo("bucket", bucket)
+                .addErrorInfo("fileKeys", String.join(", ", fileKeys))
+                .addErrorInfo("awsErrorMessage", e.getMessage());
+        }
     }
 
 }
