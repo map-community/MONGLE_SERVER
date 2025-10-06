@@ -16,7 +16,9 @@ import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
+import software.amazon.awssdk.services.s3.model.S3Error;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Component
@@ -82,8 +84,18 @@ public class S3PostFileHandler implements PostFileHandler {
                 .delete(Delete.builder().objects(identifiers).build())
                 .build();
 
-            s3Client.deleteObjects(deleteRequest);
-
+            DeleteObjectsResponse response = s3Client.deleteObjects(deleteRequest);
+            if (response.hasErrors()) {
+                List<String> failedKeys = response.errors().stream()
+                    .map(S3Error::key)
+                    .toList();
+                String awsMessage = response.errors().getFirst().message();
+                throw new ApplicationException(AwsErrorCode.S3_FILE_DELETE_FAILED)
+                    .addErrorInfo("bucket", bucket)
+                    .addErrorInfo("fileKeys", String.join(", ", fileKeys))
+                    .addErrorInfo("failedKeys", String.join(", ", failedKeys))
+                    .addErrorInfo("awsErrorMessage", awsMessage);
+            }
         } catch (S3Exception e) {
             throw new ApplicationException(AwsErrorCode.S3_FILE_DELETE_FAILED, e)
                 .addErrorInfo("bucket", bucket)
