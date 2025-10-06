@@ -1,7 +1,5 @@
 package com.algangi.mongle.post.infrastructure;
 
-package com.algangi.mongle.post.infrastructure.event;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

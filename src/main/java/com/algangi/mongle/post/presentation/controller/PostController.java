@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,11 +17,14 @@ import com.algangi.mongle.global.dto.ApiResponse;
 import com.algangi.mongle.post.application.service.PostCommandService;
 import com.algangi.mongle.post.application.service.PostCreationService;
 import com.algangi.mongle.post.application.service.PostQueryService;
+import com.algangi.mongle.post.application.service.PostUpdateService;
 import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
+import com.algangi.mongle.post.presentation.dto.PostCreateResponse;
 import com.algangi.mongle.post.presentation.dto.PostDetailResponse;
 import com.algangi.mongle.post.presentation.dto.PostListRequest;
 import com.algangi.mongle.post.presentation.dto.PostListResponse;
-import com.algangi.mongle.post.presentation.dto.PostResponse;
+import com.algangi.mongle.post.presentation.dto.PostUpdateRequest;
+import com.algangi.mongle.post.presentation.dto.PostUpdateResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,13 +37,14 @@ public class PostController {
     private final PostCreationService postCreationService;
     private final PostQueryService postQueryService;
     private final PostCommandService postCommandService;
+    private final PostUpdateService postUpdateService;
 
     // 게시글 생성
     @PostMapping("/posts")
-    public ResponseEntity<ApiResponse<PostResponse>> createPost(
+    public ResponseEntity<ApiResponse<PostCreateResponse>> createPost(
         @Valid @RequestBody PostCreateRequest dto,
         @AuthenticationPrincipal CustomUserDetails user) {
-        PostResponse response = postCreationService.createPost(dto, user.userId());
+        PostCreateResponse response = postCreationService.createPost(dto, user.userId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -54,8 +59,8 @@ public class PostController {
     // 게시글 상세 조회
     @GetMapping("/posts/{postId}")
     public ResponseEntity<ApiResponse<PostDetailResponse>> getPostDetail(
-            @PathVariable String postId,
-            @AuthenticationPrincipal CustomUserDetails user) {
+        @PathVariable String postId,
+        @AuthenticationPrincipal CustomUserDetails user) {
         String memberId = (user != null) ? user.userId() : null;
         PostDetailResponse response = postQueryService.getPostDetail(postId, memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -69,6 +74,17 @@ public class PostController {
     ) {
         postCommandService.deletePost(postId, user.userId());
         return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    // 게시글 수정
+    @PutMapping("/posts/{postId}")
+    public ResponseEntity<ApiResponse<PostUpdateResponse>> updatePost(
+        @PathVariable(name = "postId") String postId,
+        @Valid @RequestBody PostUpdateRequest request,
+        @AuthenticationPrincipal CustomUserDetails user) {
+
+        return ResponseEntity.ok(
+            ApiResponse.success(postUpdateService.updatePost(postId, request, user.userId())));
     }
 }
 
