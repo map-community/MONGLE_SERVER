@@ -82,6 +82,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     // ULID
     implementation("com.github.f4b6a3:ulid-creator:5.2.0")
+    // email
+    implementation("org.springframework.boot:spring-boot-starter-mail")
 }
 
 tasks.withType<Test> {
