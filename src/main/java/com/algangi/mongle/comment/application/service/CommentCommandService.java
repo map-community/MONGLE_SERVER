@@ -2,7 +2,9 @@ package com.algangi.mongle.comment.application.service;
 
 import com.algangi.mongle.comment.application.event.CommentCreatedEvent;
 import com.algangi.mongle.comment.application.event.CommentDeletedEvent;
+import com.algangi.mongle.comment.exception.CommentErrorCode;
 import com.algangi.mongle.global.exception.ApplicationException;
+import com.algangi.mongle.member.domain.MemberRole;
 import com.algangi.mongle.member.domain.MemberStatus;
 import com.algangi.mongle.member.exception.MemberErrorCode;
 import org.springframework.context.ApplicationEventPublisher;
@@ -62,12 +64,24 @@ public class CommentCommandService {
 
     @Transactional
     public void deleteComment(String commentId, String memberId) {
-        Comment comment = commentFinder.getCommentOrThrow(commentId);
-        boolean wasAlreadyDeleted = comment.isDeleted();
-        commentDomainService.deleteComment(comment);
-
-        if (!wasAlreadyDeleted) {
-            eventPublisher.publishEvent(new CommentDeletedEvent(comment.getPost().getId()));
+        Member member = memberFinder.getMemberOrThrow(memberId);
+        if (member.getStatus() == MemberStatus.BANNED) {
+            throw new ApplicationException(MemberErrorCode.MEMBER_IS_BANNED);
         }
+
+        Comment comment = commentFinder.getCommentOrThrow(commentId);
+        if (comment.isDeleted()) {
+            throw new ApplicationException(CommentErrorCode.ALREADY_DELETED);
+        }
+
+        boolean isAuthor = comment.getMember().getMemberId().equals(member.getMemberId());
+        boolean isAdmin = member.getMemberRole() == MemberRole.ADMIN;
+
+        if (!isAuthor && !isAdmin) {
+            throw new ApplicationException(CommentErrorCode.COMMENT_ACCESS_DENIED);
+        }
+
+        commentDomainService.deleteComment(comment);
+        eventPublisher.publishEvent(new CommentDeletedEvent(comment.getPost().getId()));
     }
 }
