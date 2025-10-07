@@ -61,7 +61,7 @@ public class PostQueryService {
     public PostListResponse getPostList(PostListRequest request, String currentMemberId) {
         validateCloudExists(request);
 
-        List<String> blockedAuthorIds = blockQueryService.getBlockedUserIds(request.memberId());
+        List<String> blockedAuthorIds = blockQueryService.getBlockedUserIds(currentMemberId);
 
         List<Post> fetchedPosts = postQueryRepository.findPostsByCondition(request,
             blockedAuthorIds);

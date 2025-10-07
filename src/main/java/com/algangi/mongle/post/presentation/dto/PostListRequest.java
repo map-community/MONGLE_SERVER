@@ -7,8 +7,7 @@ public record PostListRequest(
     String cloudId,
     String cursor,
     Integer size,
-    PostSort sortBy,
-    String memberId
+    PostSort sortBy
 ) {
 
     private static final int DEFAULT_SIZE = 10;

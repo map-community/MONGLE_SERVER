@@ -37,7 +37,7 @@ public class MapQueryService {
     private final S2PolygonConverter s2PolygonConverter;
     private final BlockQueryService blockQueryService;
 
-    public MapObjectsResponse getMapObjects(MapObjectsRequest request) {
+    public MapObjectsResponse getMapObjects(MapObjectsRequest request, String memberId) {
         List<String> s2cellTokens = s2CellService.getCellsForRect(
             request.swLat(), request.swLng(), request.neLat(), request.neLng()
         );
@@ -46,7 +46,7 @@ public class MapQueryService {
             return MapObjectsResponse.empty();
         }
 
-        List<String> blockedAuthorIds = blockQueryService.getBlockedUserIds(request.memberId());
+        List<String> blockedAuthorIds = blockQueryService.getBlockedUserIds(memberId);
 
         List<Post> grains = postQueryRepository.findGrainsInCells(s2cellTokens, blockedAuthorIds);
 
