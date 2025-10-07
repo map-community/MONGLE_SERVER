@@ -28,7 +28,7 @@ public class ManualS2SeedRunner implements CommandLineRunner {
     private final JdbcTemplate jdbcTemplate;
 
     private static final int BATCH_SIZE = 500;
-    private static final String STATIC_DEFS_CSV = "s2/static_cloud_defs.csv";
+    private static final String STATIC_DEFS_CSV = "s2/static_cloud_v1.csv";
 
     @Override
     @Transactional
