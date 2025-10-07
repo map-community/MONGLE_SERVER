@@ -5,7 +5,6 @@ import com.algangi.mongle.comment.application.event.CommentDeletedEvent;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.MemberStatus;
 import com.algangi.mongle.member.exception.MemberErrorCode;
-import com.algangi.mongle.stats.application.service.ContentStatsService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +29,6 @@ public class CommentCommandService {
     private final CommentFinder commentFinder;
     private final CommentDomainService commentDomainService;
     private final CommentRepository commentRepository;
-    private final ContentStatsService contentStatsService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -63,7 +61,7 @@ public class CommentCommandService {
     }
 
     @Transactional
-    public void deleteComment(String commentId) {
+    public void deleteComment(String commentId, String memberId) {
         Comment comment = commentFinder.getCommentOrThrow(commentId);
         boolean wasAlreadyDeleted = comment.isDeleted();
         commentDomainService.deleteComment(comment);
