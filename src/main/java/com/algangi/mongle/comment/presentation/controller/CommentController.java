@@ -64,8 +64,7 @@ public class CommentController {
             @PathVariable(name = "postId") String postId,
             @Valid @RequestBody CommentCreateRequest dto,
             @AuthenticationPrincipal CustomUserDetails user)  {
-        String memberId = (user != null) ? user.userId() : null;
-        commentCommandService.createParentComment(postId, dto.content(), memberId);
+        commentCommandService.createParentComment(postId, dto.content(), user.userId());
         return ResponseEntity.ok(ApiResponse.success());
     }
 
@@ -74,8 +73,7 @@ public class CommentController {
             @PathVariable(name = "parentCommentId") String parentCommentId,
             @Valid @RequestBody CommentCreateRequest dto,
             @AuthenticationPrincipal CustomUserDetails user) {
-        String memberId = (user != null) ? user.userId() : null;
-        commentCommandService.createChildComment(parentCommentId, dto.content(), memberId);
+        commentCommandService.createChildComment(parentCommentId, dto.content(), user.userId());
         return ResponseEntity.ok(ApiResponse.success());
     }
 
@@ -83,8 +81,7 @@ public class CommentController {
     public ResponseEntity<ApiResponse<Void>> deleteComment(
             @PathVariable(name = "commentId") String commentId,
             @AuthenticationPrincipal CustomUserDetails user) {
-        String memberId = (user != null) ? user.userId() : null;
-        commentCommandService.deleteComment(commentId, memberId);
+        commentCommandService.deleteComment(commentId, user.userId());
         return ResponseEntity.ok(ApiResponse.success());
     }
 
