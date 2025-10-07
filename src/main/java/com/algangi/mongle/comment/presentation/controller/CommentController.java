@@ -1,6 +1,8 @@
 package com.algangi.mongle.comment.presentation.controller;
 
+import com.algangi.mongle.auth.infrastructure.security.authentication.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -8,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.algangi.mongle.comment.application.service.CommentCommandService;
@@ -35,10 +36,12 @@ public class CommentController {
     @GetMapping("/posts/{postId}/comments")
     public ResponseEntity<ApiResponse<CursorInfoResponse<CommentInfoResponse>>> getCommentsByPost(
             @PathVariable(name = "postId") String postId,
-            @ModelAttribute CommentQueryRequest request
+            @ModelAttribute CommentQueryRequest request,
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
+        String memberId = (user != null) ? user.userId() : null;
         var condition = commentRequestMapper.toPostCommentSearchCondition(postId, request);
-        var result = commentQueryService.getCommentsByPost(condition, request.memberId(), request.size());
+        var result = commentQueryService.getCommentsByPost(condition, memberId, request.size());
 
         return ResponseEntity.ok(ApiResponse.success(result));
     }
@@ -46,19 +49,22 @@ public class CommentController {
     @GetMapping("/comments/{parentCommentId}/replies")
     public ResponseEntity<ApiResponse<CursorInfoResponse<CommentInfoResponse>>> getRepliesByParent(
             @PathVariable(name = "parentCommentId") String parentCommentId,
-            @ModelAttribute CommentQueryRequest request
+            @ModelAttribute CommentQueryRequest request,
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
+        String memberId = (user != null) ? user.userId() : null;
         var condition = commentRequestMapper.toReplySearchCondition(parentCommentId, request);
-        var result = commentQueryService.getRepliesByParent(condition, request.memberId(), request.size());
+        var result = commentQueryService.getRepliesByParent(condition, memberId, request.size());
 
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @PostMapping("/posts/{postId}/comments")
     public ResponseEntity<ApiResponse<Void>> createParentComment(
-        @PathVariable(name = "postId") String postId,
-        @Valid @RequestBody CommentCreateRequest dto,
-        @RequestParam String memberId)  {
+            @PathVariable(name = "postId") String postId,
+            @Valid @RequestBody CommentCreateRequest dto,
+            @AuthenticationPrincipal CustomUserDetails user)  {
+        String memberId = (user != null) ? user.userId() : null;
         commentCommandService.createParentComment(postId, dto.content(), memberId);
         return ResponseEntity.ok(ApiResponse.success());
     }
@@ -67,15 +73,18 @@ public class CommentController {
     public ResponseEntity<ApiResponse<Void>> createChildComment(
             @PathVariable(name = "parentCommentId") String parentCommentId,
             @Valid @RequestBody CommentCreateRequest dto,
-            @RequestParam String memberId) {
+            @AuthenticationPrincipal CustomUserDetails user) {
+        String memberId = (user != null) ? user.userId() : null;
         commentCommandService.createChildComment(parentCommentId, dto.content(), memberId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(
-            @PathVariable(name = "commentId") String commentId) {
-        commentCommandService.deleteComment(commentId);
+            @PathVariable(name = "commentId") String commentId,
+            @AuthenticationPrincipal CustomUserDetails user) {
+        String memberId = (user != null) ? user.userId() : null;
+        commentCommandService.deleteComment(commentId, memberId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 

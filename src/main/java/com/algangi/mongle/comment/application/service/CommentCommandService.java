@@ -2,10 +2,11 @@ package com.algangi.mongle.comment.application.service;
 
 import com.algangi.mongle.comment.application.event.CommentCreatedEvent;
 import com.algangi.mongle.comment.application.event.CommentDeletedEvent;
+import com.algangi.mongle.comment.exception.CommentErrorCode;
 import com.algangi.mongle.global.exception.ApplicationException;
+import com.algangi.mongle.member.domain.MemberRole;
 import com.algangi.mongle.member.domain.MemberStatus;
 import com.algangi.mongle.member.exception.MemberErrorCode;
-import com.algangi.mongle.stats.application.service.ContentStatsService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +31,6 @@ public class CommentCommandService {
     private final CommentFinder commentFinder;
     private final CommentDomainService commentDomainService;
     private final CommentRepository commentRepository;
-    private final ContentStatsService contentStatsService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -63,13 +63,25 @@ public class CommentCommandService {
     }
 
     @Transactional
-    public void deleteComment(String commentId) {
-        Comment comment = commentFinder.getCommentOrThrow(commentId);
-        boolean wasAlreadyDeleted = comment.isDeleted();
-        commentDomainService.deleteComment(comment);
-
-        if (!wasAlreadyDeleted) {
-            eventPublisher.publishEvent(new CommentDeletedEvent(comment.getPost().getId()));
+    public void deleteComment(String commentId, String memberId) {
+        Member member = memberFinder.getMemberOrThrow(memberId);
+        if (member.getStatus() == MemberStatus.BANNED) {
+            throw new ApplicationException(MemberErrorCode.MEMBER_IS_BANNED);
         }
+
+        Comment comment = commentFinder.getCommentOrThrow(commentId);
+        if (comment.isDeleted()) {
+            throw new ApplicationException(CommentErrorCode.ALREADY_DELETED);
+        }
+
+        boolean isAuthor = comment.getMember().getMemberId().equals(member.getMemberId());
+        boolean isAdmin = member.getMemberRole() == MemberRole.ADMIN;
+
+        if (!isAuthor && !isAdmin) {
+            throw new ApplicationException(CommentErrorCode.COMMENT_ACCESS_DENIED);
+        }
+
+        commentDomainService.deleteComment(comment);
+        eventPublisher.publishEvent(new CommentDeletedEvent(comment.getPost().getId()));
     }
 }

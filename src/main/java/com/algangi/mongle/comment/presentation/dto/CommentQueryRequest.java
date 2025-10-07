@@ -5,8 +5,7 @@ import com.algangi.mongle.comment.domain.model.CommentSort;
 public record CommentQueryRequest(
         String cursor,
         Integer size,
-        CommentSort sort,
-        String memberId
+        CommentSort sort
 ) {
 
     private static final int DEFAULT_SIZE = 10;
