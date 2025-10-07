@@ -25,7 +25,10 @@ public enum AuthErrorCode implements ErrorCode {
     DUPLICATE_SOCIAL_ACCOUNT(HttpStatus.BAD_REQUEST, "AUTH-012", "이미 연동된 상태입니다."),
 
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-015", "유효하지 않은 토큰입니다."),
-    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-016", "만료된 토큰입니다.");
+    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-016", "만료된 토큰입니다."),
+
+    VERIFICATION_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "AUTH-020", "이메일 인증 코드가 일치하지 않습니다"),
+    VERIFICATION_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "AUTH-021", "이멩ㄹ 인증 코드가 만료되었습니다.");
 
     private final HttpStatus status;
     private final String code;
