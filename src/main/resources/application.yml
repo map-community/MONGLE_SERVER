@@ -33,6 +33,19 @@ spring:
         static: ap-northeast-2
       sqs:
         endpoint: ${SQS_ENDPOINT}
+  mail:
+    host: email-smtp.ap-northeast-2.amazonaws.com
+    port: 587
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+        from: contact.mongle@gmail.com
 
 mongle:
   aws:

@@ -4,12 +4,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.algangi.mongle.auth.exception.AuthErrorCode;
 import com.algangi.mongle.auth.presentation.dto.SignUpRequest;
 import com.algangi.mongle.auth.presentation.dto.SignUpResponse;
-import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.repository.MemberRepository;
+import com.algangi.mongle.member.service.MemberFinder;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,19 +16,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SignUpService {
 
+    private final MemberFinder memberFinder;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationService emailVerificationService;
 
     @Transactional
     public SignUpResponse signUp(SignUpRequest request) {
-        if (memberRepository.existsByEmail(request.email())) {
-            throw new ApplicationException(AuthErrorCode.DUPLICATE_EMAIL)
-                .addErrorInfo("email", request.email());
-        }
-        if (memberRepository.existsByNickname(request.nickname())) {
-            throw new ApplicationException(AuthErrorCode.DUPLICATE_NICKNAME)
-                .addErrorInfo("nickname", request.nickname());
-        }
+        emailVerificationService.verifyEmail(request.email(), request.verificationCode());
+
+        memberFinder.validateDuplicateEmail(request.email());
+        memberFinder.validateDuplicateNickName(request.nickname());
 
         String encodedPassword = passwordEncoder.encode(request.password());
 
@@ -44,5 +41,6 @@ public class SignUpService {
 
         return SignUpResponse.from(savedMember);
     }
+
 }
 

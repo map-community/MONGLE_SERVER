@@ -1,15 +1,18 @@
 package com.algangi.mongle.member.service;
 
-import com.algangi.mongle.global.exception.ApplicationException;
-import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.member.exception.MemberErrorCode;
-import com.algangi.mongle.member.repository.MemberRepository;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import com.algangi.mongle.auth.exception.AuthErrorCode;
+import com.algangi.mongle.global.exception.ApplicationException;
+import com.algangi.mongle.member.domain.Member;
+import com.algangi.mongle.member.exception.MemberErrorCode;
+import com.algangi.mongle.member.repository.MemberRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -38,9 +41,24 @@ public class MemberFinder {
         return memberRepository.findAllByMemberIdIn(memberIds);
     }
 
+    public void validateDuplicateEmail(String email) {
+        if (memberRepository.existsByEmail(email)) {
+            throw new ApplicationException(AuthErrorCode.DUPLICATE_EMAIL)
+                .addErrorInfo("email", email);
+        }
+    }
+
+    public void validateDuplicateNickName(String nickname) {
+        if (memberRepository.existsByNickname(nickname)) {
+            throw new ApplicationException(AuthErrorCode.DUPLICATE_NICKNAME)
+                .addErrorInfo("nickname", nickname);
+        }
+    }
+
     private void validateMemberId(String memberId) {
         if (memberId == null || memberId.isBlank()) {
             throw new ApplicationException(MemberErrorCode.MEMBER_NOT_FOUND);
         }
     }
+
 }
