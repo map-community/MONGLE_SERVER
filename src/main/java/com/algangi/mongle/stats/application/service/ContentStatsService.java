@@ -19,6 +19,7 @@ public class ContentStatsService {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final RedisScript<List> reactionScript;
+    private final RedisScript<Long> decrementScript;
 
     private static final String VIEW_COUNT_KEY_PREFIX = "views::";
     private static final String COMMENT_COUNT_KEY_PREFIX = "comments::";
@@ -39,6 +40,11 @@ public class ContentStatsService {
     public void incrementPostCommentCount(String postId) {
         String key = getKey(COMMENT_COUNT_KEY_PREFIX, TargetType.POST, postId);
         redisTemplate.opsForValue().increment(key);
+    }
+
+    public void decrementPostCommentCount(String postId) {
+        String key = COMMENT_COUNT_KEY_PREFIX + "post::" + postId;
+        redisTemplate.execute(decrementScript, List.of(key));
     }
 
     public void addCommentToRanking(String postId, String commentId) {
