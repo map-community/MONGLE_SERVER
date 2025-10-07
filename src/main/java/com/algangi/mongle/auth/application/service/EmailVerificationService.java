@@ -2,6 +2,7 @@ package com.algangi.mongle.auth.application.service;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -9,17 +10,38 @@ import com.algangi.mongle.auth.exception.AuthErrorCode;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.service.MemberFinder;
 
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class EmailVerificationService {
 
+    private static final String RATE_LIMIT_KEY_PREFIX = "AUTH_CODE_RATE:";
+    private static final Duration RATE_LIMIT_WINDOW = Duration.ofMinutes(1);
+    private static final int MAX_ATTEMPTS = 3;
+    private final RedisTemplate<String, String> redisTemplate;
     private final MemberFinder memberFinder;
     private final MailSender mailSender;
     private final VerificationCodeManager verificationCodeManager;
 
     public void sendVerificationCode(String email) {
+        String rateLimitKey = RATE_LIMIT_KEY_PREFIX + email;
+        Long attempts = redisTemplate.opsForValue().increment(rateLimitKey);
+
+        if (attempts == null) {
+            throw new IllegalStateException(
+                "Redis increment operation failed for key: " + rateLimitKey);
+        }
+
+        if (attempts == 1) {
+            redisTemplate.expire(rateLimitKey, RATE_LIMIT_WINDOW);
+        }
+
+        if (attempts > MAX_ATTEMPTS) {
+            throw new ApplicationException(AuthErrorCode.VERIFICATION_CODE_TRY_EXCEEDED);
+        }
+
         memberFinder.validateDuplicateEmail(email);
 
         String code = generateRandomCode();
