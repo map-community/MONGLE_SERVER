@@ -1,6 +1,7 @@
 package com.algangi.mongle.comment.application.service;
 
 import com.algangi.mongle.comment.application.event.CommentCreatedEvent;
+import com.algangi.mongle.comment.application.event.CommentDeletedEvent;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.MemberStatus;
 import com.algangi.mongle.member.exception.MemberErrorCode;
@@ -64,6 +65,11 @@ public class CommentCommandService {
     @Transactional
     public void deleteComment(String commentId) {
         Comment comment = commentFinder.getCommentOrThrow(commentId);
+        boolean wasAlreadyDeleted = comment.isDeleted();
         commentDomainService.deleteComment(comment);
+
+        if (!wasAlreadyDeleted) {
+            eventPublisher.publishEvent(new CommentDeletedEvent(comment.getPost().getId()));
+        }
     }
 }
