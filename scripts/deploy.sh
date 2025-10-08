@@ -21,7 +21,7 @@ echo ">>> Deploying to $TARGET_CONTAINER on port $TARGET_PORT"
   echo "CONTAINER_NAME=${TARGET_CONTAINER}"
   echo "PORT_MAPPING=${TARGET_PORT}:8080"
 } >> .env
-docker compose --env-file .env up -d --no-deps app
+docker compose --env-file .env up -d
 
 echo ">>> Health check for new container..."
 for i in {1..10}; do
