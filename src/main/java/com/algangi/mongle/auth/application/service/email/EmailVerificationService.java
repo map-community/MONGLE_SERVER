@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.application.service;
+package com.algangi.mongle.auth.application.service.email;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.algangi.mongle.auth.exception.AuthErrorCode;
+import com.algangi.mongle.auth.presentation.dto.VerifyEmailRequest;
+import com.algangi.mongle.auth.presentation.dto.VerifyEmailResponse;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.service.MemberFinder;
 
@@ -24,6 +26,7 @@ public class EmailVerificationService {
     private final MemberFinder memberFinder;
     private final MailSender mailSender;
     private final VerificationCodeManager verificationCodeManager;
+    private final VerificationTokenManager verificationTokenManager;
 
     public void sendVerificationCode(String email) {
         String rateLimitKey = RATE_LIMIT_KEY_PREFIX + email;
@@ -49,7 +52,10 @@ public class EmailVerificationService {
         mailSender.send(email, "몽글(Mongle) 서비스 회원가입 인증 코드입니다.", "인증 코드는 [" + code + "] 입니다.");
     }
 
-    public void verifyEmail(String email, String verificationCode) {
+    public VerifyEmailResponse verifyEmail(VerifyEmailRequest request) {
+        String email = request.email();
+        String verificationCode = request.verificationCode();
+
         if (!StringUtils.hasText(verificationCode)) {
             throw new IllegalArgumentException("이메일 인증코드는 빈 값일 수 없습니다.");
         }
@@ -63,6 +69,9 @@ public class EmailVerificationService {
         }
 
         verificationCodeManager.deleteCode(email);
+
+        String verificationToken = verificationTokenManager.generate(email);
+        return new VerifyEmailResponse(verificationToken);
     }
 
     private String generateRandomCode() {

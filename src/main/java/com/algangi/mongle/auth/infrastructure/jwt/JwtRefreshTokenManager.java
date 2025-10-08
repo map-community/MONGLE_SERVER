@@ -3,8 +3,9 @@ package com.algangi.mongle.auth.infrastructure.jwt;
 import java.util.Collections;
 
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
-import com.algangi.mongle.auth.application.service.RefreshTokenManager;
+import com.algangi.mongle.auth.application.service.authentication.RefreshTokenManager;
 import com.algangi.mongle.auth.domain.model.RefreshToken;
 import com.algangi.mongle.auth.domain.repository.RefreshTokenRepository;
 import com.algangi.mongle.auth.exception.AuthErrorCode;
@@ -29,6 +30,9 @@ public class JwtRefreshTokenManager implements RefreshTokenManager {
 
     @Override
     public RefreshToken generate(String memberId) {
+        if (!StringUtils.hasText(memberId)) {
+            throw new IllegalArgumentException("리프레쉬 토큰 생성 시 회원 ID는 필수값입니다.");
+        }
         String token = jwtHandler.createToken(memberId, Collections.emptyMap(),
             refreshTokenExpirationMillis);
         RefreshToken refreshToken = RefreshToken.of(memberId, token, refreshTokenExpirationMillis);

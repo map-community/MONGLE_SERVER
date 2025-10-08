@@ -3,7 +3,7 @@ package com.algangi.mongle.auth.infrastructure.redis;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import com.algangi.mongle.auth.application.service.VerificationCodeManager;
+import com.algangi.mongle.auth.application.service.email.VerificationCodeManager;
 
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 public class RedisVerificationCodeManager implements VerificationCodeManager {
 
     private static final String KEY_PREFIX = "AUTH_CODE:";
-    private static final Duration TTL = Duration.ofMinutes(10);
+    private static final Duration TTL = Duration.ofMinutes(30);
     private final RedisTemplate<String, String> redisTemplate;
 
     @Override
