@@ -96,7 +96,8 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
 
     public boolean isDeleted() {
         return this.status == CommentStatus.DELETED_BY_USER
-                || this.status == CommentStatus.DELETED_BY_ADMIN;
+                || this.status == CommentStatus.DELETED_BY_ADMIN
+                || this.status == CommentStatus.DELETED_BY_WITHDRAWAL;
     }
 
     public void softDeleteByUser() {
