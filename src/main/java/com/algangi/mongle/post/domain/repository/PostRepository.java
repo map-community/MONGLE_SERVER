@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.algangi.mongle.post.domain.model.Post;
@@ -60,4 +61,11 @@ public interface PostRepository extends JpaRepository<Post, String> {
 
     @Query("SELECT p.id FROM Post p WHERE p.authorId = :memberId")
     List<String> findAllIdsByMemberId(@Param("memberId") String memberId);
+
+    @Modifying
+    @Transactional(propagation = Propagation.MANDATORY)
+    @Query("UPDATE Post p " +
+            "SET p.authorId = NULL " +
+            "WHERE p.authorId = :memberId")
+    int unlinkMemberFromPosts(@Param("memberId") String memberId);
 }

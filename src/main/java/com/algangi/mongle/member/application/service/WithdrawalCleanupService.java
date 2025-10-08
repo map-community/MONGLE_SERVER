@@ -57,7 +57,7 @@ public class WithdrawalCleanupService {
 
         dbService.updateWithdrawnUserCommentsInDb(commentIds, postCommentCountDelta);
         dbService.updateWithdrawnUserPostsInDb(postIds);
-        // postRepository.unlinkMemberFromPosts(memberId);
+        postRepository.unlinkMemberFromPosts(memberId);
         commentRepository.unlinkMemberFromComments(memberId);
 
         // 멤버 엔티티 삭제
