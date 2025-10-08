@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.algangi.mongle.auth.application.service.AccessTokenManager;
+import com.algangi.mongle.auth.application.service.authentication.AccessTokenManager;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

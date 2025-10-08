@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
-import com.algangi.mongle.auth.application.service.OAuth2UserInfoMapper;
+import com.algangi.mongle.auth.application.service.oauth.OAuth2UserInfoMapper;
 import com.algangi.mongle.auth.domain.oauth2.OAuth2UserInfo;
 import com.algangi.mongle.auth.infrastructure.kakao.dto.KakaoUserInfoResponse;
 

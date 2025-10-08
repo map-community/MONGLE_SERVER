@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.application.service;
+package com.algangi.mongle.auth.application.service.email;
 
 import java.util.concurrent.ThreadLocalRandom;
 

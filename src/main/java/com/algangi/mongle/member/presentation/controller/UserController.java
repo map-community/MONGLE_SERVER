@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.algangi.mongle.auth.application.service.OAuth2Service;
+import com.algangi.mongle.auth.application.service.oauth.OAuth2Service;
 import com.algangi.mongle.auth.infrastructure.security.authentication.CustomUserDetails;
 import com.algangi.mongle.global.dto.ApiResponse;
 import com.algangi.mongle.member.presentation.dto.UserDetailResponse;

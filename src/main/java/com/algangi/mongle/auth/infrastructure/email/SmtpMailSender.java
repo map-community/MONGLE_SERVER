@@ -5,7 +5,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
-import com.algangi.mongle.auth.application.service.MailSender;
+import com.algangi.mongle.auth.application.service.email.MailSender;
 import com.algangi.mongle.auth.exception.AuthErrorCode;
 import com.algangi.mongle.global.exception.ApplicationException;
 

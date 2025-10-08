@@ -9,7 +9,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
-import com.algangi.mongle.auth.application.service.OAuth2Client;
+import com.algangi.mongle.auth.application.service.oauth.OAuth2Client;
 import com.algangi.mongle.auth.domain.oauth2.OAuth2Provider;
 import com.algangi.mongle.auth.domain.oauth2.OAuth2UserInfo;
 import com.algangi.mongle.auth.exception.AuthErrorCode;

@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import com.algangi.mongle.auth.application.service.VerificationTokenManager;
+import com.algangi.mongle.auth.application.service.email.VerificationTokenManager;
 import com.algangi.mongle.auth.exception.AuthErrorCode;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.querydsl.core.util.StringUtils;

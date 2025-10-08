@@ -4,7 +4,7 @@ import java.util.Collections;
 
 import org.springframework.stereotype.Service;
 
-import com.algangi.mongle.auth.application.service.RefreshTokenManager;
+import com.algangi.mongle.auth.application.service.authentication.RefreshTokenManager;
 import com.algangi.mongle.auth.domain.model.RefreshToken;
 import com.algangi.mongle.auth.domain.repository.RefreshTokenRepository;
 import com.algangi.mongle.auth.exception.AuthErrorCode;

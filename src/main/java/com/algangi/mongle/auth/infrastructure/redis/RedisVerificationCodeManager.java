@@ -3,7 +3,7 @@ package com.algangi.mongle.auth.infrastructure.redis;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import com.algangi.mongle.auth.application.service.VerificationCodeManager;
+import com.algangi.mongle.auth.application.service.email.VerificationCodeManager;
 
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;

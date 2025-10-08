@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.application.service;
+package com.algangi.mongle.auth.application.service.authentication;
 
 import com.algangi.mongle.auth.domain.model.RefreshToken;
 

@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.algangi.mongle.auth.application.service.LoginService;
-import com.algangi.mongle.auth.application.service.TokenReissueService;
+import com.algangi.mongle.auth.application.service.authentication.LoginService;
+import com.algangi.mongle.auth.application.service.authentication.TokenReissueService;
 import com.algangi.mongle.auth.presentation.dto.LoginRequest;
 import com.algangi.mongle.auth.presentation.dto.ReissueTokenRequest;
 import com.algangi.mongle.auth.presentation.dto.TokenInfo;

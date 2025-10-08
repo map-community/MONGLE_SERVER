@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.algangi.mongle.auth.application.service.EmailVerificationService;
-import com.algangi.mongle.auth.application.service.SignUpService;
+import com.algangi.mongle.auth.application.service.authentication.SignUpService;
+import com.algangi.mongle.auth.application.service.email.EmailVerificationService;
 import com.algangi.mongle.auth.presentation.dto.SendVerificationCodeRequest;
 import com.algangi.mongle.auth.presentation.dto.SignUpRequest;
 import com.algangi.mongle.auth.presentation.dto.SignUpResponse;

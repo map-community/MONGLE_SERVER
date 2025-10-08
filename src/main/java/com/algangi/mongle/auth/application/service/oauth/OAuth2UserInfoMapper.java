@@ -1,4 +1,4 @@
-package com.algangi.mongle.auth.application.service;
+package com.algangi.mongle.auth.application.service.oauth;
 
 import com.algangi.mongle.auth.domain.oauth2.OAuth2UserInfo;
 
