@@ -8,12 +8,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.algangi.mongle.auth.application.service.authentication.AccessTokenManager;
 import com.algangi.mongle.auth.domain.model.AccessToken;
 import com.algangi.mongle.auth.infrastructure.security.authentication.CustomUserDetails;
 import com.algangi.mongle.member.domain.MemberRole;
-import com.querydsl.core.util.StringUtils;
 
 import io.jsonwebtoken.Claims;
 
@@ -31,7 +31,7 @@ public class JwtAccessTokenManager implements AccessTokenManager {
 
     @Override
     public AccessToken generate(String memberId, MemberRole role) {
-        if (StringUtils.isNullOrEmpty(memberId)) {
+        if (!StringUtils.hasText(memberId)) {
             throw new IllegalArgumentException("액세스 토큰 생성 시 회원 ID는 필수값입니다.");
         }
         if (role == null) {

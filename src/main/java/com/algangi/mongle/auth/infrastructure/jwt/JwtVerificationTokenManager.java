@@ -4,12 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.algangi.mongle.auth.application.service.email.VerificationTokenManager;
 import com.algangi.mongle.auth.exception.AuthErrorCode;
 import com.algangi.mongle.global.exception.ApplicationException;
-import com.querydsl.core.util.StringUtils;
 
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,7 +24,7 @@ public class JwtVerificationTokenManager implements VerificationTokenManager {
 
     @Override
     public String generate(String email) {
-        if (StringUtils.isNullOrEmpty(email)) {
+        if (!StringUtils.hasText(email)) {
             throw new IllegalArgumentException("이메일 인증용 토큰 발급을 위해 이메일은 필수값입니다.");
         }
         Map<String, Object> claims = new HashMap<>();
@@ -33,10 +34,15 @@ public class JwtVerificationTokenManager implements VerificationTokenManager {
 
     @Override
     public void validateToken(String token, String email) {
+        if (!StringUtils.hasText(email)) {
+            throw new IllegalArgumentException("이메일 인증용 토큰 검증을 위해 이메일은 필수값입니다.");
+        }
         jwtHandler.validateSignature(token);
-        if (!jwtHandler.parseClaims(token).getSubject().equals(email) ||
-            !jwtHandler.parseClaims(token).get(CLAIM_KEY_PURPOSE)
-                .equals(VALUE_EMAIL_VERIFICATION)) {
+        Claims claims = jwtHandler.parseClaims(token);
+
+        if (!email.equals(claims.getSubject()) ||
+            !VALUE_EMAIL_VERIFICATION.equals(
+                claims.get(CLAIM_KEY_PURPOSE))) {
             throw new ApplicationException(AuthErrorCode.INVALID_TOKEN);
         }
     }
