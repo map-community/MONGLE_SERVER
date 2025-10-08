@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,4 +25,11 @@ public interface CommentRepository extends JpaRepository<Comment, String> {
     void updateStatusForIds(@Param("ids") List<String> ids, @Param("status") CommentStatus status);
 
     List<Comment> findAllByMember_MemberId(String memberId);
+
+    @Modifying
+    @Transactional(propagation = Propagation.MANDATORY)
+    @Query("UPDATE Comment c " +
+            "SET c.member = NULL " +
+            "WHERE c.member.memberId = :memberId")
+    int unlinkMemberFromComments(@Param("memberId") String memberId);
 }

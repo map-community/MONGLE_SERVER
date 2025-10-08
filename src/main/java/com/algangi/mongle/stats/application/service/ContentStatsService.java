@@ -3,7 +3,9 @@ package com.algangi.mongle.stats.application.service;
 import com.algangi.mongle.reaction.domain.model.ReactionType;
 import com.algangi.mongle.reaction.domain.model.TargetType;
 import com.algangi.mongle.reaction.presentation.dto.ReactionResponse;
+import com.algangi.mongle.stats.application.dto.ReactionCleanupDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
@@ -65,6 +67,51 @@ public class ContentStatsService {
 
         // 4. lua 스크립트 결과 dto 변환
         return parseReactionResult(result);
+    }
+
+    public void removeReactionsFromRedis(String memberId, List<ReactionCleanupDto> reactions) {
+        var serializer = redisTemplate.getStringSerializer();
+
+        redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            for (ReactionCleanupDto reaction : reactions) {
+                String targetId = reaction.targetId();
+                ReactionType reactionType = reaction.reactionType();
+
+                // reactions hash에서 해당 사용자 필드 삭제
+                byte[] reactionsKey = serializer.serialize(
+                        getKey(REACTIONS_KEY_PREFIX, reaction.targetType(), targetId)
+                );
+                byte[] memberField = serializer.serialize(memberId);
+                connection.hashCommands().hDel(reactionsKey, memberField);
+
+                // 좋아요/싫어요 카운트 감소
+                if (reactionType == ReactionType.LIKE) {
+                    byte[] likesKey = serializer.serialize(
+                            getKey(LIKES_COUNT_KEY_PREFIX, reaction.targetType(), targetId)
+                    );
+                    connection.stringCommands().decrBy(likesKey, 1);
+                } else if (reactionType == ReactionType.DISLIKE) {
+                    byte[] dislikesKey = serializer.serialize(
+                            getKey(DISLIKES_COUNT_KEY_PREFIX, reaction.targetType(), targetId)
+                    );
+                    connection.stringCommands().decrBy(dislikesKey, 1);
+                }
+
+                // 댓글인 경우 랭킹 ZSET에서 제거
+                if (reaction.targetType() == TargetType.COMMENT
+                        && reactionType == ReactionType.LIKE) {
+                    String postId = reaction.postId();
+                    if (StringUtils.hasText(postId)) {
+                        byte[] rankingKey = serializer.serialize(
+                                COMMENT_RANKING_KEY_FORMAT + postId
+                        );
+                        connection.zSetCommands().zIncrBy(rankingKey, -1,
+                                serializer.serialize(targetId));
+                    }
+                }
+            }
+            return null;
+        });
     }
 
     private void validateReactionType(ReactionType reactionType) {
