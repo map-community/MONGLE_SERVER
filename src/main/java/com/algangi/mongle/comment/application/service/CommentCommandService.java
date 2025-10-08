@@ -36,9 +36,8 @@ public class CommentCommandService {
     @Transactional
     public void createParentComment(String postId, String content, String memberId) {
         Member author = memberFinder.getMemberOrThrow(memberId);
-        if (author.getStatus() == MemberStatus.BANNED) {
-            throw new ApplicationException(MemberErrorCode.MEMBER_IS_BANNED);
-        }
+        requireActive(author);
+
         Post post = postFinder.getPostOrThrow(postId);
 
         Comment newComment = commentDomainService.createParentComment(post, author, content);
@@ -50,9 +49,8 @@ public class CommentCommandService {
     @Transactional
     public void createChildComment(String parentCommentId, String content, String memberId) {
         Member author = memberFinder.getMemberOrThrow(memberId);
-        if (author.getStatus() == MemberStatus.BANNED) {
-            throw new ApplicationException(MemberErrorCode.MEMBER_IS_BANNED);
-        }
+        requireActive(author);
+
         Comment parent = commentFinder.getCommentOrThrow(parentCommentId);
 
         Comment newComment = commentDomainService.createChildComment(parent, author, content);
@@ -65,9 +63,7 @@ public class CommentCommandService {
     @Transactional
     public void deleteComment(String commentId, String memberId) {
         Member member = memberFinder.getMemberOrThrow(memberId);
-        if (member.getStatus() == MemberStatus.BANNED) {
-            throw new ApplicationException(MemberErrorCode.MEMBER_IS_BANNED);
-        }
+        requireActive(member);
 
         Comment comment = commentFinder.getCommentOrThrow(commentId);
         if (comment.isDeleted()) {
@@ -83,5 +79,14 @@ public class CommentCommandService {
 
         commentDomainService.deleteComment(comment);
         eventPublisher.publishEvent(new CommentDeletedEvent(comment.getPost().getId()));
+    }
+
+    public void requireActive(Member member) {
+        if (member.getStatus() == MemberStatus.BANNED) {
+            throw new ApplicationException(MemberErrorCode.MEMBER_IS_BANNED);
+        }
+        if (member.getStatus() == MemberStatus.DEACTIVATED) {
+            throw new ApplicationException(MemberErrorCode.MEMBER_IS_DEACTIVATED);
+        }
     }
 }
