@@ -10,7 +10,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
@@ -33,6 +33,8 @@ spring:
         static: ap-northeast-2
       sqs:
         endpoint: ${SQS_ENDPOINT}
+  flyway:
+    baseline-on-migrate: true
   mail:
     host: email-smtp.ap-northeast-2.amazonaws.com
     port: 587
