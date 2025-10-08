@@ -48,9 +48,7 @@ public class PostCreationService {
     @Transactional
     public PostCreateResponse createPost(PostCreateRequest request, String authorId) {
         Member author = memberFinder.getMemberOrThrow(authorId);
-        if (author.getStatus() == MemberStatus.BANNED) {
-            throw new ApplicationException(MemberErrorCode.MEMBER_IS_BANNED);
-        }
+        requireActive(author);
 
         String s2TokenId = cellService.generateS2TokenIdFrom(request.latitude(),
             request.longitude());
@@ -136,5 +134,14 @@ public class PostCreationService {
             command.content(),
             command.authorId()
         );
+    }
+
+    private void requireActive(Member member) {
+        if (member.getStatus() == MemberStatus.BANNED) {
+            throw new ApplicationException(MemberErrorCode.MEMBER_IS_BANNED);
+        }
+        if (member.getStatus() == MemberStatus.DEACTIVATED) {
+            throw new ApplicationException(MemberErrorCode.MEMBER_IS_DEACTIVATED);
+        }
     }
 }

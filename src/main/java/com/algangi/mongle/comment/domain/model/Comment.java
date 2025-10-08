@@ -52,7 +52,7 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
     private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "member_id", nullable = true)
     private Member member;
 
     @Column(nullable = false)
@@ -96,7 +96,8 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
 
     public boolean isDeleted() {
         return this.status == CommentStatus.DELETED_BY_USER
-                || this.status == CommentStatus.DELETED_BY_ADMIN;
+                || this.status == CommentStatus.DELETED_BY_ADMIN
+                || this.status == CommentStatus.DELETED_BY_WITHDRAWAL;
     }
 
     public void softDeleteByUser() {

@@ -107,4 +107,8 @@ public class Member extends TimeBaseEntity {
     public void ban() {
         this.status = MemberStatus.BANNED;
     }
+
+    public void deactivate() {
+        this.status = MemberStatus.DEACTIVATED;
+    }
 }

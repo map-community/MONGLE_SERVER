@@ -34,4 +34,16 @@ public class ContentManagementDbService {
         postRepository.updateStatusForIds(postIds, PostStatus.DELETED_BY_ADMIN);
         reactionRepository.deleteAllByTargetTypeAndTargetIdIn(TargetType.POST, postIds);
     }
+
+    @Transactional
+    public void updateWithdrawnUserCommentsInDb(List<String> commentIds,
+                                                Map<String, Long> postCommentCountDelta) {
+        commentRepository.updateStatusForIds(commentIds, CommentStatus.DELETED_BY_WITHDRAWAL);
+        postCommentCountDelta.forEach(postRepository::decrementCommentCount);
+    }
+
+    @Transactional
+    public void updateWithdrawnUserPostsInDb(List<String> postIds) {
+        postRepository.updateStatusForIds(postIds, PostStatus.DELETED_BY_WITHDRAWAL);
+    }
 }

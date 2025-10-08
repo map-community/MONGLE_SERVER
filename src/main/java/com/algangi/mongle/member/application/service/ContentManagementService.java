@@ -5,7 +5,6 @@ import com.algangi.mongle.comment.domain.repository.CommentRepository;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.model.PostStatus;
 import com.algangi.mongle.post.domain.repository.PostRepository;
-import com.algangi.mongle.reaction.domain.repository.ReactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisCallback;
@@ -25,7 +24,6 @@ public class ContentManagementService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
-    private final ReactionRepository reactionRepository;
     private final ContentManagementDbService dbService;
     private final RedisTemplate<String, String> redisTemplate;
 
@@ -100,7 +98,7 @@ public class ContentManagementService {
         );
     }
 
-    private void cleanupRedisDataForComments(List<String> commentIds,
+    public void cleanupRedisDataForComments(List<String> commentIds,
         Map<String, Long> postCommentCountDelta, Map<String, List<String>> commentsByPost) {
         var serializer = redisTemplate.getStringSerializer();
 
@@ -138,7 +136,7 @@ public class ContentManagementService {
         });
     }
 
-    private void cleanupRedisDataForPosts(List<String> postIds) {
+    public void cleanupRedisDataForPosts(List<String> postIds) {
         var serializer = redisTemplate.getStringSerializer();
 
         redisTemplate.executePipelined((RedisCallback<Object>) connection -> {

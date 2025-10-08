@@ -8,7 +8,6 @@ import com.algangi.mongle.comment.infrastructure.persistence.querydsl.CommentOrd
 import com.algangi.mongle.comment.infrastructure.persistence.vo.CommentSearchCondition;
 import com.algangi.mongle.comment.infrastructure.persistence.vo.PaginationResult;
 import com.algangi.mongle.comment.infrastructure.persistence.vo.ReplySearchCondition;
-import com.querydsl.core.group.GroupBy;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -40,7 +39,8 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
                         filterFactory.eqPostId(condition.postId()),
                         filterFactory.isParentComment(),
                         filterFactory.cursorCondition(condition.cursor(), condition.sort()),
-                        filterFactory.notInBlockedMemberIds(blockedMemberIds)
+                        filterFactory.notInBlockedMemberIds(blockedMemberIds, comment),
+                        filterFactory.notDeletedByWithdrawal(comment)
                 )
                 .orderBy(orderFactory.createOrderSpecifiers(condition.sort()))
                 .limit(size + 1)
@@ -58,7 +58,8 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
                 .where(
                         filterFactory.eqParentId(condition.parentId()),
                         filterFactory.cursorCondition(condition.cursor(), condition.sort()),
-                        filterFactory.notInBlockedMemberIds(blockedMemberIds)
+                        filterFactory.notInBlockedMemberIds(blockedMemberIds, comment),
+                        filterFactory.notDeletedByWithdrawal(comment)
                 )
                 .orderBy(orderFactory.createOrderSpecifiers(condition.sort()))
                 .limit(size + 1)
@@ -68,7 +69,7 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
     }
 
     @Override
-    public Map<String, Boolean> findHasRepliesByParentIds(List<String> parentIds) {
+    public Map<String, Boolean> findHasRepliesByParentIds(List<String> parentIds, List<String> blockedMemberIds) {
         if (parentIds.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -78,7 +79,9 @@ public class CommentQueryDslRepository implements CommentQueryRepository {
                 .select(reply.parentComment.id)
                 .from(reply)
                 .where(
-                        reply.parentComment.id.in(parentIds)
+                        reply.parentComment.id.in(parentIds),
+                        filterFactory.notInBlockedMemberIds(blockedMemberIds, reply),
+                        filterFactory.notDeletedByWithdrawal(reply)
                 )
                 .groupBy(reply.parentComment.id)
                 .fetch();

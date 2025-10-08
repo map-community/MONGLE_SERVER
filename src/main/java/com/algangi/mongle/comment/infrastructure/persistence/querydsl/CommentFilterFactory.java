@@ -2,6 +2,8 @@ package com.algangi.mongle.comment.infrastructure.persistence.querydsl;
 
 import static com.algangi.mongle.comment.domain.model.QComment.comment;
 
+import com.algangi.mongle.comment.domain.model.CommentStatus;
+import com.algangi.mongle.comment.domain.model.QComment;
 import org.springframework.stereotype.Component;
 
 import com.algangi.mongle.comment.domain.model.CommentSort;
@@ -34,10 +36,14 @@ public class CommentFilterFactory {
         return CommentCursorParser.parse(cursor, sort);
     }
 
-    public BooleanExpression notInBlockedMemberIds(List<String> blockedMemberIds) {
+    public BooleanExpression notInBlockedMemberIds(List<String> blockedMemberIds, QComment qComment) {
         if (blockedMemberIds == null || blockedMemberIds.isEmpty()) {
             return null;
         }
-        return comment.member.memberId.notIn(blockedMemberIds);
+        return qComment.member.memberId.notIn(blockedMemberIds);
+    }
+
+    public BooleanExpression notDeletedByWithdrawal(QComment qComment) {
+        return qComment.status.ne(CommentStatus.DELETED_BY_WITHDRAWAL);
     }
 }

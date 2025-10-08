@@ -3,7 +3,10 @@ package com.algangi.mongle.stats.application.service;
 import com.algangi.mongle.reaction.domain.model.ReactionType;
 import com.algangi.mongle.reaction.domain.model.TargetType;
 import com.algangi.mongle.reaction.presentation.dto.ReactionResponse;
+import com.algangi.mongle.stats.application.dto.ReactionCleanupDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
@@ -14,6 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ContentStatsService {
 
@@ -65,6 +69,78 @@ public class ContentStatsService {
 
         // 4. lua 스크립트 결과 dto 변환
         return parseReactionResult(result);
+    }
+
+    public void removeReactionsFromRedis(String memberId, List<ReactionCleanupDto> reactions) {
+        if (!StringUtils.hasText(memberId) || reactions == null || reactions.isEmpty()) {
+            log.warn("Invalid arguments for removeReactionsFromRedis. memberId: {}, reactions is empty: {}",
+                    memberId, reactions == null || reactions.isEmpty());
+            return;
+        }
+
+        var serializer = redisTemplate.getStringSerializer();
+        List<Object> results = null;
+
+        try {
+            results = redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+                for (ReactionCleanupDto reaction : reactions) {
+                    String targetId = reaction.targetId();
+                    ReactionType reactionType = reaction.reactionType();
+
+                    // reactions hash에서 해당 사용자 필드 삭제
+                    byte[] reactionsKey = serializer.serialize(
+                            getKey(REACTIONS_KEY_PREFIX, reaction.targetType(), targetId)
+                    );
+                    byte[] memberField = serializer.serialize(memberId);
+                    connection.hashCommands().hDel(reactionsKey, memberField);
+
+                    // 좋아요/싫어요 카운트 감소
+                    if (reactionType == ReactionType.LIKE) {
+                        byte[] likesKey = serializer.serialize(
+                                getKey(LIKES_COUNT_KEY_PREFIX, reaction.targetType(), targetId)
+                        );
+                        connection.stringCommands().decrBy(likesKey, 1);
+                    } else if (reactionType == ReactionType.DISLIKE) {
+                        byte[] dislikesKey = serializer.serialize(
+                                getKey(DISLIKES_COUNT_KEY_PREFIX, reaction.targetType(), targetId)
+                        );
+                        connection.stringCommands().decrBy(dislikesKey, 1);
+                    }
+
+                    // 댓글인 경우 랭킹 ZSET에서 제거
+                    if (reaction.targetType() == TargetType.COMMENT
+                            && reactionType == ReactionType.LIKE) {
+                        String postId = reaction.postId();
+                        if (StringUtils.hasText(postId)) {
+                            byte[] rankingKey = serializer.serialize(
+                                    COMMENT_RANKING_KEY_FORMAT + postId
+                            );
+                            connection.zSetCommands().zIncrBy(rankingKey, -1,
+                                    serializer.serialize(targetId));
+                        }
+                    }
+                }
+                return null;
+            });
+        } catch (Exception e) {
+            log.error("Failed to execute Redis pipeline for member withdrawal: {}", memberId, e);
+            throw new RuntimeException("Redis pipeline execution failed", e);
+        }
+
+        if (results != null) {
+            for (int i = 0; i < results.size(); i++) {
+                Object result = results.get(i);
+                if (result instanceof Exception) {
+                    // 파이프라인 내부의 특정 명령어가 실패한 경우
+                    log.error("A command in the withdrawal pipeline failed for memberId {}. Result index: {}. Error: {}",
+                            memberId, i, ((Exception) result).getMessage());
+                } else if (result instanceof Long && (Long) result < 0) {
+                    // decrBy 실행 후 카운트가 음수가 된 경우
+                    log.warn("Redis count became negative after decrement for memberId {}. Result index: {}. Value: {}",
+                            memberId, i, result);
+                }
+            }
+        }
     }
 
     private void validateReactionType(ReactionType reactionType) {
