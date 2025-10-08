@@ -1,0 +1,29 @@
+-- V2__add_withdrawal_feature.sql
+
+ALTER TABLE post MODIFY COLUMN status ENUM(
+    'UPLOADING',
+    'ACTIVE',
+    'EXPIRED',
+    'DELETED_BY_USER',
+    'DELETED_BY_ADMIN',
+    'DELETED_BY_WITHDRAWAL'
+    ) NOT NULL;
+
+ALTER TABLE comment MODIFY COLUMN status ENUM(
+    'ACTIVE',
+    'DELETED_BY_ADMIN',
+    'DELETED_BY_USER',
+    'DEACTIVATED',
+    'DELETED_BY_WITHDRAWAL'
+    ) NOT NULL;
+
+ALTER TABLE member MODIFY COLUMN status ENUM(
+    'ACTIVE',
+    'BANNED',
+    'HUMAN',
+    'DEACTIVATED'
+    ) NOT NULL;
+
+
+ALTER TABLE post MODIFY COLUMN author_id VARCHAR(255) NULL;
+ALTER TABLE comment MODIFY COLUMN member_id VARCHAR(255) NULL;
