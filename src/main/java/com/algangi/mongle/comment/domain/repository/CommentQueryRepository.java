@@ -14,6 +14,6 @@ public interface CommentQueryRepository {
 
     PaginationResult<Comment> findRepliesByParent(ReplySearchCondition condition, int size, List<String> blockedMemberIds);
 
-    Map<String, Boolean> findHasRepliesByParentIds(List<String> parentIds);
+    Map<String, Boolean> findHasRepliesByParentIds(List<String> parentIds, List<String> blockedMemberIds);
 
 }

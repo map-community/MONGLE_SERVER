@@ -72,7 +72,7 @@ public class CommentQueryService {
         );
 
         // 7. 각 댓글의 대댓글 존재 여부 Map<댓글ID, Boolean> 형태로 조회
-        Map<String, Boolean> hasRepliesMap = getHasRepliesMap(pageResult.content());
+        Map<String, Boolean> hasRepliesMap = getHasRepliesMap(pageResult.content(), blockedMemberIds);
 
         // 8. 커서 생성
         String nextCursor = createNextCursor(pageResult.content(), pageResult.hasNext(), condition.sort());
@@ -149,13 +149,13 @@ public class CommentQueryService {
         return CursorInfoResponse.of(responses, nextCursor, pageResult.hasNext());
     }
 
-    private Map<String, Boolean> getHasRepliesMap(List<Comment> comments) {
+    private Map<String, Boolean> getHasRepliesMap(List<Comment> comments, List<String> blockedMemberIds) {
         if (comments.isEmpty()) return Map.of();
 
         List<String> parentIds = comments.stream()
                 .map(Comment::getId)
                 .toList();
-        return commentQueryRepository.findHasRepliesByParentIds(parentIds);
+        return commentQueryRepository.findHasRepliesByParentIds(parentIds, blockedMemberIds);
     }
 
     private int clampPageSize(int size) {
