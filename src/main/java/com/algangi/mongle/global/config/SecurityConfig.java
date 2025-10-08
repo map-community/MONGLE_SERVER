@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
-@Profile({"prod", "default"})
+@Profile({"prod", "local"})
 public class SecurityConfig {
 
     private final TokenValidationFilter tokenValidationFilter;

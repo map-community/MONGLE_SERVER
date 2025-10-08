@@ -1,0 +1,76 @@
+spring:
+  config:
+    import:
+      - security-config.yml
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL:jdbc:mysql://localhost:3306/mongle}
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        defer-datasource-initialization: true
+    open-in-view: false
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:sql/schema.sql
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ap-northeast-2
+      sqs:
+        endpoint: ${SQS_ENDPOINT}
+  mail:
+    host: email-smtp.ap-northeast-2.amazonaws.com
+    port: 587
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+        from: contact.mongle@gmail.com
+
+mongle:
+  aws:
+    s3:
+      bucket: ${BUCKET_NAME}
+      presigned-url-expiration-minutes: ${PUT_PRESIGNED_URL_EXPIRATION_MIN}
+    cloudfront:
+      domain: ${CLOUDFRONT_DOMAIN}
+      private-key-file-path: ${CLOUDFRONT_PRIVATE_KEY_FILE_PATH}
+      key-pair-id: ${CLOUDFRONT_KEY_PAIR_ID}
+      presigned-url-expiration-minutes: ${GET_PRESIGNED_URL_EXPIRATION_MIN}
+    sqs:
+      post-file-update-queue-name: "mongle-post-file-update-queue"
+  batch:
+    manual-s2seed:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: health
+      path-mapping:
+        health: health
+
+server:
+  forward-headers-strategy: native
