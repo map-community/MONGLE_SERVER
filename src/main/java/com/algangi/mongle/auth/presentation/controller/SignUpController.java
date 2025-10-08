@@ -11,6 +11,8 @@ import com.algangi.mongle.auth.application.service.SignUpService;
 import com.algangi.mongle.auth.presentation.dto.SendVerificationCodeRequest;
 import com.algangi.mongle.auth.presentation.dto.SignUpRequest;
 import com.algangi.mongle.auth.presentation.dto.SignUpResponse;
+import com.algangi.mongle.auth.presentation.dto.VerifyEmailRequest;
+import com.algangi.mongle.auth.presentation.dto.VerifyEmailResponse;
 import com.algangi.mongle.global.dto.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -35,6 +37,14 @@ public class SignUpController {
         @Valid @RequestBody SendVerificationCodeRequest request) {
         emailVerificationService.sendVerificationCode(request.email());
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PostMapping("/verify-code")
+    public ResponseEntity<ApiResponse<VerifyEmailResponse>> verifyVerificationCode(
+        @Valid @RequestBody VerifyEmailRequest request
+    ) {
+        return ResponseEntity.ok(
+            ApiResponse.success(emailVerificationService.verifyEmail(request)));
     }
 
 }

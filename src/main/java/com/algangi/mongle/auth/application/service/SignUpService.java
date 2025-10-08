@@ -19,11 +19,11 @@ public class SignUpService {
     private final MemberFinder memberFinder;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailVerificationService emailVerificationService;
+    private final VerificationTokenManager verificationTokenManager;
 
     @Transactional
     public SignUpResponse signUp(SignUpRequest request) {
-        emailVerificationService.verifyEmail(request.email(), request.verificationCode());
+        verificationTokenManager.validateToken(request.verificationToken(), request.email());
 
         memberFinder.validateDuplicateEmail(request.email());
         memberFinder.validateDuplicateNickName(request.nickname());

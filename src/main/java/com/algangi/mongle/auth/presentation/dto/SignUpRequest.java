@@ -14,8 +14,8 @@ public record SignUpRequest(
     @NotBlank(message = "닉네임은 필수값입니다.")
     String nickname,
     String profileImageKey,
-    @NotBlank(message = "이메일 인증코드는 필수값입니다.")
-    String verificationCode
+    @NotBlank(message = "이메일 인증용 토큰은 필수값입니다.")
+    String verificationToken
 ) {
 
 }
