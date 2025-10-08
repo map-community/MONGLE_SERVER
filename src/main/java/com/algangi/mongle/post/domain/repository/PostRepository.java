@@ -57,4 +57,7 @@ public interface PostRepository extends JpaRepository<Post, String> {
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Post p SET p.status = :status WHERE p.id IN :ids")
     void updateStatusForIds(@Param("ids") List<String> ids, @Param("status") PostStatus status);
+
+    @Query("SELECT p.id FROM Post p WHERE p.authorId = :memberId")
+    List<String> findAllIdsByMemberId(@Param("memberId") String memberId);
 }

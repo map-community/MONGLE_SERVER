@@ -21,4 +21,6 @@ public interface CommentRepository extends JpaRepository<Comment, String> {
             "SET c.status = :status " +
             "WHERE c.id IN :ids")
     void updateStatusForIds(@Param("ids") List<String> ids, @Param("status") CommentStatus status);
+
+    List<Comment> findAllByMember_MemberId(String memberId);
 }
