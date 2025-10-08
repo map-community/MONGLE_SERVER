@@ -16,6 +16,8 @@ public class StatsQueryService {
 
     private static final String LIKE_KEY_FORMAT = "likes::comment::%s";
     private static final String DISLIKE_KEY_FORMAT = "dislikes::comment::%s";
+    private static final String LIKE_KEY_FORMAT_POST = "likes::post::%s";
+    private static final String DISLIKE_KEY_FORMAT_POST = "dislikes::post::%s";
 
     private static final String VIEW_COUNT_KEY_FORMAT = "views::post::%s";
     private static final String COMMENT_COUNT_KEY_FORMAT = "comments::post::%s";
@@ -31,7 +33,7 @@ public class StatsQueryService {
 
         // MGET을 위해 모든 키를 하나의 리스트로 합침
         List<String> results = redisTemplate.opsForValue()
-            .multiGet(concatLists(likeKeys, dislikeKeys));
+                .multiGet(concatLists(likeKeys, dislikeKeys));
 
         if (results == null) {
             results = Collections.emptyList();
@@ -46,7 +48,7 @@ public class StatsQueryService {
         }
         return statsMap;
     }
-    
+
     public Map<String, PostStats> getPostStatsMap(List<String> postIds) {
         if (postIds == null || postIds.isEmpty()) {
             return Collections.emptyMap();
@@ -55,9 +57,11 @@ public class StatsQueryService {
         // 각 통계 유형별 키 목록 생성
         List<String> viewCountKeys = buildKeys(postIds, VIEW_COUNT_KEY_FORMAT);
         List<String> commentCountKeys = buildKeys(postIds, COMMENT_COUNT_KEY_FORMAT);
+        List<String> likeKeys = buildKeys(postIds, LIKE_KEY_FORMAT_POST);
+        List<String> dislikeKeys = buildKeys(postIds, DISLIKE_KEY_FORMAT_POST);
 
         // MGET을 위해 모든 키를 하나의 리스트로 합침
-        List<String> allKeys = concatLists(viewCountKeys, commentCountKeys);
+        List<String> allKeys = concatLists(viewCountKeys, commentCountKeys, likeKeys, dislikeKeys);
         List<String> results = redisTemplate.opsForValue().multiGet(allKeys);
 
         if (results == null) {
@@ -68,23 +72,28 @@ public class StatsQueryService {
         Map<String, PostStats> statsMap = new HashMap<>();
         for (int i = 0; i < postIds.size(); i++) {
             String postId = postIds.get(i);
+            int base = postIds.size();
             long viewCount = safeParseLong(results, i);
-            long commentCount = safeParseLong(results, i + postIds.size());
-            statsMap.put(postId, new PostStats(viewCount, commentCount));
+            long commentCount = safeParseLong(results, i + base);
+            long likeCount = safeParseLong(results, i + base * 2);
+            long dislikeCount = safeParseLong(results, i + base * 3);
+
+            statsMap.put(postId, new PostStats(viewCount, commentCount, likeCount, dislikeCount));
         }
         return statsMap;
     }
 
     private List<String> buildKeys(List<String> ids, String format) {
         return ids.stream()
-            .map(id -> String.format(format, id))
-            .toList();
+                .map(id -> String.format(format, id))
+                .toList();
     }
 
-    private List<String> concatLists(List<String> first, List<String> second) {
-        List<String> merged = new ArrayList<>(first.size() + second.size());
-        merged.addAll(first);
-        merged.addAll(second);
+    private List<String> concatLists(List<String>... lists) {
+        List<String> merged = new ArrayList<>();
+        for (List<String> list : lists) {
+            merged.addAll(list);
+        }
         return merged;
     }
 
