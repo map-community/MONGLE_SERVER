@@ -1,13 +1,9 @@
 package com.algangi.mongle.member.presentation.controller;
 
+import com.algangi.mongle.member.application.service.MemberService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.algangi.mongle.auth.application.service.oauth.OAuth2Service;
 import com.algangi.mongle.auth.infrastructure.security.authentication.CustomUserDetails;
@@ -25,6 +21,7 @@ public class UserController {
 
     private final OAuth2Service oAuth2Service;
     private final MemberProfileService memberProfileService;
+    private final MemberService memberService;
 
     @PostMapping("/social-link/{registrationId}")
     public ResponseEntity<ApiResponse<Void>> linkSocialAccount(
@@ -42,6 +39,14 @@ public class UserController {
     ) {
         return ResponseEntity.ok(
             ApiResponse.success(memberProfileService.getUserDetails(userDetails.userId())));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<Void>> withdrawUser(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        memberService.withdrawMember(userDetails.userId());
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
 }
