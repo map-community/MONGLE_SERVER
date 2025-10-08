@@ -57,6 +57,7 @@ public class S3ViewUrlIssueService implements ViewUrlIssueService {
         return ViewUrlResponse.of(issuedUrls);
     }
 
+    @Override
     public IssuedUrlInfo issueViewUrl(String fileKey) {
         String resourceUrl = HTTPS + cloudFrontProperties.domain() + DIR_DELIMITER + fileKey;
         Instant expirationTime = Instant.now()
