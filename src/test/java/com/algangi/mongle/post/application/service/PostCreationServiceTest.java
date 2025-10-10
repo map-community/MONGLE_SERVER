@@ -30,6 +30,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.dynamicCloud.domain.service.DynamicCloudFormationService;
+import com.algangi.mongle.file.application.service.FileService;
 import com.algangi.mongle.global.domain.service.CellService;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.Member;
@@ -38,7 +39,6 @@ import com.algangi.mongle.member.service.MemberFinder;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
-import com.algangi.mongle.post.domain.service.PostFileCommitValidationService;
 import com.algangi.mongle.post.domain.service.PostIdService;
 import com.algangi.mongle.post.event.PostFileCreatedEvent;
 import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
@@ -63,7 +63,7 @@ class PostCreationServiceTest {
     @Mock
     private DynamicCloudFormationService dynamicCloudFormationService;
     @Mock
-    private PostFileCommitValidationService postFileCommitValidationService;
+    private FileService fileService;
     @Mock
     private PostIdService postIdService;
     @Mock

@@ -1,13 +1,26 @@
 package com.algangi.mongle.post.application.service;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
 import com.algangi.mongle.block.application.service.BlockQueryService;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
-import com.algangi.mongle.global.application.service.ViewUrlIssueService;
+import com.algangi.mongle.file.application.dto.PresignedUrl;
+import com.algangi.mongle.file.application.service.ViewUrlIssueService;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.global.util.DateTimeUtil;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.service.MemberFinder;
-import com.algangi.mongle.post.application.dto.IssuedUrlInfo;
 import com.algangi.mongle.post.application.helper.PostFinder;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.model.PostFile;
@@ -19,7 +32,6 @@ import com.algangi.mongle.post.presentation.dto.PostDetailResponse;
 import com.algangi.mongle.post.presentation.dto.PostListRequest;
 import com.algangi.mongle.post.presentation.dto.PostListResponse;
 import com.algangi.mongle.post.presentation.dto.PostSort;
-import com.algangi.mongle.post.presentation.dto.ViewUrlRequest;
 import com.algangi.mongle.reaction.application.service.ReactionQueryService;
 import com.algangi.mongle.reaction.domain.model.ReactionType;
 import com.algangi.mongle.reaction.domain.model.TargetType;
@@ -27,19 +39,8 @@ import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
 import com.algangi.mongle.stats.application.dto.PostStats;
 import com.algangi.mongle.stats.application.service.ContentStatsService;
 import com.algangi.mongle.stats.application.service.StatsQueryService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -79,9 +80,9 @@ public class PostQueryService {
         Map<String, List<String>> photoUrlsMap = getPhotoUrlsForPosts(postsOnPage);
 
         Map<String, ReactionType> myReactionsMap = reactionQueryService.getMyReactions(
-                TargetType.POST,
-                postIds,
-                currentMemberId
+            TargetType.POST,
+            postIds,
+            currentMemberId
         );
 
         List<PostListResponse.PostSummary> summaries = postsOnPage.stream().map(post -> {
@@ -92,7 +93,8 @@ public class PostQueryService {
             ReactionType myReaction = myReactionsMap.get(post.getId());
             String myReactionStr = (myReaction != null) ? myReaction.name() : null;
 
-            return PostListResponse.PostSummary.from(post, author, photoUrlList, stats, myReactionStr);
+            return PostListResponse.PostSummary.from(post, author, photoUrlList, stats,
+                myReactionStr);
         }).toList();
 
         String nextCursor = createNextCursor(postsOnPage, hasNext, request.sortBy());
@@ -117,9 +119,9 @@ public class PostQueryService {
             .getOrDefault(postId, PostStats.empty());
 
         Map<String, ReactionType> myReactionsMap = reactionQueryService.getMyReactions(
-                TargetType.POST,
-                List.of(postId),
-                currentMemberId
+            TargetType.POST,
+            List.of(postId),
+            currentMemberId
         );
         ReactionType myReaction = myReactionsMap.get(postId);
         String myReactionStr = (myReaction != null) ? myReaction.name() : null;
@@ -216,9 +218,9 @@ public class PostQueryService {
         if (distinctFileKeys.isEmpty()) {
             return Collections.emptyList();
         }
-        return viewUrlIssueService.issueViewUrls(new ViewUrlRequest(distinctFileKeys)).issuedUrls()
+        return viewUrlIssueService.issueViewUrls(distinctFileKeys)
             .stream()
-            .map(IssuedUrlInfo::presignedUrl)
+            .map(PresignedUrl::url)
             .toList();
     }
 
@@ -230,10 +232,10 @@ public class PostQueryService {
         if (distinctFileKeys.isEmpty()) {
             return Collections.emptyMap();
         }
-        return viewUrlIssueService.issueViewUrls(new ViewUrlRequest(distinctFileKeys)).issuedUrls()
+        return viewUrlIssueService.issueViewUrls(distinctFileKeys)
             .stream()
             .collect(
-                Collectors.toMap(IssuedUrlInfo::fileKey, IssuedUrlInfo::presignedUrl, (a, b) -> a));
+                Collectors.toMap(PresignedUrl::fileKey, PresignedUrl::url, (a, b) -> a));
     }
 
     private String createNextCursor(List<Post> content, boolean hasNext, PostSort sort) {
