@@ -36,14 +36,17 @@ public class PostFileCreatedEventListener {
         try {
             Post post = postFinder.getPostOrThrow(event.postId());
 
-            List<String> permanentKeys = fileService.commitFiles(FileType.POST_FILE,
-                event.postId(),
-                event.temporaryFileKeys());
+            // 파일이 있는 경우에만 파일 이동 로직 수행
+            if (event.temporaryFileKeys() != null && !event.temporaryFileKeys().isEmpty()) {
+                List<String> permanentKeys = fileService.commitFiles(FileType.POST_FILE,
+                    event.postId(),
+                    event.temporaryFileKeys());
 
-            List<PostFile> postFiles = permanentKeys.stream()
-                .map(PostFile::create)
-                .toList();
-            post.addPostFiles(postFiles);
+                List<PostFile> postFiles = permanentKeys.stream()
+                    .map(PostFile::create)
+                    .toList();
+                post.addPostFiles(postFiles);
+            }
 
             // 파일 유무와 상관없이 항상 ACTIVE 상태로 변경
             post.markAsActive();

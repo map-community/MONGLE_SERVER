@@ -41,11 +41,16 @@ public class PostFileUpdatedEventListener {
                 .toList();
 
             //파일 커밋 (추가된 파일 임시 저장소에서 영구 저장소로 이동)
-            List<String> movedPermanentKeys = fileService.commitFiles(FileType.POST_FILE,
-                event.postId(),
-                keysToAdd);
+            List<String> movedPermanentKeys = List.of();
+            if (!keysToAdd.isEmpty()) {
+                movedPermanentKeys = fileService.commitFiles(FileType.POST_FILE,
+                    event.postId(),
+                    keysToAdd);
+            }
             //파일 삭제 (삭제된 파일 영구 저장소에서 삭제)
-            fileService.deletePermanentFiles(keysToDelete);
+            if (!keysToDelete.isEmpty()) {
+                fileService.deletePermanentFiles(keysToDelete);
+            }
 
             List<String> retainedFileKeys = event.previousFileKeys().stream()
                 .filter(event.finalFileKeys()::contains).toList();
