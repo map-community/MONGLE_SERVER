@@ -2,7 +2,7 @@ package com.algangi.mongle.post.presentation.dto;
 
 import java.util.List;
 
-import com.algangi.mongle.post.application.dto.IssuedUrlInfo;
+import com.algangi.mongle.file.application.dto.IssuedUrlInfo;
 
 public record UploadUrlResponse(
     List<IssuedUrlInfo> issuedUrls
