@@ -7,9 +7,12 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.algangi.mongle.auth.application.service.authentication.LogoutService;
 import com.algangi.mongle.comment.domain.model.Comment;
 import com.algangi.mongle.comment.domain.repository.CommentRepository;
+import com.algangi.mongle.file.application.service.FileService;
 import com.algangi.mongle.member.application.event.MemberWithdrawnEvent;
+import com.algangi.mongle.member.domain.model.Member;
 import com.algangi.mongle.member.domain.repository.MemberRepository;
 import com.algangi.mongle.post.domain.repository.PostRepository;
 import com.algangi.mongle.reaction.domain.repository.ReactionRepository;
@@ -31,11 +34,24 @@ public class WithdrawalCleanupService {
     private final CommentRepository commentRepository;
     private final ReactionRepositoryCustom reactionRepositoryCustom;
     private final ContentManagementDbService dbService;
+    private final LogoutService logoutService;
+    private final FileService fileService;
+    private final MemberFinder memberFinder;
 
     // 사용자 프로필 삭제, 소셜 계정 연동 삭제, 세션/토큰 무효화 처리 필요
     @Transactional
     public void cleanupDataFor(MemberWithdrawnEvent event) {
         String memberId = event.memberId();
+
+        // 사용자 프로필 삭제
+        Member member = memberFinder.getMemberOrThrow(memberId);
+        fileService.deletePermanentFiles(List.of(member.getProfileImage()));
+
+        // 소셜 계정 연동 삭제
+        //orphanRemoval=true에 의해 Member 엔티티 삭제 시 같이 삭제됨
+
+        // 리프레쉬 토큰 무효화 처리(로그아웃)
+        logoutService.logout(memberId);
 
         // 필요한 테이터 조회
         List<String> postIds = postRepository.findAllIdsByMemberId(memberId);
