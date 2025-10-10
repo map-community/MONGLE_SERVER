@@ -9,12 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import com.algangi.mongle.file.application.service.FileService;
+import com.algangi.mongle.file.domain.FileType;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.global.exception.AwsErrorCode;
 import com.algangi.mongle.post.application.helper.PostFinder;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.model.PostFile;
-import com.algangi.mongle.post.domain.service.PostFileHandler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class PostFileCreatedEventListener {
 
-    private final PostFileHandler postFileHandler;
+    private final FileService fileService;
     private final PostFinder postFinder;
 
     @Async("fileTaskExecutor")
@@ -36,8 +37,9 @@ public class PostFileCreatedEventListener {
             Post post = postFinder.getPostOrThrow(event.postId());
 
             // 파일이 있는 경우에만 파일 이동 로직 수행
-            if (!event.temporaryFileKeys().isEmpty()) {
-                List<String> permanentKeys = postFileHandler.moveBulkTempToPermanent(event.postId(),
+            if (event.temporaryFileKeys() != null && !event.temporaryFileKeys().isEmpty()) {
+                List<String> permanentKeys = fileService.commitFiles(FileType.POST_FILE,
+                    event.postId(),
                     event.temporaryFileKeys());
 
                 List<PostFile> postFiles = permanentKeys.stream()

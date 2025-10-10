@@ -1,4 +1,4 @@
-package com.algangi.mongle.post.presentation.dto;
+package com.algangi.mongle.file.presentation.dto;
 
 import java.util.List;
 

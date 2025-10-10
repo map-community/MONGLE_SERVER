@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.dynamicCloud.domain.service.DynamicCloudFormationService;
+import com.algangi.mongle.file.application.service.FileService;
 import com.algangi.mongle.global.domain.service.CellService;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.domain.Member;
@@ -20,7 +21,6 @@ import com.algangi.mongle.post.application.dto.PostCreationCommand;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
-import com.algangi.mongle.post.domain.service.PostFileCommitValidationService;
 import com.algangi.mongle.post.event.PostFileCreatedEvent;
 import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
 import com.algangi.mongle.post.presentation.dto.PostCreateResponse;
@@ -40,7 +40,7 @@ public class PostCreationService {
     private final DynamicCloudRepository dynamicCloudRepository;
     private final PostRepository postRepository;
     private final DynamicCloudFormationService dynamicCloudFormationService;
-    private final PostFileCommitValidationService postFileCommitValidationService;
+    private final FileService fileService;
     private final ApplicationEventPublisher eventPublisher;
     private final CellService cellService;
     private final MemberFinder memberFinder;
@@ -76,7 +76,7 @@ public class PostCreationService {
             createdPost = handleNewPost(command, s2TokenId);
         }
         // 4. 임시 PostFile 검증
-        postFileCommitValidationService.validateTemporaryFiles(request.fileKeyList());
+        fileService.validateTemporaryFilesExist(request.fileKeyList());
         Post savedPost = postRepository.save(createdPost);
 
         eventPublisher.publishEvent(

@@ -111,4 +111,8 @@ public class Member extends TimeBaseEntity {
     public void deactivate() {
         this.status = MemberStatus.DEACTIVATED;
     }
+
+    public void updateProfileImage(String profileImageKey) {
+        this.profileImage = profileImageKey;
+    }
 }

@@ -1,17 +1,15 @@
-package com.algangi.mongle.global.infrastructure;
+package com.algangi.mongle.file.infrastructure;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.algangi.mongle.global.application.service.ViewUrlIssueService;
+import com.algangi.mongle.file.application.dto.PresignedUrl;
+import com.algangi.mongle.file.application.service.ViewUrlIssueService;
 import com.algangi.mongle.global.config.CloudFrontProperties;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.global.exception.AwsErrorCode;
 import com.algangi.mongle.global.util.PemUtils;
-import com.algangi.mongle.post.application.dto.IssuedUrlInfo;
-import com.algangi.mongle.post.presentation.dto.ViewUrlRequest;
-import com.algangi.mongle.post.presentation.dto.ViewUrlResponse;
 
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
@@ -26,7 +24,7 @@ import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
 import software.amazon.awssdk.services.cloudfront.model.CloudFrontException;
 
 @Service
-public class S3ViewUrlIssueService implements ViewUrlIssueService {
+public class CloudFrontViewUrlIssueService implements ViewUrlIssueService {
 
     public static final String HTTPS = "https://";
     public static final String DIR_DELIMITER = "/";
@@ -34,7 +32,7 @@ public class S3ViewUrlIssueService implements ViewUrlIssueService {
     private final CloudFrontUtilities cloudFrontUtilities;
     private PrivateKey privateKey;
 
-    public S3ViewUrlIssueService(CloudFrontProperties cloudFrontProperties) {
+    public CloudFrontViewUrlIssueService(CloudFrontProperties cloudFrontProperties) {
         this.cloudFrontProperties = cloudFrontProperties;
         this.cloudFrontUtilities = CloudFrontUtilities.create();
     }
@@ -49,16 +47,14 @@ public class S3ViewUrlIssueService implements ViewUrlIssueService {
     }
 
     @Override
-    public ViewUrlResponse issueViewUrls(ViewUrlRequest request) {
-        List<IssuedUrlInfo> issuedUrls = request.fileKeyList().stream()
+    public List<PresignedUrl> issueViewUrls(List<String> fileKeyList) {
+        return fileKeyList.parallelStream()
             .map(this::issueViewUrl)
             .toList();
-
-        return ViewUrlResponse.of(issuedUrls);
     }
 
     @Override
-    public IssuedUrlInfo issueViewUrl(String fileKey) {
+    public PresignedUrl issueViewUrl(String fileKey) {
         String resourceUrl = HTTPS + cloudFrontProperties.domain() + DIR_DELIMITER + fileKey;
         Instant expirationTime = Instant.now()
             .plus(cloudFrontProperties.expirationMinutes(), ChronoUnit.MINUTES);
@@ -75,7 +71,7 @@ public class S3ViewUrlIssueService implements ViewUrlIssueService {
                 .url();
             LocalDateTime expiresAt = LocalDateTime.now()
                 .plusMinutes(cloudFrontProperties.expirationMinutes());
-            return new IssuedUrlInfo(fileKey, issuedUrl, expiresAt);
+            return new PresignedUrl(fileKey, issuedUrl, expiresAt);
 
         } catch (CloudFrontException e) {
             throw new ApplicationException(AwsErrorCode.CLOUDFRONT_PRESIGNED_URL_ISSUE_FAILED, e)

@@ -1,6 +1,8 @@
-package com.algangi.mongle.post.presentation.dto;
+package com.algangi.mongle.file.presentation.dto;
 
 import java.util.List;
+
+import com.algangi.mongle.file.domain.FileType;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -9,9 +11,12 @@ import jakarta.validation.constraints.NotNull;
 
 
 public record UploadUrlRequest(
+    @NotNull
+    FileType fileType,
     @NotNull(message = "파일 목록은 필수입니다")
     @Valid
     List<UploadFileInfo> files
+
 ) {
 
     public record UploadFileInfo(

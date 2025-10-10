@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.algangi.mongle.auth.domain.oauth2.OAuth2Provider;
-import com.algangi.mongle.global.application.service.ViewUrlIssueService;
+import com.algangi.mongle.file.application.service.ViewUrlIssueService;
 import com.algangi.mongle.member.domain.Member;
 import com.algangi.mongle.member.presentation.dto.UserDetailResponse;
 
@@ -25,7 +25,7 @@ public class MemberProfileService {
         Member member = memberFinder.getMemberOrThrow(memberId);
         String profileImageKey = member.getProfileImage();
         String profileImageUrl = (profileImageKey != null)
-            ? viewUrlIssueService.issueViewUrl(profileImageKey).presignedUrl()
+            ? viewUrlIssueService.issueViewUrl(profileImageKey).url()
             : null;
 
         Set<OAuth2Provider> linkedProviders = member.getSocialAccounts().stream()
