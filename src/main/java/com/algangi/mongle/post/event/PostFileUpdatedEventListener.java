@@ -5,12 +5,15 @@ import java.util.List;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.algangi.mongle.file.application.service.FileService;
 import com.algangi.mongle.file.domain.FileType;
-import com.algangi.mongle.post.application.service.PostUpdateCompleter;
+import com.algangi.mongle.post.application.helper.PostFinder;
+import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.model.PostFile;
 
 import lombok.RequiredArgsConstructor;
@@ -22,10 +25,11 @@ import lombok.extern.slf4j.Slf4j;
 public class PostFileUpdatedEventListener {
 
     private final FileService fileService;
-    private final PostUpdateCompleter postUpdateCompleter;
+    private final PostFinder postFinder;
 
     @Async("fileTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleFileUpdatedEvent(PostFileUpdatedEvent event) {
         log.info("Receiving SQS message for post: {}", event.postId());
         try {
@@ -50,7 +54,9 @@ public class PostFileUpdatedEventListener {
             retainedFileKeys.stream().map(PostFile::create).forEach(finalPostFiles::add);
             movedPermanentKeys.stream().map(PostFile::create).forEach(finalPostFiles::add);
 
-            postUpdateCompleter.completePostUpdate(event.postId(), finalPostFiles);
+            Post post = postFinder.getPostOrThrow(event.postId());
+            post.markAsActive();
+            post.updatePostFiles(finalPostFiles);
         } catch (Exception e) {
             log.error("게시물 업데이트 후 파일 후속처리(이동 및 삭제) 작업 실패 : {}. Error: {}", event.postId(),
                 e.getMessage(), e);

@@ -17,11 +17,9 @@ import com.algangi.mongle.post.presentation.dto.PostUpdateRequest;
 import com.algangi.mongle.post.presentation.dto.PostUpdateResponse;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class PostUpdateService {
 
     private final PostFinder postFinder;
