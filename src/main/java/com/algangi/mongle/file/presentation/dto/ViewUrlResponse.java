@@ -1,14 +1,14 @@
-package com.algangi.mongle.post.presentation.dto;
+package com.algangi.mongle.file.presentation.dto;
 
 import java.util.List;
 
-import com.algangi.mongle.file.application.dto.IssuedUrlInfo;
+import com.algangi.mongle.file.application.dto.PresignedUrl;
 
 public record ViewUrlResponse(
-    List<IssuedUrlInfo> issuedUrls
+    List<PresignedUrl> issuedUrls
 ) {
 
-    public static ViewUrlResponse of(List<IssuedUrlInfo> issuedUrlInfos) {
-        return new ViewUrlResponse(issuedUrlInfos);
+    public static ViewUrlResponse of(List<PresignedUrl> presignedUrls) {
+        return new ViewUrlResponse(presignedUrls);
     }
 }

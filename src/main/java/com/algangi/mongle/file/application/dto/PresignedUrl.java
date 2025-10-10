@@ -2,9 +2,9 @@ package com.algangi.mongle.file.application.dto;
 
 import java.time.LocalDateTime;
 
-public record IssuedUrlInfo(
+public record PresignedUrl(
     String fileKey,
-    String presignedUrl,
+    String url,
     LocalDateTime expiresAt
 ) {
 

@@ -1,13 +1,12 @@
-package com.algangi.mongle.global.application.service;
+package com.algangi.mongle.file.application.service;
+
+import java.util.List;
 
 import com.algangi.mongle.file.application.dto.PresignedUrl;
 
-import ViewUrlRequest;
-import ViewUrlResponse;
-
 public interface ViewUrlIssueService {
 
-    ViewUrlResponse issueViewUrls(ViewUrlRequest request);
+    List<PresignedUrl> issueViewUrls(List<String> fileKeyList);
 
     PresignedUrl issueViewUrl(String fileKey);
 }

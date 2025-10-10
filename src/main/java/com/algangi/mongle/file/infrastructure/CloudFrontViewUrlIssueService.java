@@ -11,8 +11,6 @@ import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.global.exception.AwsErrorCode;
 import com.algangi.mongle.global.util.PemUtils;
 
-import ViewUrlRequest;
-import ViewUrlResponse;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -26,7 +24,7 @@ import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
 import software.amazon.awssdk.services.cloudfront.model.CloudFrontException;
 
 @Service
-public class S3ViewUrlIssueService implements ViewUrlIssueService {
+public class CloudFrontViewUrlIssueService implements ViewUrlIssueService {
 
     public static final String HTTPS = "https://";
     public static final String DIR_DELIMITER = "/";
@@ -34,7 +32,7 @@ public class S3ViewUrlIssueService implements ViewUrlIssueService {
     private final CloudFrontUtilities cloudFrontUtilities;
     private PrivateKey privateKey;
 
-    public S3ViewUrlIssueService(CloudFrontProperties cloudFrontProperties) {
+    public CloudFrontViewUrlIssueService(CloudFrontProperties cloudFrontProperties) {
         this.cloudFrontProperties = cloudFrontProperties;
         this.cloudFrontUtilities = CloudFrontUtilities.create();
     }
@@ -49,12 +47,10 @@ public class S3ViewUrlIssueService implements ViewUrlIssueService {
     }
 
     @Override
-    public ViewUrlResponse issueViewUrls(ViewUrlRequest request) {
-        List<PresignedUrl> issuedUrls = request.fileKeyList().stream()
+    public List<PresignedUrl> issueViewUrls(List<String> fileKeyList) {
+        return fileKeyList.parallelStream()
             .map(this::issueViewUrl)
             .toList();
-
-        return ViewUrlResponse.of(issuedUrls);
     }
 
     @Override
