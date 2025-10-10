@@ -1,12 +1,14 @@
 package com.algangi.mongle.block.application.service;
 
-import com.algangi.mongle.block.domain.model.Block;
-import com.algangi.mongle.block.domain.repository.BlockRepository;
-import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.member.service.MemberFinder;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.algangi.mongle.block.domain.model.Block;
+import com.algangi.mongle.block.domain.repository.BlockRepository;
+import com.algangi.mongle.member.application.service.MemberFinder;
+import com.algangi.mongle.member.domain.model.Member;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +23,8 @@ public class BlockCommandService {
             throw new IllegalArgumentException("자기 자신을 차단할 수 없습니다.");
         }
 
-        if (blockRepository.findByBlocker_MemberIdAndBlocked_MemberId(blockerId, blockedId).isPresent()) {
+        if (blockRepository.findByBlocker_MemberIdAndBlocked_MemberId(blockerId, blockedId)
+            .isPresent()) {
             return;
         }
 
@@ -34,6 +37,6 @@ public class BlockCommandService {
 
     public void unblockUser(String blockerId, String blockedId) {
         blockRepository.findByBlocker_MemberIdAndBlocked_MemberId(blockerId, blockedId)
-                .ifPresent(blockRepository::delete);
+            .ifPresent(blockRepository::delete);
     }
 }

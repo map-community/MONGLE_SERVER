@@ -8,8 +8,8 @@ import com.algangi.mongle.auth.exception.AuthErrorCode;
 import com.algangi.mongle.auth.presentation.dto.LoginRequest;
 import com.algangi.mongle.auth.presentation.dto.TokenInfo;
 import com.algangi.mongle.global.exception.ApplicationException;
-import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.member.repository.MemberRepository;
+import com.algangi.mongle.member.domain.model.Member;
+import com.algangi.mongle.member.domain.repository.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
 

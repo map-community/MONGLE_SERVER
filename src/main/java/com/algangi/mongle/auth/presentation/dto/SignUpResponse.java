@@ -1,6 +1,6 @@
 package com.algangi.mongle.auth.presentation.dto;
 
-import com.algangi.mongle.member.domain.Member;
+import com.algangi.mongle.member.domain.model.Member;
 
 public record SignUpResponse(
     String memberId,

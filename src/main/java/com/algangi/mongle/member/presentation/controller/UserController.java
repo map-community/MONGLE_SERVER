@@ -1,15 +1,21 @@
 package com.algangi.mongle.member.presentation.controller;
 
-import com.algangi.mongle.member.application.service.MemberService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.algangi.mongle.auth.application.service.oauth.OAuth2Service;
 import com.algangi.mongle.auth.infrastructure.security.authentication.CustomUserDetails;
 import com.algangi.mongle.global.dto.ApiResponse;
+import com.algangi.mongle.member.application.service.MemberProfileService;
+import com.algangi.mongle.member.application.service.MemberService;
 import com.algangi.mongle.member.presentation.dto.UserDetailResponse;
-import com.algangi.mongle.member.service.MemberProfileService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -43,7 +49,7 @@ public class UserController {
 
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> withdrawUser(
-            @AuthenticationPrincipal CustomUserDetails userDetails
+        @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         memberService.withdrawMember(userDetails.userId());
         return ResponseEntity.ok(ApiResponse.success());

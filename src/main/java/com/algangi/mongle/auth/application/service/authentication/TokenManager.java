@@ -3,7 +3,7 @@ package com.algangi.mongle.auth.application.service.authentication;
 import org.springframework.security.core.Authentication;
 
 import com.algangi.mongle.auth.presentation.dto.TokenInfo;
-import com.algangi.mongle.member.domain.MemberRole;
+import com.algangi.mongle.member.domain.model.MemberRole;
 
 public interface TokenManager {
 

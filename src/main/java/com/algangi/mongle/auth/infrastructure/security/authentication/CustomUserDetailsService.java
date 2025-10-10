@@ -8,8 +8,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.member.service.MemberFinder;
+import com.algangi.mongle.member.application.service.MemberFinder;
+import com.algangi.mongle.member.domain.model.Member;
 
 import lombok.RequiredArgsConstructor;
 

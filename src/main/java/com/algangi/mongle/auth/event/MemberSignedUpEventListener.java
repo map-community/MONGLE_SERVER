@@ -10,8 +10,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.algangi.mongle.file.application.service.FileService;
 import com.algangi.mongle.file.domain.FileType;
-import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.member.service.MemberFinder;
+import com.algangi.mongle.member.application.service.MemberFinder;
+import com.algangi.mongle.member.domain.model.Member;
 
 import lombok.RequiredArgsConstructor;
 

@@ -1,5 +1,14 @@
 package com.algangi.mongle.map.application.service;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.algangi.mongle.block.application.service.BlockQueryService;
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
@@ -7,22 +16,15 @@ import com.algangi.mongle.global.infrastructure.S2CellService;
 import com.algangi.mongle.global.util.S2PolygonConverter;
 import com.algangi.mongle.map.presentation.dto.MapObjectsRequest;
 import com.algangi.mongle.map.presentation.dto.MapObjectsResponse;
-import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.member.service.MemberFinder;
+import com.algangi.mongle.member.application.service.MemberFinder;
+import com.algangi.mongle.member.domain.model.Member;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.model.PostStatus;
 import com.algangi.mongle.post.domain.repository.PostQueryRepository;
 import com.algangi.mongle.staticCloud.domain.model.StaticCloud;
 import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

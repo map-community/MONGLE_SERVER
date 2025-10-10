@@ -1,4 +1,4 @@
-package com.algangi.mongle.member.domain;
+package com.algangi.mongle.member.domain.model;
 
 import java.util.ArrayList;
 import java.util.List;

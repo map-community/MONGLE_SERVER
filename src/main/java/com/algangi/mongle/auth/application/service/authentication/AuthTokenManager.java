@@ -5,9 +5,9 @@ import org.springframework.stereotype.Service;
 import com.algangi.mongle.auth.domain.model.AccessToken;
 import com.algangi.mongle.auth.domain.model.RefreshToken;
 import com.algangi.mongle.auth.presentation.dto.TokenInfo;
-import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.member.domain.MemberRole;
-import com.algangi.mongle.member.service.MemberFinder;
+import com.algangi.mongle.member.application.service.MemberFinder;
+import com.algangi.mongle.member.domain.model.Member;
+import com.algangi.mongle.member.domain.model.MemberRole;
 
 @Service
 public class AuthTokenManager {

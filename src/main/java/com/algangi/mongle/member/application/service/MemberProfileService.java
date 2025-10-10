@@ -1,14 +1,10 @@
-package com.algangi.mongle.member.service;
-
-import java.util.Set;
-import java.util.stream.Collectors;
+package com.algangi.mongle.member.application.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.algangi.mongle.auth.domain.oauth2.OAuth2Provider;
 import com.algangi.mongle.file.application.service.ViewUrlIssueService;
-import com.algangi.mongle.member.domain.Member;
+import com.algangi.mongle.member.domain.model.Member;
 import com.algangi.mongle.member.presentation.dto.UserDetailResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -27,10 +23,6 @@ public class MemberProfileService {
         String profileImageUrl = (profileImageKey != null)
             ? viewUrlIssueService.issueViewUrl(profileImageKey).url()
             : null;
-
-        Set<OAuth2Provider> linkedProviders = member.getSocialAccounts().stream()
-            .map(socialAccount -> socialAccount.getSocialId().getProvider())
-            .collect(Collectors.toSet());
 
         return UserDetailResponse.of(
             member.getNickname(),

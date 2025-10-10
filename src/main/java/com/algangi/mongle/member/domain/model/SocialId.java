@@ -1,4 +1,4 @@
-package com.algangi.mongle.member.domain;
+package com.algangi.mongle.member.domain.model;
 
 import com.algangi.mongle.auth.domain.oauth2.OAuth2Provider;
 

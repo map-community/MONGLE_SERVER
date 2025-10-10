@@ -13,10 +13,10 @@ import com.algangi.mongle.dynamicCloud.domain.service.DynamicCloudFormationServi
 import com.algangi.mongle.file.application.service.FileService;
 import com.algangi.mongle.global.domain.service.CellService;
 import com.algangi.mongle.global.exception.ApplicationException;
-import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.member.domain.MemberStatus;
+import com.algangi.mongle.member.application.service.MemberFinder;
+import com.algangi.mongle.member.domain.model.Member;
+import com.algangi.mongle.member.domain.model.MemberStatus;
 import com.algangi.mongle.member.exception.MemberErrorCode;
-import com.algangi.mongle.member.service.MemberFinder;
 import com.algangi.mongle.post.application.dto.PostCreationCommand;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;

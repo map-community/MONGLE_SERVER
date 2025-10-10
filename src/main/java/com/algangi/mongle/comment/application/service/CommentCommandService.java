@@ -1,22 +1,22 @@
 package com.algangi.mongle.comment.application.service;
 
-import com.algangi.mongle.comment.application.event.CommentCreatedEvent;
-import com.algangi.mongle.comment.application.event.CommentDeletedEvent;
-import com.algangi.mongle.comment.exception.CommentErrorCode;
-import com.algangi.mongle.global.exception.ApplicationException;
-import com.algangi.mongle.member.domain.MemberRole;
-import com.algangi.mongle.member.domain.MemberStatus;
-import com.algangi.mongle.member.exception.MemberErrorCode;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.algangi.mongle.comment.application.event.CommentCreatedEvent;
+import com.algangi.mongle.comment.application.event.CommentDeletedEvent;
 import com.algangi.mongle.comment.domain.model.Comment;
 import com.algangi.mongle.comment.domain.repository.CommentRepository;
 import com.algangi.mongle.comment.domain.service.CommentDomainService;
 import com.algangi.mongle.comment.domain.service.CommentFinder;
-import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.member.service.MemberFinder;
+import com.algangi.mongle.comment.exception.CommentErrorCode;
+import com.algangi.mongle.global.exception.ApplicationException;
+import com.algangi.mongle.member.application.service.MemberFinder;
+import com.algangi.mongle.member.domain.model.Member;
+import com.algangi.mongle.member.domain.model.MemberRole;
+import com.algangi.mongle.member.domain.model.MemberStatus;
+import com.algangi.mongle.member.exception.MemberErrorCode;
 import com.algangi.mongle.post.application.helper.PostFinder;
 import com.algangi.mongle.post.domain.model.Post;
 
