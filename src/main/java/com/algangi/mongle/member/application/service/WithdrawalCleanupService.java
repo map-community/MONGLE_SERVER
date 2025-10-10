@@ -45,7 +45,9 @@ public class WithdrawalCleanupService {
 
         // 사용자 프로필 삭제
         Member member = memberFinder.getMemberOrThrow(memberId);
-        fileService.deletePermanentFiles(List.of(member.getProfileImage()));
+        if (member.getProfileImage() != null) {
+            fileService.deletePermanentFiles(List.of(member.getProfileImage()));
+        }
 
         // 소셜 계정 연동 삭제
         //orphanRemoval=true에 의해 Member 엔티티 삭제 시 같이 삭제됨
