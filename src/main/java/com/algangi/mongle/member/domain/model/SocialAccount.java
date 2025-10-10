@@ -1,4 +1,4 @@
-package com.algangi.mongle.member.domain;
+package com.algangi.mongle.member.domain.model;
 
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;

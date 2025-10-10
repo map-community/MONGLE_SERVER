@@ -1,4 +1,4 @@
-package com.algangi.mongle.member.service;
+package com.algangi.mongle.member.application.service;
 
 import java.util.List;
 
@@ -8,9 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.algangi.mongle.auth.exception.AuthErrorCode;
 import com.algangi.mongle.global.exception.ApplicationException;
-import com.algangi.mongle.member.domain.Member;
+import com.algangi.mongle.member.domain.model.Member;
+import com.algangi.mongle.member.domain.repository.MemberRepository;
 import com.algangi.mongle.member.exception.MemberErrorCode;
-import com.algangi.mongle.member.repository.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
 

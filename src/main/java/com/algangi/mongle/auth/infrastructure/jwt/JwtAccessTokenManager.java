@@ -13,7 +13,7 @@ import org.springframework.util.StringUtils;
 import com.algangi.mongle.auth.application.service.authentication.AccessTokenManager;
 import com.algangi.mongle.auth.domain.model.AccessToken;
 import com.algangi.mongle.auth.infrastructure.security.authentication.CustomUserDetails;
-import com.algangi.mongle.member.domain.MemberRole;
+import com.algangi.mongle.member.domain.model.MemberRole;
 
 import io.jsonwebtoken.Claims;
 

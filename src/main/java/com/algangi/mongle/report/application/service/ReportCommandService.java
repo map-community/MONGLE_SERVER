@@ -1,12 +1,17 @@
 package com.algangi.mongle.report.application.service;
 
+import java.util.Objects;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.algangi.mongle.comment.domain.model.Comment;
 import com.algangi.mongle.comment.domain.service.CommentFinder;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.application.service.ContentManagementService;
-import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.member.domain.MemberStatus;
-import com.algangi.mongle.member.service.MemberFinder;
+import com.algangi.mongle.member.application.service.MemberFinder;
+import com.algangi.mongle.member.domain.model.Member;
+import com.algangi.mongle.member.domain.model.MemberStatus;
 import com.algangi.mongle.post.application.helper.PostFinder;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.report.domain.model.Report;
@@ -14,11 +19,8 @@ import com.algangi.mongle.report.domain.model.ReportStatus;
 import com.algangi.mongle.report.domain.repository.ReportRepository;
 import com.algangi.mongle.report.exception.ReportErrorCode;
 import com.algangi.mongle.report.presentation.dto.ReportCreateRequest;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

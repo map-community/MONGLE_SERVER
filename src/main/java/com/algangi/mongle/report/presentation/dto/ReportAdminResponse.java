@@ -1,5 +1,6 @@
 package com.algangi.mongle.report.presentation.dto;
 
+import com.algangi.mongle.member.domain.model.Member;
 import com.algangi.mongle.report.domain.model.Report;
 import com.algangi.mongle.report.domain.model.ReportReason;
 import com.algangi.mongle.report.domain.model.ReportStatus;
@@ -33,7 +34,7 @@ public record ReportAdminResponse(
 
     public record ReporterInfo(String memberId, String nickname) {
 
-        public static ReporterInfo from(com.algangi.mongle.member.domain.Member member) {
+        public static ReporterInfo from(Member member) {
             return new ReporterInfo(member.getMemberId(), member.getNickname());
         }
     }

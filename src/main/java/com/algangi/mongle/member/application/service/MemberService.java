@@ -1,12 +1,13 @@
 package com.algangi.mongle.member.application.service;
 
-import com.algangi.mongle.member.application.event.MemberWithdrawnEvent;
-import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.member.service.MemberFinder;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.algangi.mongle.member.application.event.MemberWithdrawnEvent;
+import com.algangi.mongle.member.domain.model.Member;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

@@ -1,14 +1,16 @@
 package com.algangi.mongle.comment.presentation.mapper;
 
+import java.util.Objects;
+
+import org.springframework.stereotype.Component;
+
 import com.algangi.mongle.comment.domain.model.Comment;
 import com.algangi.mongle.comment.presentation.dto.AuthorInfoResponse;
 import com.algangi.mongle.comment.presentation.dto.CommentInfoResponse;
-import com.algangi.mongle.member.domain.Member;
+import com.algangi.mongle.member.domain.model.Member;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
-
-import java.util.Objects;
 
 @Component
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -19,28 +21,28 @@ public final class CommentResponseMapper {
     private static final String DEFAULT_PROFILE_IMAGE_URL = "default_profile_image_url";
 
     public CommentInfoResponse toCommentInfoResponse(
-            Comment comment,
-            String currentMemberId,
-            boolean hasReplies,
-            long likeCount,
-            long dislikeCount,
-            String myReaction) {
+        Comment comment,
+        String currentMemberId,
+        boolean hasReplies,
+        long likeCount,
+        long dislikeCount,
+        String myReaction) {
 
         boolean isDeleted = comment.isDeleted();
         Member author = comment.getMember();
 
         return CommentInfoResponse.builder()
-                .commentId(comment.getId())
-                .content(mapContent(comment, isDeleted))
-                .author(mapAuthor(author, isDeleted))
-                .likeCount(mapCount(likeCount, isDeleted))
-                .dislikeCount(mapCount(dislikeCount, isDeleted))
-                .createdAt(comment.getCreatedDate())
-                .isAuthor(mapIsAuthor(author, currentMemberId, isDeleted))
-                .isDeleted(isDeleted)
-                .hasReplies(hasReplies)
-                .myReaction(mapMyReaction(myReaction, isDeleted))
-                .build();
+            .commentId(comment.getId())
+            .content(mapContent(comment, isDeleted))
+            .author(mapAuthor(author, isDeleted))
+            .likeCount(mapCount(likeCount, isDeleted))
+            .dislikeCount(mapCount(dislikeCount, isDeleted))
+            .createdAt(comment.getCreatedDate())
+            .isAuthor(mapIsAuthor(author, currentMemberId, isDeleted))
+            .isDeleted(isDeleted)
+            .hasReplies(hasReplies)
+            .myReaction(mapMyReaction(myReaction, isDeleted))
+            .build();
     }
 
     private String mapContent(Comment comment, boolean deleted) {
@@ -53,16 +55,16 @@ public final class CommentResponseMapper {
         }
 
         return new AuthorInfoResponse(
-                author.getMemberId(),
-                author.getNickname(),
-                author.getProfileImage()
+            author.getMemberId(),
+            author.getNickname(),
+            author.getProfileImage()
         );
     }
 
     private boolean mapIsAuthor(Member author, String currentMemberId, boolean deleted) {
         return !deleted
-                && author != null
-                && Objects.equals(author.getMemberId(), currentMemberId);
+            && author != null
+            && Objects.equals(author.getMemberId(), currentMemberId);
     }
 
     private long mapCount(long count, boolean deleted) {

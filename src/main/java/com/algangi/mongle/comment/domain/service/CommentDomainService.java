@@ -1,9 +1,10 @@
 package com.algangi.mongle.comment.domain.service;
 
-import com.algangi.mongle.comment.domain.model.Comment;
-import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.post.domain.model.Post;
 import org.springframework.stereotype.Service;
+
+import com.algangi.mongle.comment.domain.model.Comment;
+import com.algangi.mongle.member.domain.model.Member;
+import com.algangi.mongle.post.domain.model.Post;
 
 @Service
 public class CommentDomainService {

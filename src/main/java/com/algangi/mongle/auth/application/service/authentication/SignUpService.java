@@ -12,9 +12,9 @@ import com.algangi.mongle.auth.event.MemberSignedUpEvent;
 import com.algangi.mongle.auth.presentation.dto.SignUpRequest;
 import com.algangi.mongle.auth.presentation.dto.SignUpResponse;
 import com.algangi.mongle.file.application.service.FileService;
-import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.member.repository.MemberRepository;
-import com.algangi.mongle.member.service.MemberFinder;
+import com.algangi.mongle.member.application.service.MemberFinder;
+import com.algangi.mongle.member.domain.model.Member;
+import com.algangi.mongle.member.domain.repository.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
 

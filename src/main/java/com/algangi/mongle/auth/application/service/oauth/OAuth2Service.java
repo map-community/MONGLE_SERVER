@@ -14,12 +14,12 @@ import com.algangi.mongle.auth.domain.oauth2.OAuth2UserInfo;
 import com.algangi.mongle.auth.exception.AuthErrorCode;
 import com.algangi.mongle.auth.presentation.dto.TokenInfo;
 import com.algangi.mongle.global.exception.ApplicationException;
-import com.algangi.mongle.member.domain.Member;
-import com.algangi.mongle.member.domain.SocialAccount;
-import com.algangi.mongle.member.domain.SocialId;
+import com.algangi.mongle.member.domain.model.Member;
+import com.algangi.mongle.member.domain.model.SocialAccount;
+import com.algangi.mongle.member.domain.model.SocialId;
+import com.algangi.mongle.member.domain.repository.MemberRepository;
+import com.algangi.mongle.member.domain.repository.SocialAccountRepository;
 import com.algangi.mongle.member.exception.MemberErrorCode;
-import com.algangi.mongle.member.repository.MemberRepository;
-import com.algangi.mongle.member.repository.SocialAccountRepository;
 
 
 @Service

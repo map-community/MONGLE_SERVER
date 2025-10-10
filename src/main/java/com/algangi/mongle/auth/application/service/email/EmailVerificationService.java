@@ -10,7 +10,7 @@ import com.algangi.mongle.auth.exception.AuthErrorCode;
 import com.algangi.mongle.auth.presentation.dto.VerifyEmailRequest;
 import com.algangi.mongle.auth.presentation.dto.VerifyEmailResponse;
 import com.algangi.mongle.global.exception.ApplicationException;
-import com.algangi.mongle.member.service.MemberFinder;
+import com.algangi.mongle.member.application.service.MemberFinder;
 
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;

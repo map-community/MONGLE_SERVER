@@ -1,7 +1,7 @@
 package com.algangi.mongle.reaction.domain.model;
 
 import com.algangi.mongle.global.entity.CreatedDateBaseEntity;
-import com.algangi.mongle.member.domain.Member;
+import com.algangi.mongle.member.domain.model.Member;
 
 import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.Column;
@@ -22,10 +22,10 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "reaction", uniqueConstraints = {
-        @UniqueConstraint(
-                name = "reaction_uk",
-                columnNames = {"member_id", "target_id", "target_type"}
-        )
+    @UniqueConstraint(
+        name = "reaction_uk",
+        columnNames = {"member_id", "target_id", "target_type"}
+    )
 })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -52,13 +52,14 @@ public class Reaction extends CreatedDateBaseEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    public static Reaction create(String targetId, TargetType targetType, ReactionType type, Member member) {
+    public static Reaction create(String targetId, TargetType targetType, ReactionType type,
+        Member member) {
         return Reaction.builder()
-                .targetId(targetId)
-                .targetType(targetType)
-                .type(type)
-                .member(member)
-                .build();
+            .targetId(targetId)
+            .targetType(targetType)
+            .type(type)
+            .member(member)
+            .build();
     }
 
     public void changeType(ReactionType type) {
