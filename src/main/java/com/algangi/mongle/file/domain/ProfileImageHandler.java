@@ -69,6 +69,9 @@ public class ProfileImageHandler implements FileHandler {
 
     @Override
     public String generatePermanentKey(String domainId, String tempKey) {
+        if (tempKey == null || !tempKey.startsWith(TEMP_DIR_PREFIX)) {
+            throw new ApplicationException(FileErrorCode.INVALID_TEMPORARY_KEY);
+        }
         String fileName = extractFileName(tempKey);
         String permanentDir = getPermanentDirectory(fileName);
         return permanentDir + domainId + DELIMITER + fileName;

@@ -18,7 +18,8 @@ public enum FileErrorCode implements ErrorCode {
     INVALID_IMAGE_SIZE(HttpStatus.BAD_REQUEST, "FILE-005", "업로드할 수 있는 이미지 사이즈를 초과했습니다."),
     INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "FILE-006",
         "지원하지 않는 파일 유형입니다. (PostFile, ProfileImage만 허용)"),
-    INVALID_FILE_EXTENSION(HttpStatus.BAD_REQUEST, "FILE-007", "파일 확장자가 유효하지 않습니다.");
+    INVALID_FILE_EXTENSION(HttpStatus.BAD_REQUEST, "FILE-007", "파일 확장자가 유효하지 않습니다."),
+    INVALID_TEMPORARY_KEY(HttpStatus.BAD_REQUEST, "FILE-008", "유효하지 않은 임시 파일 경로입니다.");
 
     private final HttpStatus status;
     private final String code;
