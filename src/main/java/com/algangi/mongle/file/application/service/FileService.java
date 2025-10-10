@@ -64,6 +64,16 @@ public class FileService {
     }
 
     public List<String> commitFiles(FileType fileType, String domainId, List<String> tempKeys) {
+        if (fileType == null) {
+            throw new IllegalArgumentException("File type은 null일 수 없습니다.");
+        }
+        if (domainId == null) {
+            throw new IllegalArgumentException("Domain ID는 null일 수 없습니다.");
+        }
+        if (tempKeys == null || tempKeys.isEmpty()) {
+            return List.of();
+        }
+
         FileHandler handler = getHandler(fileType);
 
         return tempKeys.stream()

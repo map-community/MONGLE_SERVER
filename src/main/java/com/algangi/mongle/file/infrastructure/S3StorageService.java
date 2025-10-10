@@ -35,6 +35,9 @@ public class S3StorageService implements StorageService {
 
     @Override
     public String issueUploadPresignedUrl(String s3Key, long expirationMinutes) {
+        if (s3Key == null) {
+            throw new IllegalArgumentException("S3 key는 null일 수 없습니다.");
+        }
         try {
             PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
                 .signatureDuration(Duration.ofMinutes(expirationMinutes))
@@ -54,6 +57,9 @@ public class S3StorageService implements StorageService {
 
     @Override
     public void copyFile(String sourceKey, String destinationKey) {
+        if (sourceKey == null || destinationKey == null) {
+            throw new IllegalArgumentException("소스 또는 대상 S3 key는 null일 수 없습니다.");
+        }
         try {
             s3Client.copyObject(CopyObjectRequest.builder()
                 .sourceBucket(bucket)
@@ -71,6 +77,9 @@ public class S3StorageService implements StorageService {
 
     @Override
     public void deleteFile(String s3Key) {
+        if (s3Key == null) {
+            return;
+        }
         try {
             s3Client.deleteObject(DeleteObjectRequest.builder()
                 .bucket(bucket)
@@ -88,7 +97,6 @@ public class S3StorageService implements StorageService {
         if (s3Keys == null || s3Keys.isEmpty()) {
             return;
         }
-
         try {
             List<ObjectIdentifier> identifiers = s3Keys.stream()
                 .map(key -> ObjectIdentifier.builder().key(key).build())
@@ -123,6 +131,9 @@ public class S3StorageService implements StorageService {
 
     @Override
     public void validateFileExists(String s3Key) {
+        if (s3Key == null) {
+            return;
+        }
         try {
             s3Client.headObject(HeadObjectRequest.builder()
                 .bucket(bucket)
