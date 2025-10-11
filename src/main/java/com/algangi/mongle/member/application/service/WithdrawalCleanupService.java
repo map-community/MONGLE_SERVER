@@ -74,9 +74,9 @@ public class WithdrawalCleanupService {
         reactionRepository.deleteAllByMemberId(memberId);
 
         // 게시글, 댓글 정리
-        contentManagementService.cleanupRedisDataForPosts(postIds);
         contentManagementService.cleanupRedisDataForComments(commentIds, postCommentCountDelta,
-            commentsByPost);
+                commentsByPost);
+        contentManagementService.cleanupRedisDataForPosts(postIds);
 
         dbService.updateWithdrawnUserCommentsInDb(commentIds, postCommentCountDelta);
         dbService.updateWithdrawnUserPostsInDb(postIds);
