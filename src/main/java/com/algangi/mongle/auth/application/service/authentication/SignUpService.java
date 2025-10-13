@@ -9,6 +9,7 @@ import com.algangi.mongle.auth.application.service.email.VerificationTokenManage
 import com.algangi.mongle.auth.event.MemberSignedUpEvent;
 import com.algangi.mongle.auth.presentation.dto.SignUpRequest;
 import com.algangi.mongle.auth.presentation.dto.SignUpResponse;
+import com.algangi.mongle.auth.presentation.dto.VerifyNicknameResponse;
 import com.algangi.mongle.member.application.service.MemberFinder;
 import com.algangi.mongle.member.domain.model.Member;
 import com.algangi.mongle.member.domain.repository.MemberRepository;
@@ -49,6 +50,10 @@ public class SignUpService {
         ));
 
         return SignUpResponse.from(savedMember);
+    }
+
+    public VerifyNicknameResponse verifyNickname(String nickname) {
+        return new VerifyNicknameResponse(!memberRepository.existsByNickname(nickname));
     }
 
 }
