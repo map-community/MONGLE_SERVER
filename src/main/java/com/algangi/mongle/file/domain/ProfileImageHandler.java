@@ -15,7 +15,6 @@ import com.google.common.io.Files;
 @Component
 public class ProfileImageHandler implements FileHandler {
 
-    private static final String TEMP_DIR_PREFIX = "temp/profiles/";
     private static final String PROFILE_IMAGE_DIR = "profiles/images/";
     private static final String DELIMITER = "/";
 
@@ -49,35 +48,13 @@ public class ProfileImageHandler implements FileHandler {
     }
 
     @Override
-    public String generateTempKey(String fileName) {
-        String extension = Files.getFileExtension(fileName).toLowerCase();
-        validateExtension(extension);
-        return TEMP_DIR_PREFIX + UUID.randomUUID()
-            + "."
-            + extension;
+    public String generateFileKey(String fileName) {
+        String dir = getDirectory(fileName);
+        String uniqueName = UUID.randomUUID().toString();
+        return dir + uniqueName + DELIMITER + fileName;
     }
 
-    private void validateExtension(String extension) {
-        if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
-            throw new ApplicationException(FileErrorCode.INVALID_FILE_EXTENSION);
-        }
-    }
-
-    private String extractFileName(String s3Key) {
-        return s3Key.substring(s3Key.lastIndexOf(DELIMITER) + 1);
-    }
-
-    @Override
-    public String generatePermanentKey(String domainId, String tempKey) {
-        if (tempKey == null || !tempKey.startsWith(TEMP_DIR_PREFIX)) {
-            throw new ApplicationException(FileErrorCode.INVALID_TEMPORARY_KEY);
-        }
-        String fileName = extractFileName(tempKey);
-        String permanentDir = getPermanentDirectory(fileName);
-        return permanentDir + domainId + DELIMITER + fileName;
-    }
-
-    private String getPermanentDirectory(String fileName) {
+    private String getDirectory(String fileName) {
         String extension = Files.getFileExtension(fileName).toLowerCase();
         if (ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
             return PROFILE_IMAGE_DIR;

@@ -70,7 +70,7 @@ public class Post extends TimeBaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private PostStatus status = PostStatus.UPLOADING;
+    private PostStatus status = PostStatus.PENDING;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -152,7 +152,7 @@ public class Post extends TimeBaseEntity {
         this.postFiles.clear();
         addPostFiles(postFiles);
     }
-    
+
     public void addPostFiles(List<PostFile> postFiles) {
         postFiles.forEach(this::addPostFile);
     }
@@ -171,8 +171,8 @@ public class Post extends TimeBaseEntity {
         this.status = PostStatus.ACTIVE;
     }
 
-    public void markAsUploading() {
-        this.status = PostStatus.UPLOADING;
+    public void markAsPending() {
+        this.status = PostStatus.PENDING;
     }
 
     public void softDeleteByUser() {

@@ -1,21 +1,23 @@
 package com.algangi.mongle.member.application.service;
 
-import com.algangi.mongle.comment.domain.model.Comment;
-import com.algangi.mongle.comment.domain.repository.CommentRepository;
-import com.algangi.mongle.post.domain.model.Post;
-import com.algangi.mongle.post.domain.model.PostStatus;
-import com.algangi.mongle.post.domain.repository.PostRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.algangi.mongle.comment.domain.model.Comment;
+import com.algangi.mongle.comment.domain.repository.CommentRepository;
+import com.algangi.mongle.post.domain.model.Post;
+import com.algangi.mongle.post.domain.model.PostStatus;
+import com.algangi.mongle.post.domain.repository.PostRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -69,7 +71,7 @@ public class ContentManagementService {
 
         // 1. 처리 대상 게시글 조회
         List<Post> postsToProcess = postRepository.findAllByAuthorIdAndStatusIn(
-            bannedMemberId, List.of(PostStatus.UPLOADING, PostStatus.ACTIVE)
+            bannedMemberId, List.of(PostStatus.PENDING, PostStatus.ACTIVE)
         );
 
         if (postsToProcess.isEmpty()) {
@@ -94,7 +96,7 @@ public class ContentManagementService {
 
     private List<Comment> findCommentsByBannedUser(String bannedMemberId) {
         return commentRepository.findAllByMemberIdAndPostStatusIn(
-            bannedMemberId, List.of(PostStatus.UPLOADING, PostStatus.ACTIVE)
+            bannedMemberId, List.of(PostStatus.PENDING, PostStatus.ACTIVE)
         );
     }
 

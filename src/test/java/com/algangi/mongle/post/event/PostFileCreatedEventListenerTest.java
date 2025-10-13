@@ -1,5 +1,6 @@
 package com.algangi.mongle.post.event;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -9,7 +10,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.util.List;
 
@@ -25,12 +25,13 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.algangi.mongle.file.application.service.FileService;
-import com.algangi.mongle.file.domain.FileType;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.global.exception.AwsErrorCode;
 import com.algangi.mongle.post.application.helper.PostFinder;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.model.PostFile;
+import com.algangi.mongle.post.domain.model.PostStatus;
+import com.algangi.mongle.post.exception.PostErrorCode;
 
 @ExtendWith(MockitoExtension.class)
 class PostFileCreatedEventListenerTest {
@@ -42,12 +43,15 @@ class PostFileCreatedEventListenerTest {
     private FileService fileService;
     @Mock
     private PostFinder postFinder;
+
+    // @Spy를 사용하여 실제 Post 객체의 메서드 호출을 감지합니다.
     @Spy
     private Post post = Post.createStandalone(null, "s2-token", "content",
         "author");
 
     @BeforeEach
     void setUp() {
+        // 모든 테스트에서 postFinder가 spy 객체를 반환하도록 설정
         lenient().when(postFinder.getPostOrThrow(POST_ID)).thenReturn(post);
     }
 
@@ -56,15 +60,11 @@ class PostFileCreatedEventListenerTest {
     class SuccessCases {
 
         @Test
-        @DisplayName("첨부 파일이 있는 경우 파일 이동 후 게시물을 Active 상태로 변경")
-        void handleFileCommit_WithFiles_MovesFilesAndMarksPostAsActive() {
+        @DisplayName("첨부 파일이 있는 경우 파일 커밋 후 게시물을 Active 상태로 변경")
+        void handleFileCommit_WithFiles_CommitsFilesAndMarksPostAsActive() {
             // given
-            List<String> tempKeys = List.of("temp/key1.jpg", "temp/key2.png");
-            List<String> permanentKeys = List.of("permanent/key1.jpg", "permanent/key2.png");
-            PostFileCreatedEvent event = new PostFileCreatedEvent(POST_ID, tempKeys);
-
-            when(fileService.commitFiles(FileType.POST_FILE, POST_ID, tempKeys)).thenReturn(
-                permanentKeys);
+            List<String> fileKeys = List.of("posts/key1.jpg", "posts/key2.png");
+            PostFileCreatedEvent event = new PostFileCreatedEvent(POST_ID, fileKeys);
 
             // when
             postFileCreatedEventListener.handleFileCommit(event);
@@ -73,29 +73,41 @@ class PostFileCreatedEventListenerTest {
             ArgumentCaptor<List<PostFile>> postFilesCaptor = ArgumentCaptor.forClass(List.class);
 
             assertAll(
-                () -> verify(fileService, times(1)).commitFiles(FileType.POST_FILE, POST_ID,
-                    tempKeys),
+                // 1. FileService의 commitFiles가 올바른 fileKeys로 호출되었는지 검증
+                () -> verify(fileService, times(1)).commitFiles(fileKeys),
+                // 2. Post 객체에 PostFile이 추가되었는지 검증
                 () -> verify(post, times(1)).addPostFiles(postFilesCaptor.capture()),
+                // 3. Post가 Active 상태로 변경되었는지 검증
                 () -> verify(post, times(1)).markAsActive()
             );
+            
+            List<PostFile> capturedFiles = postFilesCaptor.getValue();
+            assertThat(capturedFiles).hasSize(2);
+            assertThat(capturedFiles.get(0).getFileKey()).isEqualTo("posts/key1.jpg");
+            assertThat(capturedFiles.get(1).getFileKey()).isEqualTo("posts/key2.png");
+            assertEquals(PostStatus.ACTIVE, post.getStatus());
         }
 
         @Test
-        @DisplayName("첨부 파일이 없는 경우 파일 이동 없이 게시물만 Active 상태로 변경")
+        @DisplayName("첨부 파일이 없는 경우 파일 커밋 없이 게시물만 Active 상태로 변경")
         void handleFileCommit_WithoutFiles_MarksPostAsActive() {
             // given
-            List<String> emptyTempKeys = List.of();
-            PostFileCreatedEvent event = new PostFileCreatedEvent(POST_ID, emptyTempKeys);
+            List<String> emptyFileKeys = List.of();
+            PostFileCreatedEvent event = new PostFileCreatedEvent(POST_ID, emptyFileKeys);
 
             // when
             postFileCreatedEventListener.handleFileCommit(event);
 
             // then
             assertAll(
-                () -> verify(fileService, never()).commitFiles(any(), any(), any()),
+                // 1. 파일이 없으므로 commitFiles는 호출되지 않아야 함
+                () -> verify(fileService, never()).commitFiles(any()),
+                // 2. 파일이 없으므로 addPostFiles는 호출되지 않아야 함
                 () -> verify(post, never()).addPostFiles(any()),
+                // 3. Post는 Active 상태로 변경되어야 함
                 () -> verify(post, times(1)).markAsActive()
             );
+            assertEquals(PostStatus.ACTIVE, post.getStatus());
         }
     }
 
@@ -104,60 +116,42 @@ class PostFileCreatedEventListenerTest {
     class FailureCases {
 
         @Test
-        @DisplayName("파일 복사(Copy) 중 오류가 발생하면 ApplicationException을 던짐")
-        void handleFileCommit_WhenCopyFails_ThrowsApplicationException() {
+        @DisplayName("S3 태그 변경 중 오류가 발생하면 ApplicationException을 던지고 상태 변경을 하지 않음")
+        void handleFileCommit_WhenTaggingFails_ThrowsExceptionAndDoesNotChangeStatus() {
             // given
-            List<String> tempKeys = List.of("temp/key1.jpg");
-            PostFileCreatedEvent event = new PostFileCreatedEvent(POST_ID, tempKeys);
+            List<String> fileKeys = List.of("posts/key1.jpg");
+            PostFileCreatedEvent event = new PostFileCreatedEvent(POST_ID, fileKeys);
 
-            when(fileService.commitFiles(FileType.POST_FILE, POST_ID, tempKeys))
-                .thenThrow(new ApplicationException(AwsErrorCode.S3_FILE_COPY_FAILED));
+            doThrow(new ApplicationException(AwsErrorCode.S3_FILE_TAGGING_FAILED))
+                .when(fileService).commitFiles(fileKeys);
 
             // when & then
             ApplicationException exception = assertThrows(ApplicationException.class, () -> {
                 postFileCreatedEventListener.handleFileCommit(event);
             });
 
-            assertEquals(AwsErrorCode.S3_FILE_COPY_FAILED, exception.getErrorCode());
+            assertEquals(AwsErrorCode.S3_FILE_TAGGING_FAILED, exception.getErrorCode());
+
+            verify(post, never()).addPostFiles(any());
             verify(post, never()).markAsActive();
         }
 
         @Test
-        @DisplayName("임시 파일 삭제(Delete) 중 오류가 발생하면 ApplicationException을 던짐")
-        void handleFileCommit_WhenDeleteFails_ThrowsApplicationException() {
-            // given
-            List<String> tempKeys = List.of("temp/key1.jpg");
-            PostFileCreatedEvent event = new PostFileCreatedEvent(POST_ID, tempKeys);
-
-            when(fileService.commitFiles(FileType.POST_FILE, POST_ID, tempKeys))
-                .thenThrow(new ApplicationException(AwsErrorCode.S3_FILE_DELETE_FAILED));
-
-            // when & then
-            ApplicationException exception = assertThrows(ApplicationException.class, () -> {
-                postFileCreatedEventListener.handleFileCommit(event);
-            });
-
-            assertEquals(AwsErrorCode.S3_FILE_DELETE_FAILED, exception.getErrorCode());
-            verify(post, never()).markAsActive();
-        }
-
-
-        @Test
-        @DisplayName("Post를 찾을 수 없을 경우 예외를 던짐")
+        @DisplayName("Post를 찾을 수 없을 경우 예외를 던지고 파일 관련 작업을 수행하지 않음")
         void handleFileCommit_WhenPostNotFound_ThrowsException() {
             // given
             PostFileCreatedEvent event = new PostFileCreatedEvent(POST_ID,
-                List.of("temp/key1.jpg"));
-            // PostFinder가 예외를 던지도록 설정 (RuntimeException으로 가정)
-            doThrow(new RuntimeException("Post not found")).when(postFinder)
+                List.of("posts/key1.jpg"));
+            doThrow(new ApplicationException(PostErrorCode.POST_NOT_FOUND)).when(postFinder)
                 .getPostOrThrow(POST_ID);
 
             // when & then
-            assertThrows(RuntimeException.class, () -> {
+            assertThrows(ApplicationException.class, () -> {
                 postFileCreatedEventListener.handleFileCommit(event);
             });
 
-            verify(fileService, never()).commitFiles(any(), any(), any());
+            verify(fileService, never()).commitFiles(any());
+            verify(post, never()).addPostFiles(any());
             verify(post, never()).markAsActive();
         }
     }

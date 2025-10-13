@@ -8,14 +8,13 @@ import org.springframework.stereotype.Component;
 
 import com.algangi.mongle.file.application.dto.FileMetadata;
 import com.algangi.mongle.file.exception.FileErrorCode;
-import com.algangi.mongle.file.presentation.dto.UploadUrlRequest;
+import com.algangi.mongle.file.presentation.dto.UploadUrlRequest.UploadFileInfo;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.google.common.io.Files;
 
 @Component
 public class PostFileHandler implements FileHandler {
 
-    private static final String TEMP_DIR_PREFIX = "temp/post-files/";
     private static final String POST_IMAGE_DIR = "posts/images/";
     private static final String POST_VIDEO_DIR = "posts/videos/";
     private static final String DELIMITER = "/";
@@ -39,7 +38,7 @@ public class PostFileHandler implements FileHandler {
         validateMaxFileCount(files);
         validateMaxVideoCount(files);
         validateTotalImageSize(files);
-        files.forEach(this::validateFile);
+        files.forEach(this::validateEachFileSize);
     }
 
     private void validateMaxFileCount(List<FileMetadata> files) {
@@ -67,7 +66,7 @@ public class PostFileHandler implements FileHandler {
         }
     }
 
-    private void validateFile(FileMetadata file) {
+    private void validateEachFileSize(FileMetadata file) {
         if (file.isImage() && file.fileSize() > MAX_IMAGE_SIZE_BYTES) {
             throw new ApplicationException(FileErrorCode.INVALID_IMAGE_SIZE);
         }
@@ -76,49 +75,7 @@ public class PostFileHandler implements FileHandler {
         }
     }
 
-    @Override
-    public String generateTempKey(String fileName) {
-        String extension = Files.getFileExtension(fileName).toLowerCase();
-        validateExtension(extension);
-        return TEMP_DIR_PREFIX + UUID.randomUUID()
-            + "."
-            + extension;
-    }
-
-    @Override
-    public String generatePermanentKey(String domainId, String tempKey) {
-        if (tempKey == null || !tempKey.startsWith(TEMP_DIR_PREFIX)) {
-            throw new ApplicationException(FileErrorCode.INVALID_TEMPORARY_KEY);
-        }
-        String fileName = extractFileName(tempKey);
-        String permanentDir = getPermanentDirectory(fileName);
-        return permanentDir + domainId + DELIMITER + fileName;
-    }
-
-    private String getPermanentDirectory(String fileName) {
-        String extension = Files.getFileExtension(fileName).toLowerCase();
-        if (ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
-            return POST_IMAGE_DIR;
-        }
-        if (ALLOWED_VIDEO_EXTENSIONS.contains(extension)) {
-            return POST_VIDEO_DIR;
-        }
-        throw new ApplicationException(FileErrorCode.INVALID_FILE_EXTENSION);
-    }
-
-    private void validateExtension(String extension) {
-        if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension) &&
-            !ALLOWED_VIDEO_EXTENSIONS.contains(extension)) {
-            throw new ApplicationException(FileErrorCode.INVALID_FILE_EXTENSION);
-        }
-    }
-
-    private String extractFileName(String s3Key) {
-        return s3Key.substring(s3Key.lastIndexOf(DELIMITER) + 1);
-    }
-
-    @Override
-    public List<FileMetadata> createMetadata(List<UploadUrlRequest.UploadFileInfo> fileInfos) {
+    public List<FileMetadata> createMetadata(List<UploadFileInfo> fileInfos) {
         return fileInfos.stream()
             .map(info -> new FileMetadata(
                 info.fileName(),
@@ -135,6 +92,25 @@ public class PostFileHandler implements FileHandler {
         }
         if (ALLOWED_VIDEO_EXTENSIONS.contains(extension)) {
             return FileMetadata.MediaType.VIDEO;
+        }
+        throw new ApplicationException(FileErrorCode.INVALID_FILE_EXTENSION);
+    }
+
+
+    @Override
+    public String generateFileKey(String fileName) {
+        String dir = getDirectory(fileName);
+        String uniqueName = UUID.randomUUID().toString();
+        return dir + uniqueName + DELIMITER + fileName;
+    }
+
+    private String getDirectory(String fileName) {
+        String extension = Files.getFileExtension(fileName).toLowerCase();
+        if (ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
+            return POST_IMAGE_DIR;
+        }
+        if (ALLOWED_VIDEO_EXTENSIONS.contains(extension)) {
+            return POST_VIDEO_DIR;
         }
         throw new ApplicationException(FileErrorCode.INVALID_FILE_EXTENSION);
     }

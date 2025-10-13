@@ -2,6 +2,7 @@ package com.algangi.mongle.auth.event;
 
 import java.util.List;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,9 +10,6 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.algangi.mongle.file.application.service.FileService;
-import com.algangi.mongle.file.domain.FileType;
-import com.algangi.mongle.member.application.service.MemberFinder;
-import com.algangi.mongle.member.domain.model.Member;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,25 +18,15 @@ import lombok.RequiredArgsConstructor;
 public class MemberSignedUpEventListener {
 
     private final FileService fileService;
-    private final MemberFinder memberFinder;
 
+    @Async("fileTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleMemberSignedUpEvent(MemberSignedUpEvent event) {
-        if (event.temporaryProfileImageKey() == null) {
-            return;
+        if (event.profileImageKey() != null) {
+            List<String> fileKeyList = List.of(event.profileImageKey());
+            fileService.commitFiles(fileKeyList);
         }
-
-        List<String> fileKeyList = List.of(event.temporaryProfileImageKey());
-
-        List<String> permanentKeys = fileService.commitFiles(
-            FileType.PROFILE_IMAGE,
-            event.memberId(),
-            fileKeyList
-        );
-
-        Member member = memberFinder.getMemberOrThrow(event.memberId());
-        member.updateProfileImage(permanentKeys.getFirst());
     }
 }
 
