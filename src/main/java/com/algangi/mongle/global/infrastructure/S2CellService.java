@@ -1,13 +1,18 @@
 package com.algangi.mongle.global.infrastructure;
 
-import com.algangi.mongle.global.domain.service.CellService;
-import com.google.common.geometry.*;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import com.algangi.mongle.global.domain.service.CellService;
+import com.algangi.mongle.post.domain.model.Location;
+import com.google.common.geometry.S2CellId;
+import com.google.common.geometry.S2LatLng;
+import com.google.common.geometry.S2LatLngRect;
+import com.google.common.geometry.S2RegionCoverer;
 
 @Service
 public class S2CellService implements CellService {
@@ -32,6 +37,13 @@ public class S2CellService implements CellService {
         return neighbors.stream()
             .map(S2CellId::toToken)
             .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Location getLocationFrom(String s2TokenId) {
+        S2CellId cellId = S2CellId.fromToken(s2TokenId);
+        S2LatLng latLng = cellId.toLatLng();
+        return Location.create(latLng.latDegrees(), latLng.lngDegrees());
     }
 
     public List<String> getCellsForRect(double swLat, double swLng, double neLat, double neLng) {

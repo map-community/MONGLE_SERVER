@@ -10,13 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.dynamicCloud.domain.service.DynamicCloudFormationService;
-import com.algangi.mongle.file.application.service.FileService;
-import com.algangi.mongle.global.domain.service.CellService;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.application.service.MemberFinder;
 import com.algangi.mongle.member.domain.model.Member;
 import com.algangi.mongle.member.domain.model.MemberStatus;
 import com.algangi.mongle.member.exception.MemberErrorCode;
+import com.algangi.mongle.post.application.dto.LocationDeterminationResult;
 import com.algangi.mongle.post.application.dto.PostCreationCommand;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
@@ -40,29 +39,31 @@ public class PostCreationService {
     private final DynamicCloudRepository dynamicCloudRepository;
     private final PostRepository postRepository;
     private final DynamicCloudFormationService dynamicCloudFormationService;
-    private final FileService fileService;
     private final ApplicationEventPublisher eventPublisher;
-    private final CellService cellService;
     private final MemberFinder memberFinder;
+    private final LocationPrivacyService locationPrivacyService;
 
     @Transactional
     public PostCreateResponse createPost(PostCreateRequest request, String authorId) {
         Member author = memberFinder.getMemberOrThrow(authorId);
         requireActive(author);
 
-        String s2TokenId = cellService.generateS2TokenIdFrom(request.latitude(),
-            request.longitude());
-
-        PostCreationCommand command = PostCreationCommand.of(
+        LocationDeterminationResult locationDeterminationResult = locationPrivacyService.determineFinalS2Token(
             Location.create(request.latitude(), request.longitude()),
-            s2TokenId,
+            request.isRandomLocationEnabled()
+        );
+
+        String finalS2TokenId = locationDeterminationResult.s2TokenId();
+        PostCreationCommand command = PostCreationCommand.of(
+            locationDeterminationResult.location(),
+            finalS2TokenId,
             request.content(),
             authorId);
 
         Post createdPost;
-        Optional<StaticCloud> staticCloud = staticCloudRepository.findByS2TokenId(s2TokenId);
+        Optional<StaticCloud> staticCloud = staticCloudRepository.findByS2TokenId(finalS2TokenId);
         Optional<DynamicCloud> existingDynamicCloud = dynamicCloudRepository.findActiveByS2TokenId(
-            s2TokenId);
+            finalS2TokenId);
         // 1. 정적 구름 존재 여부 확인
         if (staticCloud.isPresent()) {
             createdPost = createPostInStaticCloud(command, staticCloud.get());
@@ -73,7 +74,7 @@ public class PostCreationService {
         }
         // 3. 동적 구름이 없는 경우
         else {
-            createdPost = handleNewPost(command, s2TokenId);
+            createdPost = handleNewPost(command, finalS2TokenId);
         }
         Post savedPost = postRepository.save(createdPost);
 

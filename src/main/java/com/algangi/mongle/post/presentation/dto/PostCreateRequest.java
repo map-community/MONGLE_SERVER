@@ -16,7 +16,9 @@ public record PostCreateRequest(
     @NotBlank(message = "게시글 내용은 필수값입니다.")
     @Size(max = 2000)
     String content,
-    List<String> fileKeyList
+    List<String> fileKeyList,
+    @NotNull(message = "무작위 위치 설정 여부는 필수값입니다.")
+    Boolean isRandomLocationEnabled
 ) {
 
     public PostCreateRequest {
