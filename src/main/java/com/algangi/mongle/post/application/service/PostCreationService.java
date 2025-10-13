@@ -10,12 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.dynamicCloud.domain.service.DynamicCloudFormationService;
-import com.algangi.mongle.global.domain.service.CellService;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.application.service.MemberFinder;
 import com.algangi.mongle.member.domain.model.Member;
 import com.algangi.mongle.member.domain.model.MemberStatus;
 import com.algangi.mongle.member.exception.MemberErrorCode;
+import com.algangi.mongle.post.application.dto.LocationDeterminationResult;
 import com.algangi.mongle.post.application.dto.PostCreationCommand;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
@@ -40,7 +40,6 @@ public class PostCreationService {
     private final PostRepository postRepository;
     private final DynamicCloudFormationService dynamicCloudFormationService;
     private final ApplicationEventPublisher eventPublisher;
-    private final CellService cellService;
     private final MemberFinder memberFinder;
     private final LocationPrivacyService locationPrivacyService;
 
@@ -49,16 +48,14 @@ public class PostCreationService {
         Member author = memberFinder.getMemberOrThrow(authorId);
         requireActive(author);
 
-        String s2TokenId = cellService.generateS2TokenIdFrom(request.latitude(),
-            request.longitude());
-
-        String finalS2TokenId = locationPrivacyService.determineFinalS2Token(
-            s2TokenId,
+        LocationDeterminationResult locationDeterminationResult = locationPrivacyService.determineFinalS2Token(
+            Location.create(request.latitude(), request.longitude()),
             request.isRandomLocationEnabled()
         );
 
+        String finalS2TokenId = locationDeterminationResult.s2TokenId();
         PostCreationCommand command = PostCreationCommand.of(
-            Location.create(request.latitude(), request.longitude()),
+            locationDeterminationResult.location(),
             finalS2TokenId,
             request.content(),
             authorId);

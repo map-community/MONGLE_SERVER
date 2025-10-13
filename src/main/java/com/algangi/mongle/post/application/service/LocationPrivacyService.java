@@ -4,6 +4,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.stereotype.Service;
 
+import com.algangi.mongle.global.domain.service.CellService;
+import com.algangi.mongle.post.application.dto.LocationDeterminationResult;
+import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
 import com.google.common.geometry.S2CellId;
 import com.google.common.geometry.S2LatLng;
@@ -20,17 +23,23 @@ public class LocationPrivacyService {
     private static final int S2_CELL_LEVEL = 19;
     private static final double EARTH_RADIUS_METERS = 6371000.0;
     private final StaticCloudRepository staticCloudRepository;
+    private final CellService cellService;
 
-    public String determineFinalS2Token(String originalS2Token, boolean isRandomLocationEnabled) {
-        if (!isRandomLocationEnabled) {
-            return originalS2Token;
+    public LocationDeterminationResult determineFinalS2Token(Location location,
+        boolean isRandomLocationEnabled) {
+        String originalS2TokenId = cellService.generateS2TokenIdFrom(location.getLatitude(),
+            location.getLongitude());
+
+        String finalS2TokenId;
+        if (!isRandomLocationEnabled || staticCloudRepository.findByS2TokenId(
+            originalS2TokenId).isPresent()) {
+            finalS2TokenId = originalS2TokenId;
+        } else {
+            finalS2TokenId = randomizeLocation(originalS2TokenId);
         }
 
-        if (staticCloudRepository.findByS2TokenId(originalS2Token).isPresent()) {
-            return originalS2Token;
-        }
-
-        return randomizeLocation(originalS2Token);
+        Location finalLocation = cellService.getLocationFrom(finalS2TokenId);
+        return LocationDeterminationResult.of(finalS2TokenId, finalLocation);
     }
 
     private String randomizeLocation(String s2Token) {
