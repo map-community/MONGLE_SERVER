@@ -75,8 +75,6 @@ public class PostCreationService {
         else {
             createdPost = handleNewPost(command, s2TokenId);
         }
-        // 4. 임시 PostFile 검증
-        fileService.validateTemporaryFilesExist(request.fileKeyList());
         Post savedPost = postRepository.save(createdPost);
 
         eventPublisher.publishEvent(

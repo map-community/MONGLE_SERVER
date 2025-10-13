@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.algangi.mongle.auth.exception.AuthErrorCode;
-import com.algangi.mongle.file.application.service.FileService;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.post.application.helper.PostFinder;
 import com.algangi.mongle.post.domain.model.Post;
@@ -24,7 +23,6 @@ public class PostUpdateService {
 
     private final PostFinder postFinder;
     private final ApplicationEventPublisher eventPublisher;
-    private final FileService fileService;
 
     @Transactional
     public PostUpdateResponse updatePost(String postId, PostUpdateRequest request,
@@ -33,16 +31,12 @@ public class PostUpdateService {
         if (!post.getAuthorId().equals(memberId)) {
             throw new ApplicationException(AuthErrorCode.ACCESS_DENIED);
         }
-        post.markAsUploading();
+        post.markAsPending();
 
         List<String> previousFileKeys = post.getPostFiles().stream()
             .map(PostFile::getFileKey)
             .toList();
         List<String> finalFileKeys = request.fileKeyList();
-
-        List<String> keysToAdd = finalFileKeys.stream()
-            .filter(key -> !previousFileKeys.contains(key)).toList();
-        fileService.validateTemporaryFilesExist(keysToAdd);
 
         post.updateContent(request.content());
 

@@ -10,7 +10,6 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.algangi.mongle.file.application.service.FileService;
-import com.algangi.mongle.file.domain.FileType;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.global.exception.AwsErrorCode;
 import com.algangi.mongle.post.application.helper.PostFinder;
@@ -36,13 +35,12 @@ public class PostFileCreatedEventListener {
         try {
             Post post = postFinder.getPostOrThrow(event.postId());
 
-            // 파일이 있는 경우에만 파일 이동 로직 수행
-            if (event.temporaryFileKeys() != null && !event.temporaryFileKeys().isEmpty()) {
-                List<String> permanentKeys = fileService.commitFiles(FileType.POST_FILE,
-                    event.postId(),
-                    event.temporaryFileKeys());
+            // 게시물 파일이 있는 경우에만 파일 커밋 작업 수행
+            List<String> postFileKeys = event.postFileKeys();
+            if (postFileKeys != null && !postFileKeys.isEmpty()) {
+                fileService.commitFiles(event.postFileKeys());
 
-                List<PostFile> postFiles = permanentKeys.stream()
+                List<PostFile> postFiles = postFileKeys.stream()
                     .map(PostFile::create)
                     .toList();
                 post.addPostFiles(postFiles);
