@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -72,12 +74,14 @@ class PostCreationServiceTest {
     private CellService cellService;
     @Mock
     private MemberFinder memberFinder;
+    @Mock
+    private LocationPrivacyService locationPrivacyService;
     private PostCreateRequest request;
     private Member activeMember;
 
     @BeforeEach
     void setUp() {
-        request = new PostCreateRequest(35.8714, 128.6014, "게시물 내용", List.of("file1.jpg"));
+        request = new PostCreateRequest(35.8714, 128.6014, "게시물 내용", List.of("file1.jpg"), false);
 
         activeMember = Member.createUser("test@test.com", "{bcrypt}password", "tester", null);
         ReflectionTestUtils.setField(activeMember, "memberId", AUTHOR_ID);
@@ -86,6 +90,8 @@ class PostCreationServiceTest {
         when(memberFinder.getMemberOrThrow(AUTHOR_ID)).thenReturn(activeMember);
         lenient().when(postIdService.createId()).thenReturn(POST_ID);
         lenient().when(cellService.generateS2TokenIdFrom(anyDouble(), anyDouble()))
+            .thenReturn(S2_TOKEN_ID);
+        lenient().when(locationPrivacyService.determineFinalS2Token(anyString(), anyBoolean()))
             .thenReturn(S2_TOKEN_ID);
         lenient().when(postRepository.save(any(Post.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
