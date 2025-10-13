@@ -1,18 +1,20 @@
 package com.algangi.mongle.global.exception;
 
-import com.algangi.mongle.global.dto.ApiResponse;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.algangi.mongle.global.dto.ApiResponse;
+
+import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
 @Slf4j
@@ -56,7 +58,7 @@ public class GlobalExceptionHandler {
                 fieldError.getDefaultMessage() != null ? fieldError.getDefaultMessage()
                     : "유효하지 않은 값입니다."
             )))
-            .collect(Collectors.toList());
+            .toList();
 
         return ResponseEntity.badRequest()
             .body(ApiResponse.error("VALIDATION_FAILED", "요청 유효성 검사에 실패했습니다.", errors));
@@ -68,5 +70,12 @@ public class GlobalExceptionHandler {
         String message = String.format("'%s' 파라미터에 유효하지 않은 값이 입력되었습니다.", exception.getName());
         return ResponseEntity.badRequest()
             .body(ApiResponse.error("INVALID_PARAMETER_TYPE", message));
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleException(
+        HttpRequestMethodNotSupportedException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ApiResponse.error("HTTP_METHOD_NOT_SUPPORTED", "지원하지 않는 HTTP 메소드입니다."));
     }
 }
