@@ -12,15 +12,16 @@ import com.algangi.mongle.global.exception.AwsErrorCode;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
+import software.amazon.awssdk.services.s3.model.PutObjectTaggingRequest;
 import software.amazon.awssdk.services.s3.model.S3Error;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.Tagging;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
@@ -44,6 +45,7 @@ public class S3StorageService implements StorageService {
                 .putObjectRequest(builder -> builder
                     .bucket(bucket)
                     .key(s3Key)
+                    .tagging("status=temp")
                     .build())
                 .build();
 
@@ -56,21 +58,22 @@ public class S3StorageService implements StorageService {
     }
 
     @Override
-    public void copyFile(String sourceKey, String destinationKey) {
-        if (sourceKey == null || destinationKey == null) {
-            throw new IllegalArgumentException("소스 또는 대상 S3 key는 null일 수 없습니다.");
+    public void changeTagToPermanent(String s3Key) {
+        if (s3Key == null) {
+            return;
         }
         try {
-            s3Client.copyObject(CopyObjectRequest.builder()
-                .sourceBucket(bucket)
-                .sourceKey(sourceKey)
-                .destinationBucket(bucket)
-                .destinationKey(destinationKey)
-                .build());
+            PutObjectTaggingRequest taggingRequest = PutObjectTaggingRequest.builder()
+                .bucket(bucket)
+                .key(s3Key)
+                .tagging(Tagging.builder()
+                    .tagSet(Tag.builder().key("status").value("permanent").build())
+                    .build())
+                .build();
+            s3Client.putObjectTagging(taggingRequest);
         } catch (S3Exception e) {
-            throw new ApplicationException(AwsErrorCode.S3_FILE_COPY_FAILED, e)
-                .addErrorInfo("sourceKey", sourceKey)
-                .addErrorInfo("destinationKey", destinationKey)
+            throw new ApplicationException(AwsErrorCode.S3_FILE_TAGGING_FAILED, e)
+                .addErrorInfo("s3Key", s3Key)
                 .addErrorInfo("awsErrorMessage", e.getMessage());
         }
     }
@@ -126,30 +129,6 @@ public class S3StorageService implements StorageService {
                 .addErrorInfo("bucket", bucket)
                 .addErrorInfo("s3Keys", String.join(", ", s3Keys))
                 .addErrorInfo("awsErrorMessage", e.getMessage());
-        }
-    }
-
-    @Override
-    public void validateFileExists(String s3Key) {
-        if (s3Key == null) {
-            return;
-        }
-        try {
-            s3Client.headObject(HeadObjectRequest.builder()
-                .bucket(bucket)
-                .key(s3Key)
-                .build());
-        } catch (S3Exception e) {
-            if (e.statusCode() == 404) {
-                throw new ApplicationException(AwsErrorCode.S3_FILE_NOT_FOUND_IN_STORAGE, e)
-                    .addErrorInfo("s3Key", s3Key)
-                    .addErrorInfo("awsErrorMessage", e.getMessage());
-            } else {
-                throw new ApplicationException(AwsErrorCode.S3_UNKNOWN_ERROR, e)
-                    .addErrorInfo("s3Key", s3Key)
-                    .addErrorInfo("statusCode", e.statusCode())
-                    .addErrorInfo("awsErrorMessage", e.getMessage());
-            }
         }
     }
 

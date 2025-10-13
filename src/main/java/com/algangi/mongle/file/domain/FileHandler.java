@@ -3,7 +3,7 @@ package com.algangi.mongle.file.domain;
 import java.util.List;
 
 import com.algangi.mongle.file.application.dto.FileMetadata;
-import com.algangi.mongle.file.presentation.dto.UploadUrlRequest;
+import com.algangi.mongle.file.presentation.dto.UploadUrlRequest.UploadFileInfo;
 
 public interface FileHandler {
 
@@ -11,9 +11,7 @@ public interface FileHandler {
 
     void validateFiles(List<FileMetadata> files);
 
-    String generateTempKey(String fileName);
+    String generateFileKey(String fileName);
 
-    String generatePermanentKey(String domainId, String tempKey);
-
-    List<FileMetadata> createMetadata(List<UploadUrlRequest.UploadFileInfo> fileInfos);
+    List<FileMetadata> createMetadata(List<UploadFileInfo> fileInfos);
 }

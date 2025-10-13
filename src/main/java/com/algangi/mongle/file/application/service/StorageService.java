@@ -4,13 +4,11 @@ import java.util.List;
 
 public interface StorageService {
 
-    String issueUploadPresignedUrl(String s3Key, long expirationMinutes);
+    String issueUploadPresignedUrl(String fileKey, long expirationMinutes);
 
-    void copyFile(String sourceKey, String destinationKey);
+    void changeTagToPermanent(String fileKey);
 
-    void deleteFile(String s3Key);
+    void deleteFile(String fileKey);
 
-    void deleteBulkFiles(List<String> s3Keys);
-
-    void validateFileExists(String s3Key);
+    void deleteBulkFiles(List<String> fileKeys);
 }

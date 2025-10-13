@@ -43,17 +43,15 @@ public class FileService {
 
     public UploadUrlResponse issueUploadUrls(UploadUrlRequest request) {
         FileHandler handler = getHandler(request.fileType());
-
         List<FileMetadata> files = handler.createMetadata(request.files());
-
         handler.validateFiles(files);
 
         List<PresignedUrl> issuedUrls = files.stream()
             .map(file -> {
-                String tempKey = handler.generateTempKey(file.fileName());
-                String url = storageService.issueUploadPresignedUrl(tempKey, expirationMinutes);
+                String fileKey = handler.generateFileKey(file.fileName());
+                String url = storageService.issueUploadPresignedUrl(fileKey, expirationMinutes);
                 LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(expirationMinutes);
-                return new PresignedUrl(tempKey, url, expiresAt);
+                return new PresignedUrl(fileKey, url, expiresAt);
             }).toList();
 
         return UploadUrlResponse.of(issuedUrls);
@@ -63,34 +61,11 @@ public class FileService {
         return ViewUrlResponse.of(viewUrlIssueService.issueViewUrls(request.fileKeyList()));
     }
 
-    public List<String> commitFiles(FileType fileType, String domainId, List<String> tempKeys) {
-        if (fileType == null) {
-            throw new IllegalArgumentException("File type은 null일 수 없습니다.");
-        }
-        if (domainId == null) {
-            throw new IllegalArgumentException("Domain ID는 null일 수 없습니다.");
-        }
-        if (tempKeys == null || tempKeys.isEmpty()) {
-            return List.of();
-        }
-
-        FileHandler handler = getHandler(fileType);
-
-        return tempKeys.stream()
-            .map(tempKey -> {
-                storageService.validateFileExists(tempKey);
-                String permanentKey = handler.generatePermanentKey(domainId, tempKey);
-                storageService.copyFile(tempKey, permanentKey);
-                storageService.deleteFile(tempKey);
-                return permanentKey;
-            }).toList();
-    }
-
-    public void validateTemporaryFilesExist(List<String> tempKeys) {
-        if (tempKeys == null || tempKeys.isEmpty()) {
+    public void commitFiles(List<String> fileKeys) {
+        if (fileKeys == null || fileKeys.isEmpty()) {
             return;
         }
-        tempKeys.parallelStream().forEach(storageService::validateFileExists);
+        fileKeys.forEach(storageService::changeTagToPermanent);
     }
 
     public void deletePermanentFiles(List<String> fileKeys) {
