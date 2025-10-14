@@ -5,9 +5,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.stereotype.Service;
 
 import com.algangi.mongle.global.domain.service.CellService;
-import com.algangi.mongle.post.application.dto.LocationDeterminationResult;
+import com.algangi.mongle.post.application.dto.GridLocation;
 import com.algangi.mongle.post.domain.model.Location;
-import com.algangi.mongle.staticCloud.repository.StaticCloudRepository;
 import com.google.common.geometry.S2CellId;
 import com.google.common.geometry.S2LatLng;
 
@@ -17,47 +16,43 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class LocationPrivacyService {
+public class PostLocationService {
 
     private static final double RANDOM_RADIUS_METERS = 15.0;
     private static final int S2_CELL_LEVEL = 19;
     private static final double EARTH_RADIUS_METERS = 6371000.0;
-    private final StaticCloudRepository staticCloudRepository;
     private final CellService cellService;
 
-    public LocationDeterminationResult determineFinalS2Token(Location location,
-        boolean isRandomLocationEnabled) {
-        String originalS2TokenId = cellService.generateS2TokenIdFrom(location.getLatitude(),
-            location.getLongitude());
+    public GridLocation determineFinalS2Token(Location originalLocation,
+        boolean isRandomLocationEnabled, boolean staticCloudExists) {
 
-        String finalS2TokenId;
-        if (!isRandomLocationEnabled || staticCloudRepository.findByS2TokenId(
-            originalS2TokenId).isPresent()) {
-            finalS2TokenId = originalS2TokenId;
+        String originalS2TokenId = cellService.generateS2TokenIdFrom(originalLocation.getLatitude(),
+            originalLocation.getLongitude());
+
+        if (!isRandomLocationEnabled || staticCloudExists) {
+            return GridLocation.of(originalS2TokenId, originalLocation);
         } else {
-            finalS2TokenId = randomizeLocation(originalS2TokenId);
+            return randomizeLocation(originalLocation);
         }
-
-        Location finalLocation = cellService.getLocationFrom(finalS2TokenId);
-        return LocationDeterminationResult.of(finalS2TokenId, finalLocation);
     }
 
-    private String randomizeLocation(String s2Token) {
-        S2CellId cellId = S2CellId.fromToken(s2Token);
-        S2LatLng originalLatLng = cellId.toLatLng();
+    private GridLocation randomizeLocation(Location originalLocation) {
+        S2LatLng originalLatLng = S2LatLng.fromDegrees(originalLocation.getLatitude(),
+            originalLocation.getLongitude());
+        S2LatLng randomLatLng = calculateRandomLatLng(originalLatLng);
 
-        S2LatLng randomLatLng = calculateRandomLatLng(originalLatLng, RANDOM_RADIUS_METERS);
-
-        return S2CellId.fromLatLng(randomLatLng).parent(S2_CELL_LEVEL).toToken();
+        String resultTokenId = S2CellId.fromLatLng(randomLatLng).parent(S2_CELL_LEVEL).toToken();
+        return GridLocation.of(resultTokenId,
+            Location.create(randomLatLng.latDegrees(), randomLatLng.lngDegrees()));
     }
 
 
-    private S2LatLng calculateRandomLatLng(S2LatLng originalLatLng, double maxRadiusMeters) {
+    private S2LatLng calculateRandomLatLng(S2LatLng originalLatLng) {
         double randomBearing = ThreadLocalRandom.current()
             .nextDouble(0, 2 * Math.PI);
 
         double randomDistance =
-            Math.sqrt(ThreadLocalRandom.current().nextDouble()) * maxRadiusMeters;
+            Math.sqrt(ThreadLocalRandom.current().nextDouble()) * RANDOM_RADIUS_METERS;
 
         double angularDistance = randomDistance / EARTH_RADIUS_METERS;
 
