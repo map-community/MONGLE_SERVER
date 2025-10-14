@@ -30,11 +30,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.algangi.mongle.dynamicCloud.domain.model.DynamicCloud;
 import com.algangi.mongle.dynamicCloud.domain.repository.DynamicCloudRepository;
 import com.algangi.mongle.dynamicCloud.domain.service.DynamicCloudFormationService;
+import com.algangi.mongle.global.domain.service.CellService;
 import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.application.service.MemberFinder;
 import com.algangi.mongle.member.domain.model.Member;
 import com.algangi.mongle.member.exception.MemberErrorCode;
-import com.algangi.mongle.post.application.dto.LocationDeterminationResult;
+import com.algangi.mongle.post.application.dto.GridLocation;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
@@ -49,6 +50,7 @@ class PostCreationServiceTest {
 
     private static final String AUTHOR_ID = "test-author-id";
     private static final String S2_TOKEN_ID = "89c259c4";
+
     @InjectMocks
     private PostCreationService postCreationService;
     @Mock
@@ -64,10 +66,14 @@ class PostCreationServiceTest {
     @Mock
     private MemberFinder memberFinder;
     @Mock
-    private LocationPrivacyService locationPrivacyService;
+    private PostLocationService postLocationService;
+    @Mock
+    private CellService cellService;
+
     private PostCreateRequest request;
     private Member activeMember;
     private Location originalLocation;
+    private GridLocation defaultGridLocation;
 
     @BeforeEach
     void setUp() {
@@ -78,15 +84,14 @@ class PostCreationServiceTest {
 
         activeMember = Member.createUser("test@test.com", "{bcrypt}password", "tester", null);
         ReflectionTestUtils.setField(activeMember, "memberId", AUTHOR_ID);
-        
+        defaultGridLocation = new GridLocation(S2_TOKEN_ID, originalLocation);
+
+        // Common mocking setups
         lenient().when(memberFinder.getMemberOrThrow(AUTHOR_ID)).thenReturn(activeMember);
         lenient().when(postRepository.save(any(Post.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
-        LocationDeterminationResult mockResult = new LocationDeterminationResult(S2_TOKEN_ID,
-            originalLocation);
-        lenient().when(
-                locationPrivacyService.determineFinalS2Token(any(Location.class), anyBoolean()))
-            .thenReturn(mockResult);
+        lenient().when(cellService.generateS2TokenIdFrom(any(Double.class), any(Double.class)))
+            .thenReturn(S2_TOKEN_ID);
     }
 
     @Nested
@@ -103,6 +108,10 @@ class PostCreationServiceTest {
 
             when(staticCloudRepository.findByS2TokenId(S2_TOKEN_ID))
                 .thenReturn(Optional.of(mockStaticCloud));
+
+            when(postLocationService.determineFinalS2Token(any(Location.class), anyBoolean(),
+                anyBoolean()))
+                .thenReturn(defaultGridLocation);
 
             // when
             PostCreateResponse response = postCreationService.createPost(request, AUTHOR_ID);
@@ -123,6 +132,12 @@ class PostCreationServiceTest {
             ReflectionTestUtils.setField(mockDynamicCloud, "id", 10L);
 
             when(staticCloudRepository.findByS2TokenId(S2_TOKEN_ID)).thenReturn(Optional.empty());
+
+            when(
+                postLocationService.determineFinalS2Token(any(Location.class), anyBoolean(),
+                    anyBoolean()))
+                .thenReturn(defaultGridLocation);
+
             when(dynamicCloudRepository.findActiveByS2TokenId(S2_TOKEN_ID))
                 .thenReturn(Optional.of(mockDynamicCloud));
 
@@ -142,6 +157,9 @@ class PostCreationServiceTest {
         void createPost_Standalone_Success() {
             // given
             when(staticCloudRepository.findByS2TokenId(S2_TOKEN_ID)).thenReturn(Optional.empty());
+            when(postLocationService.determineFinalS2Token(any(Location.class), anyBoolean(),
+                anyBoolean()))
+                .thenReturn(defaultGridLocation);
             when(dynamicCloudRepository.findActiveByS2TokenId(S2_TOKEN_ID)).thenReturn(
                 Optional.empty());
 
@@ -171,6 +189,9 @@ class PostCreationServiceTest {
             ReflectionTestUtils.setField(newDynamicCloud, "id", 11L);
 
             when(staticCloudRepository.findByS2TokenId(S2_TOKEN_ID)).thenReturn(Optional.empty());
+            when(postLocationService.determineFinalS2Token(any(Location.class), anyBoolean(),
+                anyBoolean()))
+                .thenReturn(defaultGridLocation);
             when(dynamicCloudRepository.findActiveByS2TokenId(S2_TOKEN_ID)).thenReturn(
                 Optional.empty());
 
@@ -204,9 +225,12 @@ class PostCreationServiceTest {
             ReflectionTestUtils.setField(cloudCreatedDuringLock, "id", 12L);
 
             when(staticCloudRepository.findByS2TokenId(S2_TOKEN_ID)).thenReturn(Optional.empty());
+            when(postLocationService.determineFinalS2Token(any(Location.class), anyBoolean(),
+                anyBoolean()))
+                .thenReturn(defaultGridLocation);
             when(dynamicCloudRepository.findActiveByS2TokenId(S2_TOKEN_ID))
-                .thenReturn(Optional.empty()) // 락 이전
-                .thenReturn(Optional.of(cloudCreatedDuringLock)); // 락 이후
+                .thenReturn(Optional.empty()) // Before lock
+                .thenReturn(Optional.of(cloudCreatedDuringLock)); // After lock
             when(postRepository.findByS2TokenIdWithLock(S2_TOKEN_ID)).thenReturn(
                 Collections.emptyList());
 
