@@ -1,51 +1,24 @@
-package com.algangi.mongle.post.application.service;
+package com.algangi.mongle.post.domain.service;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.stereotype.Service;
 
-import com.algangi.mongle.global.domain.service.CellService;
-import com.algangi.mongle.post.application.dto.GridLocation;
 import com.algangi.mongle.post.domain.model.Location;
-import com.google.common.geometry.S2CellId;
 import com.google.common.geometry.S2LatLng;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Service
-@RequiredArgsConstructor
-public class PostLocationService {
+public class LocationRandomizer {
 
     private static final double RANDOM_RADIUS_METERS = 15.0;
-    private static final int S2_CELL_LEVEL = 19;
     private static final double EARTH_RADIUS_METERS = 6371000.0;
-    private final CellService cellService;
 
-    public GridLocation determineFinalS2Token(Location originalLocation,
-        boolean isRandomLocationEnabled, boolean staticCloudExists) {
-
-        String originalS2TokenId = cellService.generateS2TokenIdFrom(originalLocation.getLatitude(),
-            originalLocation.getLongitude());
-
-        if (!isRandomLocationEnabled || staticCloudExists) {
-            return GridLocation.of(originalS2TokenId, originalLocation);
-        } else {
-            return randomizeLocation(originalLocation);
-        }
-    }
-
-    private GridLocation randomizeLocation(Location originalLocation) {
+    public Location randomize(Location originalLocation) {
         S2LatLng originalLatLng = S2LatLng.fromDegrees(originalLocation.getLatitude(),
             originalLocation.getLongitude());
         S2LatLng randomLatLng = calculateRandomLatLng(originalLatLng);
-
-        String resultTokenId = S2CellId.fromLatLng(randomLatLng).parent(S2_CELL_LEVEL).toToken();
-        return GridLocation.of(resultTokenId,
-            Location.create(randomLatLng.latDegrees(), randomLatLng.lngDegrees()));
+        return Location.create(randomLatLng.latDegrees(), randomLatLng.lngDegrees());
     }
-
 
     private S2LatLng calculateRandomLatLng(S2LatLng originalLatLng) {
         double randomBearing = ThreadLocalRandom.current()

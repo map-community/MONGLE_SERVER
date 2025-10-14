@@ -16,11 +16,11 @@ import com.algangi.mongle.member.application.service.MemberFinder;
 import com.algangi.mongle.member.domain.model.Member;
 import com.algangi.mongle.member.domain.model.MemberStatus;
 import com.algangi.mongle.member.exception.MemberErrorCode;
-import com.algangi.mongle.post.application.dto.GridLocation;
 import com.algangi.mongle.post.application.dto.PostCreationCommand;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
+import com.algangi.mongle.post.domain.service.LocationRandomizer;
 import com.algangi.mongle.post.event.PostFileCreatedEvent;
 import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
 import com.algangi.mongle.post.presentation.dto.PostCreateResponse;
@@ -42,7 +42,7 @@ public class PostCreationService {
     private final DynamicCloudFormationService dynamicCloudFormationService;
     private final ApplicationEventPublisher eventPublisher;
     private final MemberFinder memberFinder;
-    private final PostLocationService postLocationService;
+    private final LocationRandomizer locationRandomizer;
     private final CellService cellService;
 
     @Transactional
@@ -50,20 +50,22 @@ public class PostCreationService {
         Member author = memberFinder.getMemberOrThrow(authorId);
         requireActive(author);
 
-        String originalS2TokenId = cellService.generateS2TokenIdFrom(request.latitude(),
-            request.longitude());
+        Location originalLocation = Location.create(request.latitude(), request.longitude());
+        String originalS2TokenId = cellService.generateS2TokenIdFrom(originalLocation.getLatitude(),
+            originalLocation.getLongitude());
         Optional<StaticCloud> staticCloud = staticCloudRepository.findByS2TokenId(
             originalS2TokenId);
 
-        GridLocation finalLocation = postLocationService.determineFinalS2Token(
-            Location.create(request.latitude(), request.longitude()),
-            request.isRandomLocationEnabled(),
-            staticCloud.isPresent()
-        );
+        Location finalLocation = originalLocation;
+        if (request.isRandomLocationEnabled() && staticCloud.isEmpty()) {
+            finalLocation = locationRandomizer.randomize(originalLocation);
+        }
 
-        String finalS2TokenId = finalLocation.s2TokenId();
+        String finalS2TokenId = cellService.generateS2TokenIdFrom(finalLocation.getLatitude(),
+            finalLocation.getLongitude());
+
         PostCreationCommand command = PostCreationCommand.of(
-            finalLocation.location(),
+            finalLocation,
             finalS2TokenId,
             request.content(),
             authorId);

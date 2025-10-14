@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -21,6 +20,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -35,10 +35,10 @@ import com.algangi.mongle.global.exception.ApplicationException;
 import com.algangi.mongle.member.application.service.MemberFinder;
 import com.algangi.mongle.member.domain.model.Member;
 import com.algangi.mongle.member.exception.MemberErrorCode;
-import com.algangi.mongle.post.application.dto.GridLocation;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
+import com.algangi.mongle.post.domain.service.LocationRandomizer;
 import com.algangi.mongle.post.event.PostFileCreatedEvent;
 import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
 import com.algangi.mongle.post.presentation.dto.PostCreateResponse;
@@ -66,32 +66,26 @@ class PostCreationServiceTest {
     @Mock
     private MemberFinder memberFinder;
     @Mock
-    private PostLocationService postLocationService;
+    private LocationRandomizer locationRandomizer; // ADDED
     @Mock
     private CellService cellService;
-
-    private PostCreateRequest request;
+    private PostCreateRequest defaultRequest;
     private Member activeMember;
     private Location originalLocation;
-    private GridLocation defaultGridLocation;
 
     @BeforeEach
     void setUp() {
         originalLocation = Location.create(35.8714, 128.6014);
-        request = new PostCreateRequest(originalLocation.getLatitude(),
+        defaultRequest = new PostCreateRequest(originalLocation.getLatitude(),
             originalLocation.getLongitude(),
             "게시물 내용", List.of("file1.jpg"), false);
 
         activeMember = Member.createUser("test@test.com", "{bcrypt}password", "tester", null);
         ReflectionTestUtils.setField(activeMember, "memberId", AUTHOR_ID);
-        defaultGridLocation = new GridLocation(S2_TOKEN_ID, originalLocation);
 
-        // Common mocking setups
         lenient().when(memberFinder.getMemberOrThrow(AUTHOR_ID)).thenReturn(activeMember);
         lenient().when(postRepository.save(any(Post.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(cellService.generateS2TokenIdFrom(any(Double.class), any(Double.class)))
-            .thenReturn(S2_TOKEN_ID);
     }
 
     @Nested
@@ -99,27 +93,27 @@ class PostCreationServiceTest {
     class SuccessCases {
 
         @Test
-        @DisplayName("정적 구름이 존재하는 셀에 게시물 생성")
+        @DisplayName("정적 구름이 존재하는 셀에 게시물 생성 (랜덤화 비활성)")
         void createPost_InStaticCloud_Success() {
             // given
             StaticCloud mockStaticCloud = StaticCloud.createStaticCloud("IT 5호관", 35.8, 128.6,
                 Set.of(S2_TOKEN_ID));
             ReflectionTestUtils.setField(mockStaticCloud, "id", 1L);
 
+            when(cellService.generateS2TokenIdFrom(originalLocation.getLatitude(),
+                originalLocation.getLongitude()))
+                .thenReturn(S2_TOKEN_ID);
             when(staticCloudRepository.findByS2TokenId(S2_TOKEN_ID))
                 .thenReturn(Optional.of(mockStaticCloud));
 
-            when(postLocationService.determineFinalS2Token(any(Location.class), anyBoolean(),
-                anyBoolean()))
-                .thenReturn(defaultGridLocation);
-
             // when
-            PostCreateResponse response = postCreationService.createPost(request, AUTHOR_ID);
+            PostCreateResponse response = postCreationService.createPost(defaultRequest, AUTHOR_ID);
 
             // then
             assertAll(
                 () -> assertThat(response.staticCloudId()).isEqualTo(mockStaticCloud.getId()),
                 () -> assertThat(response.dynamicCloudId()).isNull(),
+                () -> verify(locationRandomizer, never()).randomize(any()),
                 () -> verify(eventPublisher, times(1)).publishEvent(any(PostFileCreatedEvent.class))
             );
         }
@@ -131,23 +125,21 @@ class PostCreationServiceTest {
             DynamicCloud mockDynamicCloud = DynamicCloud.create(Set.of(S2_TOKEN_ID));
             ReflectionTestUtils.setField(mockDynamicCloud, "id", 10L);
 
+            when(cellService.generateS2TokenIdFrom(originalLocation.getLatitude(),
+                originalLocation.getLongitude()))
+                .thenReturn(S2_TOKEN_ID);
             when(staticCloudRepository.findByS2TokenId(S2_TOKEN_ID)).thenReturn(Optional.empty());
-
-            when(
-                postLocationService.determineFinalS2Token(any(Location.class), anyBoolean(),
-                    anyBoolean()))
-                .thenReturn(defaultGridLocation);
-
             when(dynamicCloudRepository.findActiveByS2TokenId(S2_TOKEN_ID))
                 .thenReturn(Optional.of(mockDynamicCloud));
 
             // when
-            PostCreateResponse response = postCreationService.createPost(request, AUTHOR_ID);
+            PostCreateResponse response = postCreationService.createPost(defaultRequest, AUTHOR_ID);
 
             // then
             assertAll(
                 () -> assertThat(response.dynamicCloudId()).isEqualTo(mockDynamicCloud.getId()),
                 () -> assertThat(response.staticCloudId()).isNull(),
+                () -> verify(locationRandomizer, never()).randomize(any()),
                 () -> verify(eventPublisher, times(1)).publishEvent(any(PostFileCreatedEvent.class))
             );
         }
@@ -156,10 +148,10 @@ class PostCreationServiceTest {
         @DisplayName("새 '알갱이' 게시물 생성 (동적 구름 생성 조건 미충족)")
         void createPost_Standalone_Success() {
             // given
+            when(cellService.generateS2TokenIdFrom(originalLocation.getLatitude(),
+                originalLocation.getLongitude()))
+                .thenReturn(S2_TOKEN_ID);
             when(staticCloudRepository.findByS2TokenId(S2_TOKEN_ID)).thenReturn(Optional.empty());
-            when(postLocationService.determineFinalS2Token(any(Location.class), anyBoolean(),
-                anyBoolean()))
-                .thenReturn(defaultGridLocation);
             when(dynamicCloudRepository.findActiveByS2TokenId(S2_TOKEN_ID)).thenReturn(
                 Optional.empty());
 
@@ -169,12 +161,13 @@ class PostCreationServiceTest {
                 List.of(existingPost));
 
             // when
-            PostCreateResponse response = postCreationService.createPost(request, AUTHOR_ID);
+            PostCreateResponse response = postCreationService.createPost(defaultRequest, AUTHOR_ID);
 
             // then
             assertAll(
                 () -> assertThat(response.dynamicCloudId()).isNull(),
                 () -> assertThat(response.staticCloudId()).isNull(),
+                () -> verify(locationRandomizer, never()).randomize(any()),
                 () -> verify(dynamicCloudFormationService,
                     never()).createDynamicCloudAndMergeIfNeeded(any(), any()),
                 () -> verify(eventPublisher, times(1)).publishEvent(any(PostFileCreatedEvent.class))
@@ -188,10 +181,10 @@ class PostCreationServiceTest {
             DynamicCloud newDynamicCloud = DynamicCloud.create(Set.of(S2_TOKEN_ID));
             ReflectionTestUtils.setField(newDynamicCloud, "id", 11L);
 
+            when(cellService.generateS2TokenIdFrom(originalLocation.getLatitude(),
+                originalLocation.getLongitude()))
+                .thenReturn(S2_TOKEN_ID);
             when(staticCloudRepository.findByS2TokenId(S2_TOKEN_ID)).thenReturn(Optional.empty());
-            when(postLocationService.determineFinalS2Token(any(Location.class), anyBoolean(),
-                anyBoolean()))
-                .thenReturn(defaultGridLocation);
             when(dynamicCloudRepository.findActiveByS2TokenId(S2_TOKEN_ID)).thenReturn(
                 Optional.empty());
 
@@ -207,13 +200,62 @@ class PostCreationServiceTest {
                 .thenReturn(newDynamicCloud);
 
             // when
-            PostCreateResponse response = postCreationService.createPost(request, AUTHOR_ID);
+            PostCreateResponse response = postCreationService.createPost(defaultRequest, AUTHOR_ID);
 
             // then
             assertAll(
                 () -> assertThat(response.dynamicCloudId()).isEqualTo(newDynamicCloud.getId()),
+                () -> verify(locationRandomizer, never()).randomize(any()),
                 () -> verify(dynamicCloudFormationService, times(1))
                     .createDynamicCloudAndMergeIfNeeded(S2_TOKEN_ID, existingPosts)
+            );
+        }
+
+        @Test
+        @DisplayName("랜덤 위치 옵션 활성화 시 LocationRandomizer 호출")
+        void createPost_WithRandomLocation_Success() {
+            // given
+            PostCreateRequest randomRequest = new PostCreateRequest(
+                originalLocation.getLatitude(), originalLocation.getLongitude(),
+                "랜덤 위치 게시물", Collections.emptyList(), true);
+
+            Location randomizedLocation = Location.create(35.8715, 128.6015);
+            String randomizedTokenId = "89c259c5";
+
+            // 1. 원본 위치로 S2 토큰 생성 -> 정적 구름 없음
+            when(cellService.generateS2TokenIdFrom(originalLocation.getLatitude(),
+                originalLocation.getLongitude()))
+                .thenReturn(S2_TOKEN_ID);
+            when(staticCloudRepository.findByS2TokenId(S2_TOKEN_ID)).thenReturn(Optional.empty());
+
+            // 2. 위치 랜덤화 수행
+            when(locationRandomizer.randomize(any(Location.class))).thenReturn(randomizedLocation);
+
+            // 3. 랜덤화된 위치로 최종 S2 토큰 생성
+            when(cellService.generateS2TokenIdFrom(randomizedLocation.getLatitude(),
+                randomizedLocation.getLongitude()))
+                .thenReturn(randomizedTokenId);
+
+            when(dynamicCloudRepository.findActiveByS2TokenId(randomizedTokenId)).thenReturn(
+                Optional.empty());
+            when(postRepository.findByS2TokenIdWithLock(randomizedTokenId)).thenReturn(
+                Collections.emptyList());
+
+            // when
+            postCreationService.createPost(randomRequest, AUTHOR_ID);
+
+            // then
+            ArgumentCaptor<Post> postCaptor = ArgumentCaptor.forClass(Post.class);
+            verify(postRepository).save(postCaptor.capture());
+            Post savedPost = postCaptor.getValue();
+
+            assertAll(
+                () -> verify(locationRandomizer, times(1)).randomize(any(Location.class)),
+                () -> assertThat(savedPost.getLocation().getLatitude()).isEqualTo(
+                    randomizedLocation.getLatitude()),
+                () -> assertThat(savedPost.getLocation().getLongitude()).isEqualTo(
+                    randomizedLocation.getLongitude()),
+                () -> assertThat(savedPost.getS2TokenId()).isEqualTo(randomizedTokenId)
             );
         }
 
@@ -224,10 +266,10 @@ class PostCreationServiceTest {
             DynamicCloud cloudCreatedDuringLock = DynamicCloud.create(Set.of(S2_TOKEN_ID));
             ReflectionTestUtils.setField(cloudCreatedDuringLock, "id", 12L);
 
+            when(cellService.generateS2TokenIdFrom(originalLocation.getLatitude(),
+                originalLocation.getLongitude()))
+                .thenReturn(S2_TOKEN_ID);
             when(staticCloudRepository.findByS2TokenId(S2_TOKEN_ID)).thenReturn(Optional.empty());
-            when(postLocationService.determineFinalS2Token(any(Location.class), anyBoolean(),
-                anyBoolean()))
-                .thenReturn(defaultGridLocation);
             when(dynamicCloudRepository.findActiveByS2TokenId(S2_TOKEN_ID))
                 .thenReturn(Optional.empty()) // Before lock
                 .thenReturn(Optional.of(cloudCreatedDuringLock)); // After lock
@@ -235,7 +277,7 @@ class PostCreationServiceTest {
                 Collections.emptyList());
 
             // when
-            PostCreateResponse response = postCreationService.createPost(request, AUTHOR_ID);
+            PostCreateResponse response = postCreationService.createPost(defaultRequest, AUTHOR_ID);
 
             // then
             assertAll(
@@ -262,7 +304,7 @@ class PostCreationServiceTest {
 
             // when & then
             ApplicationException exception = assertThrows(ApplicationException.class, () -> {
-                postCreationService.createPost(request, AUTHOR_ID);
+                postCreationService.createPost(defaultRequest, AUTHOR_ID);
             });
 
             assertThat(exception.getErrorCode()).isEqualTo(MemberErrorCode.MEMBER_IS_BANNED);
