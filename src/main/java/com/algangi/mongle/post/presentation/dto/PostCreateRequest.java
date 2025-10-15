@@ -17,12 +17,12 @@ public record PostCreateRequest(
     @Size(max = 2000)
     String content,
     List<String> fileKeyList,
-    @NotNull(message = "무작위 위치 설정 여부는 필수값입니다.")
-    Boolean isRandomLocationEnabled
+    boolean isRandomLocationEnabled
 ) {
 
     public PostCreateRequest {
         fileKeyList = Optional.ofNullable(fileKeyList).orElse(Collections.emptyList());
+
     }
 
 }
