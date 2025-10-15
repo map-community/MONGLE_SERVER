@@ -44,11 +44,14 @@ public class PostCreationService {
     private final MemberFinder memberFinder;
     private final LocationRandomizer locationRandomizer;
     private final CellService cellService;
+    private final PostRateLimiter postRateLimiter;
 
     @Transactional
     public PostCreateResponse createPost(PostCreateRequest request, String authorId) {
         Member author = memberFinder.getMemberOrThrow(authorId);
         requireActive(author);
+
+        postRateLimiter.checkRateLimit(authorId);
 
         Location originalLocation = Location.create(request.latitude(), request.longitude());
         String originalS2TokenId = cellService.generateS2TokenIdFrom(originalLocation.getLatitude(),
