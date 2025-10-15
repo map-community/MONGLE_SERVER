@@ -19,6 +19,7 @@ import com.algangi.mongle.member.exception.MemberErrorCode;
 import com.algangi.mongle.post.application.dto.PostCreationCommand;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
+import com.algangi.mongle.post.domain.model.PostStatus;
 import com.algangi.mongle.post.domain.repository.PostRepository;
 import com.algangi.mongle.post.domain.service.LocationRandomizer;
 import com.algangi.mongle.post.event.PostFileCreatedEvent;
@@ -49,9 +50,16 @@ public class PostCreationService {
     @Transactional
     public PostCreateResponse createPost(PostCreateRequest request, String authorId) {
         Member author = memberFinder.getMemberOrThrow(authorId);
-        requireActive(author);
 
+        requireActive(author);
         postRateLimiter.checkRateLimit(authorId);
+
+        long existingPostCount = postRepository.countByAuthorIdAndStatus(authorId,
+            PostStatus.ACTIVE);
+        if (existingPostCount >= 5) {
+            Optional<Post> oldestPost = postRepository.findOldestActivePost(authorId);
+            oldestPost.ifPresent(postRepository::delete);
+        }
 
         Location originalLocation = Location.create(request.latitude(), request.longitude());
         String originalS2TokenId = cellService.generateS2TokenIdFrom(originalLocation.getLatitude(),
