@@ -73,4 +73,7 @@ public interface PostRepository extends JpaRepository<Post, String> {
 
     @Query("SELECT p FROM Post p WHERE p.authorId = :memberId AND p.status = 'ACTIVE' ORDER BY p.createdDate ASC LIMIT 1")
     Optional<Post> findOldestActivePost(@Param("memberId") String memberId);
+
+    boolean existsByAuthorIdAndS2TokenIdAndStatus(String authorId, String s2TokenId,
+        PostStatus status);
 }
