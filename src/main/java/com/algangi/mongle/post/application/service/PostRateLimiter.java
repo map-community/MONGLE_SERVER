@@ -17,15 +17,12 @@ public class PostRateLimiter {
     private static final Duration BLOCK_DURATION = Duration.ofMinutes(3);
     private final RedisTemplate<String, String> redisTemplate;
 
-    public boolean isBlocked(String userId) {
+    public void checkRateLimit(String userId) {
         String key = RATE_LIMIT_KEY_PREFIX + userId;
         Boolean isSuccess = redisTemplate.opsForValue()
             .setIfAbsent(key, "blocked", BLOCK_DURATION);
-        return isSuccess == null || !isSuccess;
-    }
 
-    public void checkRateLimit(String userId) {
-        if (isBlocked(userId)) {
+        if (Boolean.FALSE.equals(isSuccess)) {
             throw new ApplicationException(PostErrorCode.POST_RATE_LIMIT_EXCEEDED);
         }
     }
