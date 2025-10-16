@@ -1,6 +1,6 @@
 package com.algangi.mongle.global.util;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.function.Function;
 
 public final class ParsingUtil {
@@ -17,9 +17,8 @@ public final class ParsingUtil {
         }
     }
 
-    public static LocalDateTime parseDate(String value) {
-        return parse(value, s -> LocalDateTime.parse(s, DateTimeUtil.CURSOR_DATE_FORMATTER), "잘못된 날짜 형식");
-    }
+    public static Instant parseDate(String value) {
+        return parse(value, Instant::parse, "잘못된 날짜 형식");    }
 
     public static Long parseLong(String value) {
         return parse(value, Long::parseLong, "잘못된 숫자 형식");

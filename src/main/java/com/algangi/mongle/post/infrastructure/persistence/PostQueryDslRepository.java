@@ -10,12 +10,12 @@ import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import jakarta.annotation.Nullable;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -128,7 +128,7 @@ public class PostQueryDslRepository implements PostQueryRepository {
                 return null;
             }
             Double score = ParsingUtil.parse(parts[0], Double::parseDouble, "잘못된 커서 형식");
-            LocalDateTime createdAt = ParsingUtil.parseDate(parts[1]);
+            Instant createdAt = ParsingUtil.parseDate(parts[1]);
             String id = parts[2];
 
             return post.rankingScore.lt(score)
@@ -143,7 +143,7 @@ public class PostQueryDslRepository implements PostQueryRepository {
             if (parts.length != 2) {
                 return null;
             }
-            LocalDateTime createdAt = ParsingUtil.parseDate(parts[0]);
+            Instant createdAt = ParsingUtil.parseDate(parts[0]);
             String id = parts[1];
 
             return post.createdDate.lt(createdAt)

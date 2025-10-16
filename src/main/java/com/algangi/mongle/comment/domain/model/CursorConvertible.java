@@ -1,9 +1,9 @@
 package com.algangi.mongle.comment.domain.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public interface CursorConvertible {
     String getId();
     long getLikeCount();
-    LocalDateTime getCreatedAt();
+    Instant getCreatedAt();
 }

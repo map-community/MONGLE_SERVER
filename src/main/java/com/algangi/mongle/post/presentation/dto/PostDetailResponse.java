@@ -1,13 +1,12 @@
 package com.algangi.mongle.post.presentation.dto;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
 import com.algangi.mongle.member.domain.model.Member;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.stats.application.dto.PostStats;
-
-import java.time.LocalDateTime;
 
 public record PostDetailResponse(
     String postId,
@@ -17,8 +16,8 @@ public record PostDetailResponse(
     double longitude,
     List<String> photoUrls,
     List<String> videoUrls,
-    LocalDateTime createdAt,
-    LocalDateTime updatedAt,
+    Instant createdAt,
+    Instant updatedAt,
     long viewCount,
     long likeCount,
     long dislikeCount,

@@ -1,5 +1,7 @@
 package com.algangi.mongle.file.application.service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +23,6 @@ import com.algangi.mongle.file.presentation.dto.ViewUrlResponse;
 import com.algangi.mongle.global.exception.ApplicationException;
 
 import jakarta.annotation.PostConstruct;
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -50,7 +51,7 @@ public class FileService {
             .map(file -> {
                 String fileKey = handler.generateFileKey(file.fileName());
                 String url = storageService.issueUploadPresignedUrl(fileKey, expirationMinutes);
-                LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(expirationMinutes);
+                Instant expiresAt = Instant.now().plus(expirationMinutes, ChronoUnit.MINUTES); // <<< 수정
                 return new PresignedUrl(fileKey, url, expiresAt);
             }).toList();
 

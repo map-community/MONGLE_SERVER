@@ -17,7 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -153,7 +153,7 @@ public class Comment extends TimeBaseEntity implements CursorConvertible {
     }
 
     @Override
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return this.getCreatedDate();
     }
 

@@ -9,6 +9,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,8 +33,6 @@ import com.algangi.mongle.global.domain.service.CellService;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.repository.PostRepository;
-
-import java.time.LocalDateTime;
 
 @ExtendWith(MockitoExtension.class)
 class DynamicCloudFormationServiceTest {
@@ -103,12 +103,12 @@ class DynamicCloudFormationServiceTest {
             DynamicCloud oldestCloud = DynamicCloud.create(Set.of("cell_B"));
             ReflectionTestUtils.setField(oldestCloud, "id", 1L);
             ReflectionTestUtils.setField(oldestCloud, "createdDate",
-                LocalDateTime.now().minusDays(2));
+                Instant.now().minus(2, ChronoUnit.DAYS));
 
             DynamicCloud youngerCloud = DynamicCloud.create(Set.of("cell_C"));
             ReflectionTestUtils.setField(youngerCloud, "id", 2L);
             ReflectionTestUtils.setField(youngerCloud, "createdDate",
-                LocalDateTime.now().minusDays(1));
+                Instant.now().minus(1, ChronoUnit.DAYS));
 
             Set<String> adjacentCells = Set.of("cell_B", "cell_C");
             when(cellService.getAdjacentCells(S2_TOKEN_ID)).thenReturn(adjacentCells);

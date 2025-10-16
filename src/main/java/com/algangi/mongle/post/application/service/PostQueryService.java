@@ -244,7 +244,7 @@ public class PostQueryService {
         }
 
         Post lastPost = content.get(content.size() - 1);
-        String formattedDate = lastPost.getCreatedDate().format(DateTimeUtil.CURSOR_DATE_FORMATTER);
+        String formattedDate = lastPost.getCreatedDate().toString();
         PostSort finalSort = (sort == null) ? PostSort.ranking_score : sort;
 
         if (finalSort == PostSort.ranking_score) {

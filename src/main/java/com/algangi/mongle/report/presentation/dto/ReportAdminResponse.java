@@ -6,7 +6,7 @@ import com.algangi.mongle.report.domain.model.ReportReason;
 import com.algangi.mongle.report.domain.model.ReportStatus;
 import com.algangi.mongle.report.domain.model.ReportedTargetType;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record ReportAdminResponse(
     String reportId,
@@ -16,7 +16,7 @@ public record ReportAdminResponse(
     TargetAuthorInfo targetAuthor,
     ReportReason reason,
     ReportStatus reportStatus,
-    LocalDateTime createdAt
+    Instant createdAt
 ) {
 
     public static ReportAdminResponse from(Report report) {

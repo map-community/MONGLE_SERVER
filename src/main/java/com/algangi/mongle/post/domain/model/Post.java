@@ -1,5 +1,7 @@
 package com.algangi.mongle.post.domain.model;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +18,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -65,8 +66,7 @@ public class Post extends TimeBaseEntity {
 
     @Column(nullable = false)
     @Builder.Default
-    private LocalDateTime expiredAt = LocalDateTime.now().plusHours(12);
-
+    private Instant expiredAt = Instant.now().plus(12, ChronoUnit.HOURS);
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default
