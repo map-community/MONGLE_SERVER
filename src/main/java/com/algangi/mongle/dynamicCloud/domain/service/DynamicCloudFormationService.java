@@ -86,7 +86,7 @@ public class DynamicCloudFormationService {
         cloudsToBeMerged.forEach(oldestCloud::mergeWith);
 
         postRepository.saveAll(postsToReassign);
-        // dynamicCloudRepository.deleteAll(cloudsToBeMerged); // 비활성화 처리 또는 삭제 정책 결정 필요
+        dynamicCloudRepository.deleteAll(cloudsToBeMerged); //병합되어진 동적 구름 삭제
 
         return oldestCloud;
     }
