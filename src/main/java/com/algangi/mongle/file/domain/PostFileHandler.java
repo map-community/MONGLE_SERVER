@@ -17,7 +17,7 @@ public class PostFileHandler implements FileHandler {
 
     private static final String POST_IMAGE_DIR = "posts/images/";
     private static final String POST_VIDEO_DIR = "posts/videos/";
-    private static final String DELIMITER = "/";
+    private static final String DELIMITER = "_";
 
     private static final long MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
     private static final long MAX_TOTAL_IMAGE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
@@ -96,12 +96,12 @@ public class PostFileHandler implements FileHandler {
         throw new ApplicationException(FileErrorCode.INVALID_FILE_EXTENSION);
     }
 
-
     @Override
     public String generateFileKey(String fileName) {
         String dir = getDirectory(fileName);
-        String uniqueName = UUID.randomUUID().toString();
-        return dir + uniqueName + DELIMITER + fileName;
+        String uuid = UUID.randomUUID().toString();
+        String sanitizedFileName = sanitizeFileName(fileName);
+        return dir + uuid + DELIMITER + sanitizedFileName;
     }
 
     private String getDirectory(String fileName) {
