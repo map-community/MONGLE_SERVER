@@ -25,10 +25,23 @@ public interface FileHandler {
         String sanitized = name.toLowerCase().replaceAll("\\s+", "-");
         sanitized = sanitized.replaceAll("[^a-z0-9-_]", "");
         sanitized = sanitized.replaceAll("--+", "-");
+        sanitized = sanitized.replaceAll("^-+|-+$", ""); // 앞뒤 대시 제거
 
-        if (sanitized.length() > MAX_FILENAME_LENGTH) {
-            sanitized = sanitized.substring(0, MAX_FILENAME_LENGTH);
+        // 빈 파일명 처리
+        if (sanitized.isEmpty()) {
+            sanitized = "file";
         }
-        return sanitized + "." + extension;
+
+        // 확장자를 포함한 전체 길이 제한
+        int maxNameLength = extension.isEmpty()
+            ? MAX_FILENAME_LENGTH
+            : MAX_FILENAME_LENGTH - extension.length() - 1;
+        if (maxNameLength > 0 && sanitized.length() > maxNameLength) {
+            sanitized = sanitized.substring(0, maxNameLength);
+        }
+
+        return extension.isEmpty()
+            ? sanitized
+            : sanitized + "." + extension;
     }
 }
