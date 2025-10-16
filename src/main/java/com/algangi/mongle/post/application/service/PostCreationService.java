@@ -50,7 +50,8 @@ public class PostCreationService {
 
     @Transactional
     public PostCreateResponse createPost(PostCreateRequest request, String authorId) {
-        Member author = memberFinder.getMemberOrThrow(authorId);
+        // 회원에 락을 걸어 동시성 처리 보완 (동일한 사용자 요청의 경우 락 걸림)
+        Member author = memberFinder.getMemberWithLockOrThrow(authorId);
 
         requireActive(author);
         // 3분에 게시물 최대 하나 생성 가능
@@ -60,7 +61,7 @@ public class PostCreationService {
         long existingPostCount = postRepository.countByAuthorIdAndStatus(authorId,
             PostStatus.ACTIVE);
         if (existingPostCount >= 5) {
-            Optional<Post> oldestPost = postRepository.findOldestActivePost(authorId);
+            Optional<Post> oldestPost = postRepository.findOldestPost(authorId, PostStatus.ACTIVE);
             oldestPost.ifPresent(postRepository::delete);
         }
 
