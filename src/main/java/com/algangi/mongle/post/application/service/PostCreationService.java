@@ -19,9 +19,11 @@ import com.algangi.mongle.member.exception.MemberErrorCode;
 import com.algangi.mongle.post.application.dto.PostCreationCommand;
 import com.algangi.mongle.post.domain.model.Location;
 import com.algangi.mongle.post.domain.model.Post;
+import com.algangi.mongle.post.domain.model.PostStatus;
 import com.algangi.mongle.post.domain.repository.PostRepository;
 import com.algangi.mongle.post.domain.service.LocationRandomizer;
 import com.algangi.mongle.post.event.PostFileCreatedEvent;
+import com.algangi.mongle.post.exception.PostErrorCode;
 import com.algangi.mongle.post.presentation.dto.PostCreateRequest;
 import com.algangi.mongle.post.presentation.dto.PostCreateResponse;
 import com.algangi.mongle.staticCloud.domain.model.StaticCloud;
@@ -44,11 +46,24 @@ public class PostCreationService {
     private final MemberFinder memberFinder;
     private final LocationRandomizer locationRandomizer;
     private final CellService cellService;
+    private final PostRateLimiter postRateLimiter;
 
     @Transactional
     public PostCreateResponse createPost(PostCreateRequest request, String authorId) {
-        Member author = memberFinder.getMemberOrThrow(authorId);
+        // 회원에 락을 걸어 동시성 처리 보완 (동일한 사용자 요청의 경우 락 걸림)
+        Member author = memberFinder.getMemberWithLockOrThrow(authorId);
+
         requireActive(author);
+        // 3분에 게시물 최대 하나 생성 가능
+        postRateLimiter.checkRateLimit(authorId);
+
+        // 회원당 게시물 최대 5개 유지
+        long existingPostCount = postRepository.countByAuthorIdAndStatus(authorId,
+            PostStatus.ACTIVE);
+        if (existingPostCount >= 5) {
+            Optional<Post> oldestPost = postRepository.findOldestPost(authorId, PostStatus.ACTIVE);
+            oldestPost.ifPresent(postRepository::delete);
+        }
 
         Location originalLocation = Location.create(request.latitude(), request.longitude());
         String originalS2TokenId = cellService.generateS2TokenIdFrom(originalLocation.getLatitude(),
@@ -63,6 +78,12 @@ public class PostCreationService {
 
         String finalS2TokenId = cellService.generateS2TokenIdFrom(finalLocation.getLatitude(),
             finalLocation.getLongitude());
+
+        //한 셀 당 하나의 게시물 생성 가능 (애플리케이션단 검증)
+        if (postRepository.existsByAuthorIdAndS2TokenIdAndStatus(authorId, finalS2TokenId,
+            PostStatus.ACTIVE)) {
+            throw new ApplicationException(PostErrorCode.DUPLICATE_POST_IN_CELL);
+        }
 
         PostCreationCommand command = PostCreationCommand.of(
             finalLocation,

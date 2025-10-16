@@ -19,13 +19,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class EmailVerificationService {
 
-    private static final String RATE_LIMIT_KEY_PREFIX = "AUTH_CODE_RATE:";
+    private static final String RATE_LIMIT_KEY_PREFIX = "email-verification:rate-limit:";
     private static final Duration RATE_LIMIT_WINDOW = Duration.ofMinutes(1);
     private static final int MAX_ATTEMPTS = 3;
     private final RedisTemplate<String, String> redisTemplate;
     private final MemberFinder memberFinder;
     private final MailSender mailSender;
-    private final VerificationCodeManager verificationCodeManager;
+    private final EmailVerificationCodeManager emailVerificationCodeManager;
     private final VerificationTokenManager verificationTokenManager;
 
     public void sendVerificationCode(String email) {
@@ -48,7 +48,7 @@ public class EmailVerificationService {
         memberFinder.validateDuplicateEmail(email);
 
         String code = generateRandomCode();
-        verificationCodeManager.save(email, code);
+        emailVerificationCodeManager.save(email, code);
         mailSender.send(email, "몽글(Mongle) 서비스 회원가입 인증 코드입니다.", "인증 코드는 [" + code + "] 입니다.");
     }
 
@@ -60,7 +60,7 @@ public class EmailVerificationService {
             throw new IllegalArgumentException("이메일 인증코드는 빈 값일 수 없습니다.");
         }
 
-        String savedCode = verificationCodeManager.getCode(email);
+        String savedCode = emailVerificationCodeManager.getCode(email);
         if (savedCode == null) {
             throw new ApplicationException(AuthErrorCode.VERIFICATION_CODE_EXPIRED);
         }
@@ -68,7 +68,7 @@ public class EmailVerificationService {
             throw new ApplicationException(AuthErrorCode.VERIFICATION_CODE_MISMATCH);
         }
 
-        verificationCodeManager.deleteCode(email);
+        emailVerificationCodeManager.deleteCode(email);
 
         String verificationToken = verificationTokenManager.generate(email);
         return new VerifyEmailResponse(verificationToken);

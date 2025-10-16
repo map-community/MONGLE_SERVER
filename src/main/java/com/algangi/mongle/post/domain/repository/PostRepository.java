@@ -65,7 +65,16 @@ public interface PostRepository extends JpaRepository<Post, String> {
     @Modifying
     @Transactional(propagation = Propagation.MANDATORY)
     @Query("UPDATE Post p " +
-            "SET p.authorId = NULL " +
-            "WHERE p.authorId = :memberId")
+        "SET p.authorId = NULL " +
+        "WHERE p.authorId = :memberId")
     int unlinkMemberFromPosts(@Param("memberId") String memberId);
+
+    long countByAuthorIdAndStatus(String authorId, PostStatus status);
+
+    @Query("SELECT p FROM Post p WHERE p.authorId = :authorId AND p.status = :status ORDER BY p.createdDate ASC")
+    Optional<Post> findOldestPost(@Param("authorId") String authorId,
+        @Param("status") PostStatus status);
+
+    boolean existsByAuthorIdAndS2TokenIdAndStatus(String authorId, String s2TokenId,
+        PostStatus status);
 }

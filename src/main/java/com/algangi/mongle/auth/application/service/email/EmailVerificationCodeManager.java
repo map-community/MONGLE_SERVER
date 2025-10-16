@@ -1,6 +1,6 @@
 package com.algangi.mongle.auth.application.service.email;
 
-public interface VerificationCodeManager {
+public interface EmailVerificationCodeManager {
 
     void save(String email, String code);
 
