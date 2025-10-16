@@ -17,7 +17,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import software.amazon.awssdk.services.cloudfront.CloudFrontUtilities;
 import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
@@ -69,9 +68,8 @@ public class CloudFrontViewUrlIssueService implements ViewUrlIssueService {
 
             String issuedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(signerRequest)
                 .url();
-            LocalDateTime expiresAt = LocalDateTime.now()
-                .plusMinutes(cloudFrontProperties.expirationMinutes());
-            return new PresignedUrl(fileKey, issuedUrl, expiresAt);
+
+            return new PresignedUrl(fileKey, issuedUrl, expirationTime);
 
         } catch (CloudFrontException e) {
             throw new ApplicationException(AwsErrorCode.CLOUDFRONT_PRESIGNED_URL_ISSUE_FAILED, e)

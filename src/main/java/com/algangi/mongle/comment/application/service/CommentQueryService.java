@@ -168,8 +168,7 @@ public class CommentQueryService {
         }
 
         T lastItem = results.get(results.size() - 1);
-        String formattedDate = lastItem.getCreatedAt()
-                .format(DateTimeUtil.CURSOR_DATE_FORMATTER);
+        String formattedDate = lastItem.getCreatedAt().toString();
 
         return switch (sort) {
             case LIKES -> String.format("%d_%s_%s", lastItem.getLikeCount(), formattedDate, lastItem.getId());

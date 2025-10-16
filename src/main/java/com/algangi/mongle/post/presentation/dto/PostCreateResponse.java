@@ -2,7 +2,7 @@ package com.algangi.mongle.post.presentation.dto;
 
 import com.algangi.mongle.post.domain.model.Post;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record PostCreateResponse(
     String id,
@@ -11,7 +11,7 @@ public record PostCreateResponse(
     String s2TokenId,
     Long staticCloudId,
     Long dynamicCloudId,
-    LocalDateTime createdAt
+    Instant createdAt
 ) {
 
     public static PostCreateResponse from(Post post) {

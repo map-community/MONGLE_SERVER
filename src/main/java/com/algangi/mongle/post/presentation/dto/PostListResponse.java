@@ -1,5 +1,6 @@
 package com.algangi.mongle.post.presentation.dto;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -8,7 +9,7 @@ import com.algangi.mongle.post.domain.model.Post;
 import com.algangi.mongle.post.domain.model.PostStatus;
 import com.algangi.mongle.stats.application.dto.PostStats;
 
-import java.time.LocalDateTime;
+
 import lombok.Getter;
 
 @Getter
@@ -38,8 +39,8 @@ public class PostListResponse {
         String myReaction,
         long commentCount,
         long viewCount,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant createdAt,
+        Instant updatedAt
     ) {
 
         public static PostSummary from(Post post, Member author, List<String> photoUrls,

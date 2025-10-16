@@ -1,8 +1,7 @@
 package com.algangi.mongle.comment.presentation.dto;
 
+import java.time.Instant;
 import lombok.Builder;
-
-import java.time.LocalDateTime;
 
 @Builder
 public record CommentInfoResponse(
@@ -12,7 +11,7 @@ public record CommentInfoResponse(
         long likeCount,
         long dislikeCount,
         String myReaction,
-        LocalDateTime createdAt,
+        Instant createdAt,
         boolean isAuthor,
         boolean isDeleted,
         boolean hasReplies

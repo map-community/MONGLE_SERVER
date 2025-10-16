@@ -1,11 +1,11 @@
 package com.algangi.mongle.file.application.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record PresignedUrl(
     String fileKey,
     String url,
-    LocalDateTime expiresAt
+    Instant expiresAt
 ) {
 
 }
