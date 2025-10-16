@@ -1,5 +1,6 @@
 -- V4__add_active_key_index
 CREATE INDEX idx_post_author_id_status ON post (author_id, status);
+CREATE INDEX idx_post_cell_author_status ON post(s2token_id, author_id, status);
 
 ALTER TABLE post
     ADD COLUMN active_key VARCHAR(255)
